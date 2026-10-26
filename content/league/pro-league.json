@@ -1,0 +1,207 @@
+{
+  "competition": "لیگ برتر فوتبال ایران",
+  "season": "۱۴۰۵-۱۴۰۶",
+  "updatedAt": "2026-10-26T14:33:00Z",
+  "isSample": true,
+  "standings": [
+    {
+      "team": "استقلال",
+      "played": 8,
+      "won": 6,
+      "drawn": 2,
+      "lost": 0,
+      "goalsFor": 14,
+      "goalsAgainst": 4,
+      "points": 20
+    },
+    {
+      "team": "پرسپولیس",
+      "played": 8,
+      "won": 6,
+      "drawn": 2,
+      "lost": 0,
+      "goalsFor": 14,
+      "goalsAgainst": 4,
+      "points": 20
+    },
+    {
+      "team": "سپاهان",
+      "played": 8,
+      "won": 6,
+      "drawn": 2,
+      "lost": 0,
+      "goalsFor": 13,
+      "goalsAgainst": 5,
+      "points": 20
+    },
+    {
+      "team": "تراکتور",
+      "played": 8,
+      "won": 5,
+      "drawn": 2,
+      "lost": 1,
+      "goalsFor": 12,
+      "goalsAgainst": 5,
+      "points": 17
+    },
+    {
+      "team": "نساجی مازندران",
+      "played": 8,
+      "won": 5,
+      "drawn": 2,
+      "lost": 1,
+      "goalsFor": 12,
+      "goalsAgainst": 6,
+      "points": 17
+    },
+    {
+      "team": "گل‌گهر سیرجان",
+      "played": 8,
+      "won": 4,
+      "drawn": 3,
+      "lost": 1,
+      "goalsFor": 11,
+      "goalsAgainst": 7,
+      "points": 15
+    },
+    {
+      "team": "فولاد خوزستان",
+      "played": 8,
+      "won": 4,
+      "drawn": 2,
+      "lost": 2,
+      "goalsFor": 10,
+      "goalsAgainst": 7,
+      "points": 14
+    },
+    {
+      "team": "ملوان بندرانزلی",
+      "played": 8,
+      "won": 4,
+      "drawn": 2,
+      "lost": 2,
+      "goalsFor": 10,
+      "goalsAgainst": 8,
+      "points": 14
+    },
+    {
+      "team": "چادرملو اردکان",
+      "played": 8,
+      "won": 3,
+      "drawn": 3,
+      "lost": 2,
+      "goalsFor": 9,
+      "goalsAgainst": 8,
+      "points": 12
+    },
+    {
+      "team": "ذوب‌آهن",
+      "played": 8,
+      "won": 3,
+      "drawn": 2,
+      "lost": 3,
+      "goalsFor": 8,
+      "goalsAgainst": 9,
+      "points": 11
+    },
+    {
+      "team": "آلومینیوم اراک",
+      "played": 8,
+      "won": 2,
+      "drawn": 3,
+      "lost": 3,
+      "goalsFor": 7,
+      "goalsAgainst": 10,
+      "points": 9
+    },
+    {
+      "team": "خیبر خرم‌آباد",
+      "played": 8,
+      "won": 2,
+      "drawn": 3,
+      "lost": 3,
+      "goalsFor": 7,
+      "goalsAgainst": 10,
+      "points": 9
+    },
+    {
+      "team": "شمس آذر قزوین",
+      "played": 8,
+      "won": 2,
+      "drawn": 2,
+      "lost": 4,
+      "goalsFor": 6,
+      "goalsAgainst": 11,
+      "points": 8
+    },
+    {
+      "team": "مس رفسنجان",
+      "played": 8,
+      "won": 1,
+      "drawn": 3,
+      "lost": 4,
+      "goalsFor": 5,
+      "goalsAgainst": 11,
+      "points": 6
+    },
+    {
+      "team": "استقلال خوزستان",
+      "played": 8,
+      "won": 1,
+      "drawn": 3,
+      "lost": 4,
+      "goalsFor": 5,
+      "goalsAgainst": 12,
+      "points": 6
+    },
+    {
+      "team": "هوادار",
+      "played": 8,
+      "won": 0,
+      "drawn": 3,
+      "lost": 5,
+      "goalsFor": 4,
+      "goalsAgainst": 13,
+      "points": 3
+    }
+  ],
+  "fixtures": [
+    {
+      "date": "2026-10-26T13:30:00Z",
+      "home": "نساجی مازندران",
+      "away": "سپاهان",
+      "homeScore": 1,
+      "awayScore": 1,
+      "status": "live",
+      "minute": 63
+    },
+    {
+      "date": "2026-10-26T14:30:00Z",
+      "home": "پرسپولیس",
+      "away": "تراکتور",
+      "status": "scheduled"
+    },
+    {
+      "date": "2026-10-26T15:00:00Z",
+      "home": "استقلال",
+      "away": "ملوان بندرانزلی",
+      "status": "scheduled"
+    },
+    {
+      "date": "2026-10-25T14:00:00Z",
+      "home": "فولاد خوزستان",
+      "away": "گل‌گهر سیرجان",
+      "homeScore": 2,
+      "awayScore": 0,
+      "status": "finished"
+    },
+    {
+      "date": "2026-10-25T14:00:00Z",
+      "home": "ذوب‌آهن",
+      "away": "چادرملو اردکان",
+      "homeScore": 0,
+      "awayScore": 0,
+      "status": "finished"
+    }
+  ]
+}

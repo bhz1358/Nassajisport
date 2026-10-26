@@ -1,0 +1,9 @@
+[
+  { "slug": "news", "name": "اخبار" },
+  { "slug": "video", "name": "ویدیو" },
+  { "slug": "review", "name": "نقد و بررسی" },
+  { "slug": "youth", "name": "تیم پایه" },
+  { "slug": "article", "name": "مقاله" },
+  { "slug": "hazfi-cup", "name": "جام حذفی" },
+  { "slug": "press-conference", "name": "نشست خبری" }
+]

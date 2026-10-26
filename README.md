@@ -1,11 +1,46 @@
-<div align="center">
+# نساجی اسپرت — سایت جدید
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+نسخه‌ی جدید سایت خبری nassajisport.com با Next.js، فارسی و راست‌چین، با تم آبی و اناری.
 
-  <h1>Built with AI Studio</h2>
+## اجرا
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run build && npm start
+npm test           # تست‌های اسکریپت انتقال
+```
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## انتقال داده از وردپرس
 
-</div>
+1. در پیشخوان وردپرس: **ابزارها ← برون‌بری ← همه‌ی محتوا** و دانلود فایل XML.
+2. محتوای پوشه‌ی `wp-content/uploads` سایت قدیم را در `public/uploads/` قرار دهید.
+3. اجرا:
+
+   ```bash
+   npm run import:wp -- path/to/export.xml
+   ```
+
+اسکریپت خروجی را در `content/data/` می‌نویسد و سایت به‌جای محتوای نمونه از آن استفاده می‌کند.
+گزارش کامل (تعداد خبرها، موارد ردشده، عکس‌های جاافتاده) در `content/data/import-report.json` است.
+
+چه چیزهایی منتقل می‌شود:
+
+- خبرها و برگه‌های منتشرشده، **با همان آدرس قبلی** (لینک‌های گوگل و شبکه‌های اجتماعی خراب نمی‌شوند)
+- دسته‌ها، برچسب‌ها، نویسنده، تاریخ انتشار، تصویر شاخص و خبرهای سنجاق‌شده
+- عنوان و توضیحات سئو (Yoast / Rank Math)
+- نظرهای تأییدشده (بدون ایمیل و IP)
+
+پیش‌نویس‌ها و موارد منتشرنشده وارد نمی‌شوند، ولی تعدادشان در گزارش می‌آید.
+
+## نتایج لیگ
+
+فعلاً از `content/league/pro-league.json` خوانده می‌شود (داده‌ی نمونه).
+بعداً یک سرویس نتایج زنده جایگزین آن می‌شود.
+
+## ساختار
+
+- `app/` — صفحه‌ها: خانه، خبر (`[...path]`)، دسته (`category/[slug]`)، مرکز لیگ (`league`)
+- `lib/` — خواندن محتوا، داده‌ی لیگ، تنظیمات منو
+- `scripts/import-wordpress.mjs` — تبدیل خروجی وردپرس
+- `content/sample/` — محتوای نمونه تا وقتی خروجی واقعی وارد شود

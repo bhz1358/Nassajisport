@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0"
+  xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:wp="http://wordpress.org/export/1.2/">
+<channel>
+  <title>سایت آزمایشی</title>
+  <link>https://example.com</link>
+  <description>توضیح سایت</description>
+  <wp:category><wp:term_id>1</wp:term_id><wp:category_nicename>news</wp:category_nicename><wp:category_parent></wp:category_parent><wp:cat_name><![CDATA[اخبار]]></wp:cat_name></wp:category>
+  <wp:category><wp:term_id>2</wp:term_id><wp:category_nicename>%d9%88%db%8c%d8%af%db%8c%d9%88</wp:category_nicename><wp:category_parent>news</wp:category_parent><wp:cat_name><![CDATA[ویدیو]]></wp:cat_name></wp:category>
+
+  <item>
+    <title>تصویر</title>
+    <wp:post_id>10</wp:post_id>
+    <wp:post_type><![CDATA[attachment]]></wp:post_type>
+    <wp:status><![CDATA[inherit]]></wp:status>
+    <wp:attachment_url><![CDATA[https://www.example.com/wp-content/uploads/2026/10/photo.jpg]]></wp:attachment_url>
+  </item>
+
+  <item>
+    <title><![CDATA[خبر اول]]></title>
+    <link>https://example.com/news/%d8%ae%d8%a8%d8%b1-%d8%a7%d9%88%d9%84/</link>
+    <pubDate>Sat, 25 Oct 2026 10:00:00 +0000</pubDate>
+    <dc:creator><![CDATA[editor]]></dc:creator>
+    <content:encoded><![CDATA[<p>متن <img src="https://example.com/wp-content/uploads/2026/10/photo.jpg"></p>]]></content:encoded>
+    <excerpt:encoded><![CDATA[]]></excerpt:encoded>
+    <wp:post_id>11</wp:post_id>
+    <wp:post_date_gmt><![CDATA[2026-10-25 10:00:00]]></wp:post_date_gmt>
+    <wp:post_modified_gmt><![CDATA[2026-10-25 11:00:00]]></wp:post_modified_gmt>
+    <wp:post_name><![CDATA[%d8%ae%d8%a8%d8%b1-%d8%a7%d9%88%d9%84]]></wp:post_name>
+    <wp:status><![CDATA[publish]]></wp:status>
+    <wp:post_type><![CDATA[post]]></wp:post_type>
+    <wp:is_sticky>1</wp:is_sticky>
+    <category domain="category" nicename="news"><![CDATA[اخبار]]></category>
+    <category domain="post_tag" nicename="nassaji"><![CDATA[نساجی]]></category>
+    <wp:postmeta><wp:meta_key><![CDATA[_thumbnail_id]]></wp:meta_key><wp:meta_value><![CDATA[10]]></wp:meta_value></wp:postmeta>
+    <wp:postmeta><wp:meta_key><![CDATA[_yoast_wpseo_metadesc]]></wp:meta_key><wp:meta_value><![CDATA[توضیح سئو]]></wp:meta_value></wp:postmeta>
+    <wp:comment>
+      <wp:comment_id>5</wp:comment_id>
+      <wp:comment_author><![CDATA[هوادار]]></wp:comment_author>
+      <wp:comment_author_email><![CDATA[fan@example.com]]></wp:comment_author_email>
+      <wp:comment_author_IP><![CDATA[1.2.3.4]]></wp:comment_author_IP>
+      <wp:comment_date_gmt><![CDATA[2026-10-25 12:00:00]]></wp:comment_date_gmt>
+      <wp:comment_content><![CDATA[عالی]]></wp:comment_content>
+      <wp:comment_approved><![CDATA[1]]></wp:comment_approved>
+      <wp:comment_parent>0</wp:comment_parent>
+    </wp:comment>
+    <wp:comment>
+      <wp:comment_id>6</wp:comment_id>
+      <wp:comment_author><![CDATA[spam]]></wp:comment_author>
+      <wp:comment_content><![CDATA[spam]]></wp:comment_content>
+      <wp:comment_approved><![CDATA[spam]]></wp:comment_approved>
+    </wp:comment>
+  </item>
+
+  <item>
+    <title><![CDATA[پیش‌نویس]]></title>
+    <link>https://example.com/?p=12</link>
+    <wp:post_id>12</wp:post_id>
+    <wp:status><![CDATA[draft]]></wp:status>
+    <wp:post_type><![CDATA[post]]></wp:post_type>
+  </item>
+
+  <item>
+    <title><![CDATA[درباره ما]]></title>
+    <link>https://example.com/about/</link>
+    <wp:post_id>13</wp:post_id>
+    <wp:post_date_gmt><![CDATA[2026-01-01 00:00:00]]></wp:post_date_gmt>
+    <wp:post_name><![CDATA[about]]></wp:post_name>
+    <wp:status><![CDATA[publish]]></wp:status>
+    <wp:post_type><![CDATA[page]]></wp:post_type>
+    <content:encoded><![CDATA[<p>درباره</p>]]></content:encoded>
+  </item>
+</channel>
+</rss>
