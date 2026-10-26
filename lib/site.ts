@@ -21,3 +21,9 @@ export const SOCIAL = {
 };
 
 export const HOME_TEAM = "نساجی مازندران";
+
+// Categories that get their own look on the home page.
+export const VIDEO_CATEGORY = "video";
+export const OPINION_CATEGORIES = ["review", "article"];
+export const PRESS_CATEGORY = "press-conference";
+export const YOUTH_CATEGORY = "youth";

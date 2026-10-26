@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CategoryBadge, PostCard, SectionTitle, Thumb } from "../components";
-import { getByPath, getContent, getPostsInCategory } from "@/lib/content";
-import { faDate } from "@/lib/format";
+import { ReadingProgress, ShareBar } from "../client";
+import { CategoryBadge, LatestTimeline, SectionHeader, StoryCard, Thumb } from "../components";
+import { getByPath, getContent, getNews, getPostsInCategory } from "@/lib/content";
+import { faDate, faNum, faTime, readingMinutes } from "@/lib/format";
 
 type Props = { params: Promise<{ path: string[] }> };
 
@@ -35,48 +36,85 @@ export default async function PostPage({ params }: Props) {
   const post = await load(params);
   if (!post) notFound();
 
-  const related =
-    post.type === "post" && post.categories[0]
-      ? getPostsInCategory(post.categories[0])
-          .filter((p) => p.id !== post.id)
-          .slice(0, 3)
-      : [];
+  if (post.type === "page") {
+    return (
+      <article className="article article-page">
+        <h1>{post.title}</h1>
+        <div className="prose" dangerouslySetInnerHTML={{ __html: post.content }} />
+      </article>
+    );
+  }
+
+  const related = post.categories[0]
+    ? getPostsInCategory(post.categories[0])
+        .filter((p) => p.id !== post.id)
+        .slice(0, 3)
+    : [];
+  const latest = getNews()
+    .filter((p) => p.id !== post.id)
+    .slice(0, 6);
 
   return (
-    <article className="article">
-      <header className="article-head">
-        {post.categories.map((c) => (
-          <Link key={c} href={`/category/${c}/`}>
-            <CategoryBadge slug={c} />
-          </Link>
-        ))}
-        <h1>{post.title}</h1>
-        {post.type === "post" && (
-          <p className="muted">
-            {post.author && <span>{post.author} · </span>}
-            <time dateTime={post.date}>{faDate(post.date)}</time>
-          </p>
-        )}
-      </header>
-      {post.featuredImage && <Thumb post={post} className="article-image" />}
-      <div className="prose" dangerouslySetInnerHTML={{ __html: post.content }} />
-      {post.tags.length > 0 && (
-        <p className="tags">
-          {post.tags.map((t) => (
-            <span key={t}>#{t}</span>
-          ))}
-        </p>
-      )}
+    <>
+      <ReadingProgress />
+      <div className="article-layout">
+        <article className="article">
+          <header className="article-head">
+            <div className="article-cats">
+              {post.categories.map((c) => (
+                <Link key={c} href={`/category/${c}/`}>
+                  <CategoryBadge slug={c} />
+                </Link>
+              ))}
+            </div>
+            <h1>{post.title}</h1>
+            {post.excerpt && <p className="article-lede">{post.excerpt}</p>}
+            <div className="article-meta">
+              <span className="avatar" aria-hidden="true">
+                {(post.author ?? "ت").charAt(0)}
+              </span>
+              <div>
+                <strong>{post.author ?? "تحریریه"}</strong>
+                <span>
+                  <time dateTime={post.date}>
+                    {faDate(post.date)} · ساعت {faTime(post.date)}
+                  </time>
+                  {" · "}
+                  {faNum(readingMinutes(post.content))} دقیقه مطالعه
+                </span>
+              </div>
+            </div>
+          </header>
+          {post.featuredImage && <Thumb post={post} className="article-image" />}
+          <div className="prose" dangerouslySetInnerHTML={{ __html: post.content }} />
+          {post.tags.length > 0 && (
+            <p className="tags">
+              {post.tags.map((t) => (
+                <span key={t}>#{t}</span>
+              ))}
+            </p>
+          )}
+          <ShareBar title={post.title} />
+        </article>
+
+        <aside className="sticky-side">
+          <div className="panel">
+            <SectionHeader title="آخرین اخبار" />
+            <LatestTimeline posts={latest} />
+          </div>
+        </aside>
+      </div>
+
       {related.length > 0 && (
-        <section>
-          <SectionTitle>مطالب مرتبط</SectionTitle>
-          <div className="cards">
+        <section className="block">
+          <SectionHeader title="مطالب مرتبط" href={`/category/${post.categories[0]}/`} />
+          <div className="rail rail-3">
             {related.map((p) => (
-              <PostCard key={p.id} post={p} />
+              <StoryCard key={p.id} post={p} />
             ))}
           </div>
         </section>
       )}
-    </article>
+    </>
   );
 }

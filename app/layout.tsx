@@ -1,8 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "vazirmatn/Vazirmatn-font-face.css";
 import "./globals.css";
-import { getContent, getNews } from "@/lib/content";
+import { MainNav, TabBar } from "./client";
+import { ScoreStrip } from "./components";
+import { getContent } from "@/lib/content";
+import { getLeague } from "@/lib/league";
 import { NAV, SOCIAL, TICKETS_URL } from "@/lib/site";
 
 export function generateMetadata(): Metadata {
@@ -13,64 +16,62 @@ export function generateMetadata(): Metadata {
   };
 }
 
+export const viewport: Viewport = {
+  themeColor: "#0d2b5e",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const { site } = getContent();
-  const breaking = getNews().slice(0, 5);
+  const league = getLeague();
+  // Live first, then upcoming, then latest results.
+  const order = { live: 0, scheduled: 1, finished: 2 } as const;
+  const strip = [...league.fixtures].sort((a, b) => order[a.status] - order[b.status] || a.date.localeCompare(b.date));
+
   return (
     <html lang="fa" dir="rtl">
       <body>
+        <a href="#main" className="skip-link">
+          رفتن به محتوا
+        </a>
+        <ScoreStrip fixtures={strip} />
         <header className="site-header">
-          <div className="topbar">
-            <div className="container topbar-inner">
-              <span>{site.description}</span>
-              <div className="social">
-                <a href={SOCIAL.instagram} aria-label="اینستاگرام">اینستاگرام</a>
-                <a href={SOCIAL.telegram} aria-label="تلگرام">تلگرام</a>
-              </div>
-            </div>
+          <div className="container header-inner">
+            <Link href="/" className="logo" aria-label={site.title}>
+              <span className="logo-mark">N</span>
+              <span className="logo-text">
+                <strong>{site.title}</strong>
+                <small>پایگاه خبری تحلیلی</small>
+              </span>
+            </Link>
+            <MainNav items={NAV} />
+            <a className="btn btn-primary header-tickets" href={TICKETS_URL} target="_blank" rel="noopener">
+              خرید بلیت
+            </a>
           </div>
-          <div className="mainbar">
-            <div className="container mainbar-inner">
-              <Link href="/" className="logo">
-                <span className="logo-mark">N</span>
-                <span>{site.title}</span>
-              </Link>
-              <a className="tickets" href={TICKETS_URL} target="_blank" rel="noopener">
-                خرید بلیت بازی
-              </a>
+        </header>
+        <main id="main" className="container main">
+          {children}
+        </main>
+        <footer className="site-footer">
+          <div className="container footer-inner">
+            <div>
+              <strong>{site.title}</strong>
+              <p>{site.description}</p>
             </div>
-          </div>
-          <nav className="nav">
-            <div className="container nav-inner">
-              {NAV.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  {item.label}
+            <nav className="footer-links" aria-label="بخش‌ها">
+              {NAV.slice(1).map((n) => (
+                <Link key={n.href} href={n.href}>
+                  {n.label}
                 </Link>
               ))}
+            </nav>
+            <div className="footer-social">
+              <a href={SOCIAL.instagram}>اینستاگرام</a>
+              <a href={SOCIAL.telegram}>تلگرام</a>
             </div>
-          </nav>
-          {breaking.length > 0 && (
-            <div className="container">
-              <div className="ticker">
-                <span className="ticker-label">اخبار داغ</span>
-                <div className="ticker-track">
-                  {breaking.map((p) => (
-                    <Link key={p.id} href={p.path}>
-                      {p.title}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </header>
-        <main className="container main">{children}</main>
-        <footer className="site-footer">
-          <div className="container">
-            <strong>{site.title}</strong>
-            <p>{site.description}</p>
           </div>
         </footer>
+        <TabBar ticketsUrl={TICKETS_URL} />
       </body>
     </html>
   );

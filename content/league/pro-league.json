@@ -12,7 +12,14 @@
       "lost": 0,
       "goalsFor": 14,
       "goalsAgainst": 4,
-      "points": 20
+      "points": 20,
+      "form": [
+        "W",
+        "W",
+        "D",
+        "W",
+        "W"
+      ]
     },
     {
       "team": "پرسپولیس",
@@ -22,7 +29,14 @@
       "lost": 0,
       "goalsFor": 14,
       "goalsAgainst": 4,
-      "points": 20
+      "points": 20,
+      "form": [
+        "W",
+        "D",
+        "W",
+        "W",
+        "L"
+      ]
     },
     {
       "team": "سپاهان",
@@ -32,7 +46,14 @@
       "lost": 0,
       "goalsFor": 13,
       "goalsAgainst": 5,
-      "points": 20
+      "points": 20,
+      "form": [
+        "W",
+        "W",
+        "W",
+        "D",
+        "L"
+      ]
     },
     {
       "team": "تراکتور",
@@ -42,7 +63,14 @@
       "lost": 1,
       "goalsFor": 12,
       "goalsAgainst": 5,
-      "points": 17
+      "points": 17,
+      "form": [
+        "D",
+        "W",
+        "W",
+        "L",
+        "W"
+      ]
     },
     {
       "team": "نساجی مازندران",
@@ -52,7 +80,14 @@
       "lost": 1,
       "goalsFor": 12,
       "goalsAgainst": 6,
-      "points": 17
+      "points": 17,
+      "form": [
+        "W",
+        "D",
+        "W",
+        "L",
+        "W"
+      ]
     },
     {
       "team": "گل‌گهر سیرجان",
@@ -62,7 +97,14 @@
       "lost": 1,
       "goalsFor": 11,
       "goalsAgainst": 7,
-      "points": 15
+      "points": 15,
+      "form": [
+        "L",
+        "W",
+        "D",
+        "W",
+        "D"
+      ]
     },
     {
       "team": "فولاد خوزستان",
@@ -72,7 +114,14 @@
       "lost": 2,
       "goalsFor": 10,
       "goalsAgainst": 7,
-      "points": 14
+      "points": 14,
+      "form": [
+        "W",
+        "L",
+        "D",
+        "W",
+        "L"
+      ]
     },
     {
       "team": "ملوان بندرانزلی",
@@ -82,7 +131,14 @@
       "lost": 2,
       "goalsFor": 10,
       "goalsAgainst": 8,
-      "points": 14
+      "points": 14,
+      "form": [
+        "D",
+        "L",
+        "W",
+        "W",
+        "L"
+      ]
     },
     {
       "team": "چادرملو اردکان",
@@ -92,7 +148,14 @@
       "lost": 2,
       "goalsFor": 9,
       "goalsAgainst": 8,
-      "points": 12
+      "points": 12,
+      "form": [
+        "L",
+        "D",
+        "W",
+        "D",
+        "W"
+      ]
     },
     {
       "team": "ذوب‌آهن",
@@ -102,7 +165,14 @@
       "lost": 3,
       "goalsFor": 8,
       "goalsAgainst": 9,
-      "points": 11
+      "points": 11,
+      "form": [
+        "D",
+        "L",
+        "D",
+        "W",
+        "L"
+      ]
     },
     {
       "team": "آلومینیوم اراک",
@@ -112,7 +182,14 @@
       "lost": 3,
       "goalsFor": 7,
       "goalsAgainst": 10,
-      "points": 9
+      "points": 9,
+      "form": [
+        "L",
+        "D",
+        "L",
+        "W",
+        "D"
+      ]
     },
     {
       "team": "خیبر خرم‌آباد",
@@ -122,7 +199,14 @@
       "lost": 3,
       "goalsFor": 7,
       "goalsAgainst": 10,
-      "points": 9
+      "points": 9,
+      "form": [
+        "D",
+        "L",
+        "L",
+        "D",
+        "W"
+      ]
     },
     {
       "team": "شمس آذر قزوین",
@@ -132,7 +216,14 @@
       "lost": 4,
       "goalsFor": 6,
       "goalsAgainst": 11,
-      "points": 8
+      "points": 8,
+      "form": [
+        "L",
+        "L",
+        "D",
+        "W",
+        "L"
+      ]
     },
     {
       "team": "مس رفسنجان",
@@ -142,7 +233,14 @@
       "lost": 4,
       "goalsFor": 5,
       "goalsAgainst": 11,
-      "points": 6
+      "points": 6,
+      "form": [
+        "W",
+        "L",
+        "L",
+        "D",
+        "L"
+      ]
     },
     {
       "team": "استقلال خوزستان",
@@ -152,7 +250,14 @@
       "lost": 4,
       "goalsFor": 5,
       "goalsAgainst": 12,
-      "points": 6
+      "points": 6,
+      "form": [
+        "L",
+        "L",
+        "D",
+        "L",
+        "D"
+      ]
     },
     {
       "team": "هوادار",
@@ -162,7 +267,14 @@
       "lost": 5,
       "goalsFor": 4,
       "goalsAgainst": 13,
-      "points": 3
+      "points": 3,
+      "form": [
+        "L",
+        "L",
+        "L",
+        "D",
+        "L"
+      ]
     }
   ],
   "fixtures": [
@@ -173,7 +285,8 @@
       "homeScore": 1,
       "awayScore": 1,
       "status": "live",
-      "minute": 63
+      "minute": 63,
+      "venue": "ورزشگاه وطنی قائم‌شهر"
     },
     {
       "date": "2026-10-26T14:30:00Z",
@@ -202,6 +315,13 @@
       "homeScore": 0,
       "awayScore": 0,
       "status": "finished"
+    },
+    {
+      "date": "2026-11-01T14:00:00Z",
+      "home": "گل‌گهر سیرجان",
+      "away": "نساجی مازندران",
+      "status": "scheduled",
+      "venue": "ورزشگاه امام علی سیرجان"
     }
   ]
 }

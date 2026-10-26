@@ -40,6 +40,8 @@ export type StandingRow = {
   goalsFor: number;
   goalsAgainst: number;
   points: number;
+  /** Last results, oldest first. */
+  form?: ("W" | "D" | "L")[];
 };
 
 export type Fixture = {
@@ -50,6 +52,7 @@ export type Fixture = {
   awayScore?: number;
   status: "scheduled" | "live" | "finished";
   minute?: number;
+  venue?: string;
 };
 
 export type LeagueData = {
