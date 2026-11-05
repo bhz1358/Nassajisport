@@ -8,12 +8,12 @@ import {
   QuoteCard,
   SampleNotice,
   SectionHeader,
-  StandingsTable,
+  HomeStandings,
   StoryRow,
   VideoCard,
 } from "./components";
 import { categoryName, getNews, isSampleContent } from "@/lib/content";
-import { getLeague, tableAroundClub } from "@/lib/league";
+import { getLeague } from "@/lib/league";
 import { postImage } from "@/lib/images";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { HOME_TEAM, OPINION_CATEGORIES, PRESS_CATEGORY, VIDEO_CATEGORY } from "@/lib/site";
@@ -35,7 +35,6 @@ export default function Home() {
   const isSample = isSampleContent();
   const news = getNews();
   const league = getLeague();
-  const around = tableAroundClub(league.standings);
   const logo = logoUrl(getSettings());
 
   // Each story appears once on the page: take() hands out posts that were not used yet.
@@ -103,7 +102,7 @@ export default function Home() {
           </div>
           <div className="panel">
             <SectionHeader title="جدول رده‌بندی لیگ" href="/league/" />
-            <StandingsTable rows={around.rows} offset={around.offset} compact />
+            <HomeStandings rows={league.standings} />
           </div>
         </aside>
       </div>

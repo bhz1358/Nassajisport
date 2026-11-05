@@ -350,6 +350,46 @@ export function FormDots({ form }: { form?: StandingRow["form"] }) {
 /** A dash for columns the source table did not give (see StandingRow.partial). */
 const known = (r: StandingRow, n: number) => (r.partial ? "—" : faNum(n));
 
+/** Home page table: every team, only played / won / lost / points. */
+export function HomeStandings({ rows }: { rows: StandingRow[] }) {
+  return (
+    <table className="standings is-home-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th className="team-col">تیم</th>
+          <th>بازی</th>
+          <th>برد</th>
+          <th>باخت</th>
+          <th>امتیاز</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr key={r.team} className={r.team === HOME_TEAM ? "is-club" : ""}>
+            <td className="pos">{faNum(i + 1)}</td>
+            <td className="team-col">
+              <Crest team={r.team} size={18} />
+              <span className="team-name">{r.team}</span>
+            </td>
+            <td>{faNum(r.played)}</td>
+            <td>{known(r, r.won)}</td>
+            <td>{known(r, r.lost)}</td>
+            <td className="pts">
+              {faNum(r.points)}
+              {r.deducted ? (
+                <sup className="deducted" title={`${faNum(r.deducted)} امتیاز کسر شده`}>
+                  −{faNum(r.deducted)}
+                </sup>
+              ) : null}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export function StandingsTable({ rows, offset = 0, compact = false }: { rows: StandingRow[]; offset?: number; compact?: boolean }) {
   return (
     <table className={`standings ${compact ? "is-compact" : ""}`}>

@@ -509,6 +509,12 @@ a:hover .play { transform: scale(1.08); }
 .standings tr.is-club .pos, .standings tr.is-club .pts { color: var(--acc-500); }
 :root[data-mode="light"] .standings tr.is-club td { color: var(--heading); }
 .table-scroll { overflow-x: auto; }
+/* Home sidebar: the full table in a narrow column. */
+.standings.is-home-table { font-size: 0.82rem; border-spacing: 0 3px; }
+.standings.is-home-table td { padding: 7px 3px; }
+.standings.is-home-table th:nth-child(n + 3), .standings.is-home-table td:nth-child(n + 3) { width: 40px; }
+.standings.is-home-table .team-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.standings.is-home-table td.team-col { max-width: 150px; }
 
 .form { display: inline-flex; gap: 3px; }
 .form span, .legend span {
