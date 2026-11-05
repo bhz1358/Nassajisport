@@ -55,6 +55,45 @@ export type Fixture = {
   venue?: string;
 };
 
+export type Position = "GK" | "DF" | "MF" | "FW";
+
+export type Player = {
+  slug: string;
+  name: string;
+  number: number;
+  position: Position;
+  birthDate?: string;
+  heightCm?: number;
+  foot?: string;
+  nationality?: string;
+  photo?: string;
+  bio?: string;
+  stats: {
+    appearances: number;
+    minutes: number;
+    goals: number;
+    assists: number;
+    yellowCards: number;
+    redCards: number;
+    cleanSheets?: number;
+  };
+};
+
+export type Squad = {
+  season: string;
+  isSample: boolean;
+  players: Player[];
+  staff: { role: string; name: string; photo?: string }[];
+  lineup?: {
+    match: string;
+    date: string;
+    /** e.g. "4-3-3"; starters are listed goalkeeper first, then each line from right to left. */
+    formation: string;
+    starters: string[];
+    substitutes: string[];
+  };
+};
+
 export type LeagueData = {
   competition: string;
   season: string;

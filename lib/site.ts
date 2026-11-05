@@ -3,6 +3,7 @@
 export const NAV: { label: string; href: string; external?: boolean }[] = [
   { label: "خانه", href: "/" },
   { label: "اخبار", href: "/category/news/" },
+  { label: "تیم", href: "/team/" },
   { label: "ویدیو", href: "/category/video/" },
   { label: "نقد و بررسی", href: "/category/review/" },
   { label: "تیم پایه", href: "/category/youth/" },

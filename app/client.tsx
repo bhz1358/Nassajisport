@@ -71,8 +71,8 @@ export function MainNav({ items }: { items: NavItem[] }) {
 const TABS = [
   { label: "خانه", href: "/", icon: "M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z" },
   { label: "نتایج", href: "/league/", icon: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4l3 2.2-1.2 3.6h-3.6L9 8.2z" },
+  { label: "تیم", href: "/team/", icon: "M8 3L2 6l2 6 3-1v10h10V11l3 1 2-6-6-3c-.5 1.7-2 3-4 3S8.5 4.7 8 3z" },
   { label: "ویدیو", href: "/category/video/", icon: "M4 5h12a2 2 0 0 1 2 2v2.5l4-2.5v10l-4-2.5V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" },
-  { label: "تحلیل", href: "/category/review/", icon: "M4 4h16v2H4zm0 5h16v2H4zm0 5h10v2H4zm0 5h10v2H4z" },
 ];
 
 /** Thumb-reachable navigation on phones. */

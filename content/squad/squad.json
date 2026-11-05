@@ -1,0 +1,477 @@
+{
+  "season": "۱۴۰۵-۱۴۰۶",
+  "isSample": true,
+  "players": [
+    {
+      "slug": "player-1",
+      "name": "دروازه‌بان نمونه ۱",
+      "number": 1,
+      "position": "GK",
+      "birthDate": "2002-02-11",
+      "heightCm": 177,
+      "foot": "چپ",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 5,
+        "minutes": 355,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 1,
+        "redCards": 0,
+        "cleanSheets": 3
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-12",
+      "name": "دروازه‌بان نمونه ۲",
+      "number": 12,
+      "position": "GK",
+      "birthDate": "1999-03-12",
+      "heightCm": 182,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 2,
+        "minutes": 164,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 2,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-22",
+      "name": "دروازه‌بان نمونه ۳",
+      "number": 22,
+      "position": "GK",
+      "birthDate": "1996-04-13",
+      "heightCm": 187,
+      "foot": "هر دو",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 6,
+        "minutes": 378,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-2",
+      "name": "مدافع نمونه ۱",
+      "number": 2,
+      "position": "DF",
+      "birthDate": "2003-05-14",
+      "heightCm": 172,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 3,
+        "minutes": 222,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 1,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-3",
+      "name": "مدافع نمونه ۲",
+      "number": 3,
+      "position": "DF",
+      "birthDate": "2000-06-15",
+      "heightCm": 177,
+      "foot": "چپ",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 7,
+        "minutes": 595,
+        "goals": 0,
+        "assists": 1,
+        "yellowCards": 2,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-4",
+      "name": "مدافع نمونه ۳",
+      "number": 4,
+      "position": "DF",
+      "birthDate": "1997-07-16",
+      "heightCm": 182,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 4,
+        "minutes": 264,
+        "goals": 0,
+        "assists": 2,
+        "yellowCards": 0,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-5",
+      "name": "مدافع نمونه ۴",
+      "number": 5,
+      "position": "DF",
+      "birthDate": "2004-08-17",
+      "heightCm": 187,
+      "foot": "هر دو",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 8,
+        "minutes": 616,
+        "goals": 1,
+        "assists": 3,
+        "yellowCards": 1,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-13",
+      "name": "مدافع نمونه ۵",
+      "number": 13,
+      "position": "DF",
+      "birthDate": "2001-09-18",
+      "heightCm": 172,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 5,
+        "minutes": 440,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 2,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-15",
+      "name": "مدافع نمونه ۶",
+      "number": 15,
+      "position": "DF",
+      "birthDate": "1998-01-10",
+      "heightCm": 177,
+      "foot": "چپ",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 2,
+        "minutes": 138,
+        "goals": 0,
+        "assists": 1,
+        "yellowCards": 0,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-24",
+      "name": "مدافع نمونه ۷",
+      "number": 24,
+      "position": "DF",
+      "birthDate": "1995-02-11",
+      "heightCm": 182,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 6,
+        "minutes": 480,
+        "goals": 0,
+        "assists": 2,
+        "yellowCards": 1,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-6",
+      "name": "هافبک نمونه ۱",
+      "number": 6,
+      "position": "MF",
+      "birthDate": "2002-03-12",
+      "heightCm": 187,
+      "foot": "هر دو",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 3,
+        "minutes": 183,
+        "goals": 2,
+        "assists": 3,
+        "yellowCards": 2,
+        "redCards": 1
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-8",
+      "name": "هافبک نمونه ۲",
+      "number": 8,
+      "position": "MF",
+      "birthDate": "1999-04-13",
+      "heightCm": 172,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 7,
+        "minutes": 504,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-10",
+      "name": "هافبک نمونه ۳",
+      "number": 10,
+      "position": "MF",
+      "birthDate": "1996-05-14",
+      "heightCm": 177,
+      "foot": "چپ",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 4,
+        "minutes": 332,
+        "goals": 1,
+        "assists": 1,
+        "yellowCards": 1,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-14",
+      "name": "هافبک نمونه ۴",
+      "number": 14,
+      "position": "MF",
+      "birthDate": "2003-06-15",
+      "heightCm": 182,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 8,
+        "minutes": 512,
+        "goals": 2,
+        "assists": 2,
+        "yellowCards": 2,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-16",
+      "name": "هافبک نمونه ۵",
+      "number": 16,
+      "position": "MF",
+      "birthDate": "2000-07-16",
+      "heightCm": 187,
+      "foot": "هر دو",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 5,
+        "minutes": 375,
+        "goals": 0,
+        "assists": 3,
+        "yellowCards": 0,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-18",
+      "name": "هافبک نمونه ۶",
+      "number": 18,
+      "position": "MF",
+      "birthDate": "1997-08-17",
+      "heightCm": 172,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 2,
+        "minutes": 172,
+        "goals": 1,
+        "assists": 0,
+        "yellowCards": 1,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-20",
+      "name": "هافبک نمونه ۷",
+      "number": 20,
+      "position": "MF",
+      "birthDate": "2004-09-18",
+      "heightCm": 177,
+      "foot": "چپ",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 6,
+        "minutes": 402,
+        "goals": 2,
+        "assists": 1,
+        "yellowCards": 2,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-7",
+      "name": "مهاجم نمونه ۱",
+      "number": 7,
+      "position": "FW",
+      "birthDate": "2001-01-10",
+      "heightCm": 182,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 3,
+        "minutes": 234,
+        "goals": 3,
+        "assists": 2,
+        "yellowCards": 0,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-9",
+      "name": "مهاجم نمونه ۲",
+      "number": 9,
+      "position": "FW",
+      "birthDate": "1998-02-11",
+      "heightCm": 187,
+      "foot": "هر دو",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 7,
+        "minutes": 623,
+        "goals": 4,
+        "assists": 3,
+        "yellowCards": 1,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-11",
+      "name": "مهاجم نمونه ۳",
+      "number": 11,
+      "position": "FW",
+      "birthDate": "1995-03-12",
+      "heightCm": 172,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 4,
+        "minutes": 280,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 2,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-19",
+      "name": "مهاجم نمونه ۴",
+      "number": 19,
+      "position": "FW",
+      "birthDate": "2002-04-13",
+      "heightCm": 177,
+      "foot": "چپ",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 8,
+        "minutes": 648,
+        "goals": 1,
+        "assists": 1,
+        "yellowCards": 0,
+        "redCards": 0
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    },
+    {
+      "slug": "player-27",
+      "name": "مهاجم نمونه ۵",
+      "number": 27,
+      "position": "FW",
+      "birthDate": "1999-05-14",
+      "heightCm": 182,
+      "foot": "راست",
+      "nationality": "ایران",
+      "stats": {
+        "appearances": 5,
+        "minutes": 310,
+        "goals": 2,
+        "assists": 2,
+        "yellowCards": 1,
+        "redCards": 1
+      },
+      "bio": "این بازیکن نمونه است. اطلاعات واقعی بازیکنان (عکس، آمار، سوابق) بعداً از پنل مدیریت یا سرویس داده وارد می‌شود."
+    }
+  ],
+  "staff": [
+    {
+      "role": "سرمربی",
+      "name": "سرمربی نمونه"
+    },
+    {
+      "role": "مربی",
+      "name": "دستیار نمونه ۱"
+    },
+    {
+      "role": "مربی",
+      "name": "دستیار نمونه ۲"
+    },
+    {
+      "role": "مربی دروازه‌بان‌ها",
+      "name": "مربی دروازه‌بان نمونه"
+    },
+    {
+      "role": "بدنساز",
+      "name": "بدنساز نمونه"
+    },
+    {
+      "role": "پزشک تیم",
+      "name": "پزشک نمونه"
+    }
+  ],
+  "lineup": {
+    "match": "نساجی مازندران - سپاهان",
+    "date": "2026-10-26T13:30:00Z",
+    "formation": "4-3-3",
+    "starters": [
+      "player-1",
+      "player-2",
+      "player-4",
+      "player-5",
+      "player-3",
+      "player-6",
+      "player-8",
+      "player-10",
+      "player-7",
+      "player-9",
+      "player-11"
+    ],
+    "substitutes": [
+      "player-12",
+      "player-13",
+      "player-14",
+      "player-16",
+      "player-19",
+      "player-24"
+    ]
+  }
+}
