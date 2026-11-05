@@ -2,6 +2,7 @@ import Link from "next/link";
 import { categoryName } from "@/lib/content";
 import { faNum, faShortDate, faTime, faWeekday, readingMinutes } from "@/lib/format";
 import { postImage } from "@/lib/images";
+import { getLeague } from "@/lib/league";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { HOME_TEAM, VIDEO_CATEGORY } from "@/lib/site";
 import { splitTitle } from "@/lib/title";
@@ -220,6 +221,11 @@ export function BreakingBar({ posts }: { posts: Post[] }) {
 const CREST_COLORS = ["#6d28d9", "#b91c1c", "#0f766e", "#1d4ed8", "#b45309", "#0369a1", "#be185d", "#4d7c0f"];
 
 export function Crest({ team, size = 28 }: { team: string; size?: number }) {
+  const logo = getLeague().teamLogos?.[team];
+  if (logo) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={logo} alt="" className="crest crest-img" width={size} height={size} style={{ width: size, height: size }} loading="lazy" />;
+  }
   const color =
     team === HOME_TEAM ? "var(--brand-600)" : CREST_COLORS[[...team].reduce((a, c) => a + c.charCodeAt(0), 0) % CREST_COLORS.length];
   return (
@@ -250,6 +256,69 @@ function StatusLabel({ f }: { f: Fixture }) {
     );
   if (f.status === "finished") return <span className="status">پایان بازی</span>;
   return <span className="status">{faShortDate(f.date)}</span>;
+}
+
+/** Sidebar card: the club's next match with matchweek, crests, day, time and venue. */
+export function NextMatchCard({ f }: { f?: Fixture }) {
+  if (!f) {
+    return (
+      <div className="next-match is-empty">
+        <span className="next-match-label">دیدار بعدی</span>
+        <p className="muted">برنامه‌ی بازی بعدی هنوز ثبت نشده.</p>
+      </div>
+    );
+  }
+  const live = f.status === "live";
+  return (
+    <Link href="/league/" className={`next-match ${live ? "is-live" : ""}`}>
+      <div className="next-match-top">
+        <span className="next-match-label">{live ? "در حال برگزاری" : "دیدار بعدی"}</span>
+        {f.round ? <span className="next-match-round">هفته {faNum(f.round)}</span> : null}
+      </div>
+      <div className="next-match-teams">
+        <div className="nm-team">
+          <Crest team={f.home} size={60} />
+          <strong>{f.home}</strong>
+        </div>
+        <div className="nm-center">
+          {live ? (
+            <span className="nm-score" dir="ltr">
+              {faNum(f.awayScore ?? 0)} - {faNum(f.homeScore ?? 0)}
+            </span>
+          ) : (
+            <span className="nm-time">{faTime(f.date)}</span>
+          )}
+          <span className="nm-date">{live ? `دقیقه ${faNum(f.minute ?? 0)}` : faWeekday(f.date)}</span>
+        </div>
+        <div className="nm-team">
+          <Crest team={f.away} size={60} />
+          <strong>{f.away}</strong>
+        </div>
+      </div>
+      {f.venue && <div className="next-match-foot">{f.venue}</div>}
+    </Link>
+  );
+}
+
+/** Compact result rows for the sidebar. */
+export function ResultList({ fixtures }: { fixtures: Fixture[] }) {
+  return (
+    <ul className="result-list">
+      {fixtures.map((f, i) => (
+        <li key={i} className={f.home === HOME_TEAM || f.away === HOME_TEAM ? "is-club" : ""}>
+          <span className="rl-team rl-home">
+            <span className="rl-name">{f.home}</span>
+            <Crest team={f.home} size={22} />
+          </span>
+          <Score f={f} />
+          <span className="rl-team rl-away">
+            <Crest team={f.away} size={22} />
+            <span className="rl-name">{f.away}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 /** Compact pill in the header: the club's live or next match. */

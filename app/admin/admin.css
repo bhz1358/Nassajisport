@@ -237,3 +237,13 @@ a.a-stat:hover { border-color: var(--brand-600); }
   .a-grid-2, .a-row { grid-template-columns: 1fr; }
   .a-inline-form { grid-template-columns: 1fr 1fr; }
 }
+
+/* Team logos */
+.a-logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.a-logo-card { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; align-content: start; }
+.a-logo-card strong { color: var(--heading); font-size: 0.9rem; }
+.a-logo-card .image-field-box { aspect-ratio: 1; max-width: 96px; margin: 0 auto; background: var(--surface-2); }
+.a-logo-card .image-field-box img { object-fit: contain; padding: 8px; }
+.a-logo-card input[type="file"] { font-size: 0.75rem; }
+.a-paste-fixtures { display: grid; gap: 8px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.a-paste-fixtures .a-btn { justify-self: start; }

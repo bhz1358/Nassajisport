@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { deleteFixture, pasteStandings, saveFixture, saveLeagueInfo, saveStandings, syncStandings, undoStandings } from "./actions";
+import { deleteFixture, pasteFixtures, pasteStandings, saveFixture, saveLeagueInfo, saveStandings, saveTeamLogo, syncStandings, undoStandings } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
-import { SubmitButton } from "../../ui-client";
+import { ImageField, SubmitButton } from "../../ui-client";
 import { faDate } from "@/lib/format";
 import { isoToJalaliParts } from "@/lib/jalali";
 import { getLeague } from "@/lib/league";
@@ -17,6 +17,9 @@ function FixtureForm({ f, index }: { f?: Fixture; index: number | "new" }) {
   const when = isoToJalaliParts(f?.date);
   return (
     <tr className={f?.status === "live" ? "is-live" : ""}>
+      <td>
+        <input form={id} name="round" defaultValue={f?.round ?? ""} inputMode="numeric" className="a-narrow" aria-label="هفته" placeholder="هفته" />
+      </td>
       <td>
         <input form={id} name="home" defaultValue={f?.home} list="teams" required aria-label="میزبان" />
       </td>
@@ -72,6 +75,8 @@ function FixtureForm({ f, index }: { f?: Fixture; index: number | "new" }) {
 export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const league = getLeague();
   const teams = league.standings.map((r) => r.team);
+  // Every team in the table or the schedule, table order first.
+  const teamsForLogos = [...new Set([...teams, ...league.fixtures.flatMap((f) => [f.home, f.away])])];
   const rows = [...league.standings, ...Array.from({ length: EXTRA_ROWS }, () => undefined)];
 
   return (
@@ -137,6 +142,17 @@ export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Re
 
       <section id="fixtures" className="a-card">
         <h2>بازی‌ها</h2>
+        <form action={pasteFixtures} className="a-paste-fixtures">
+          <h3 className="a-subtitle">افزودن برنامه با کپی از ورزش سه</h3>
+          <p className="a-hint">
+            در صفحه‌ی برنامه‌ی بازی‌های ورزش سه، از سطر «هفته» تا آخرین بازی را انتخاب و کپی کنید و اینجا بچسبانید. چند هفته را هم با هم می‌شود. بازی‌های تکراری به‌روز می‌شوند، نه دوبار ثبت.
+          </p>
+          <textarea name="schedule" rows={6} required placeholder={"12 هفته\n1405/08/15\n15:30\nسپاهان\nسپاهان\n-\nملوان\nملوان"} />
+          <label className="a-check">
+            <input type="checkbox" name="dropUnnumbered" defaultChecked={league.fixtures.some((f) => !f.round)} /> بازی‌های قبلی بدون شماره‌ی هفته (مثل بازی‌های نمونه) حذف شوند
+          </label>
+          <SubmitButton>افزودن برنامه</SubmitButton>
+        </form>
         <p className="a-hint">
           برای نتیجه‌ی زنده: وضعیت را «در جریان» بگذارید و بعد از هر گل، نتیجه و دقیقه را ذخیره کنید. سایت بلافاصله به‌روز می‌شود.
           تاریخ‌ها شمسی و به وقت تهران است.
@@ -145,6 +161,7 @@ export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Re
           <table className="a-table a-table-form">
             <thead>
               <tr>
+                <th>هفته</th>
                 <th>میزبان</th>
                 <th>نتیجه</th>
                 <th>میهمان</th>
@@ -163,6 +180,23 @@ export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Re
               <FixtureForm index="new" />
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section id="logos" className="a-card">
+        <h2>لوگوی تیم‌ها</h2>
+        <p className="a-hint">
+          لوگوی هر تیم را بارگذاری کنید؛ در جدول، دیدار بعدی و نتایج نشان داده می‌شود. عکس خودکار به WebP تبدیل می‌شود. بهترین نتیجه: لوگوی مربعی با پس‌زمینه‌ی شفاف (PNG).
+        </p>
+        <div className="a-logo-grid">
+          {teamsForLogos.map((team) => (
+            <form key={team} action={saveTeamLogo} className="a-logo-card">
+              <input type="hidden" name="team" value={team} />
+              <strong>{team}</strong>
+              <ImageField name="logo" defaultValue={league.teamLogos?.[team]} label="" />
+              <SubmitButton className="a-btn a-btn-small a-btn-primary">ذخیره</SubmitButton>
+            </form>
+          ))}
         </div>
       </section>
 

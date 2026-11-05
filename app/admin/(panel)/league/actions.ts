@@ -2,10 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { num, str, withError } from "@/lib/form";
+import { file, num, str, withError } from "@/lib/form";
+import { saveUploadAsWebp } from "@/lib/media";
 import { jalaliPartsToIso, toLatinDigits } from "@/lib/jalali";
 import { getLeague, saveLeague, sortStandings } from "@/lib/league";
 import { applyStandings, syncFromUrl } from "@/lib/league-sync";
+import { mergeFixtures, parseFixtures } from "@/lib/fixtures-import";
 import { parseStandings } from "@/lib/standings-import";
 import type { Fixture, StandingRow } from "@/lib/types";
 
@@ -80,6 +82,7 @@ export async function saveFixture(fd: FormData) {
     ...(status !== "scheduled" ? { homeScore: num(fd, "homeScore"), awayScore: num(fd, "awayScore") } : {}),
     ...(status === "live" ? { minute: num(fd, "minute") } : {}),
     ...(str(fd, "venue") ? { venue: str(fd, "venue") } : {}),
+    ...(num(fd, "round") > 0 ? { round: num(fd, "round") } : {}),
   };
 
   let fixtures = [...league.fixtures];
@@ -144,4 +147,41 @@ export async function undoStandings() {
   if (!league.previousStandings?.length) redirect(withError(BACK, "جدول قبلی‌ای برای برگرداندن نیست."));
   saveLeague({ ...league, standings: league.previousStandings, previousStandings: league.standings });
   redirect(`${BACK}?ok=${encodeURIComponent("جدول قبلی برگردانده شد.")}#standings`);
+}
+
+/** Uploads (as WebP) or clears one team's logo; shown wherever the team appears. */
+export async function saveTeamLogo(fd: FormData) {
+  await requireAdmin();
+  const team = str(fd, "team");
+  if (!team) redirect(withError(BACK, "نام تیم مشخص نیست."));
+  const league = getLeague();
+  const logos = { ...(league.teamLogos ?? {}) };
+  const upload = file(fd, "logoFile");
+  if (upload) {
+    try {
+      logos[team] = await saveUploadAsWebp(upload, 256);
+    } catch (e) {
+      redirect(withError(BACK, (e as Error).message) + "#logos");
+    }
+  } else if (str(fd, "logo")) {
+    logos[team] = str(fd, "logo");
+  } else {
+    delete logos[team];
+  }
+  saveLeague({ ...league, teamLogos: logos });
+  redirect(`${BACK}?ok=saved#logos`);
+}
+
+/** Schedule copied from a sports site (e.g. Varzesh3) and pasted into the panel. */
+export async function pasteFixtures(fd: FormData) {
+  await requireAdmin();
+  const { fixtures, warnings, rounds } = parseFixtures(String(fd.get("schedule") ?? ""));
+  if (fixtures.length === 0) {
+    redirect(withError(BACK, "بازی‌ای در متن پیدا نشد. فهرست را از سطر «هفته» تا آخرین بازی انتخاب و کپی کنید.") + "#fixtures");
+  }
+  const league = getLeague();
+  saveLeague({ ...league, fixtures: mergeFixtures(league.fixtures, fixtures, fd.get("dropUnnumbered") === "on"), isSample: false });
+  const what = rounds.length ? `هفته ${rounds.join("، ")}` : "بدون شماره‌ی هفته";
+  const note = warnings.length ? ` — خوانده نشد: ${warnings.join(" ")}` : "";
+  redirect(`${BACK}?ok=${encodeURIComponent(`${fixtures.length} بازی (${what}) ذخیره شد${note}`)}#fixtures`);
 }

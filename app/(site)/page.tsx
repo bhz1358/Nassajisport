@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { FitToColumn, HeroSlider, MediaRail, ResultsTabs, type HeroSlide } from "./client";
+import { FitToColumn, HeroSlider, MediaRail, type HeroSlide } from "./client";
 import {
   BreakingBar,
-  FixtureRow,
   NewsCard,
+  NextMatchCard,
   OpinionCard,
   QuoteCard,
+  ResultList,
   SampleNotice,
   SectionHeader,
   HomeStandings,
@@ -13,23 +14,12 @@ import {
   VideoCard,
 } from "./components";
 import { categoryName, getNews, isSampleContent } from "@/lib/content";
-import { getLeague } from "@/lib/league";
+import { faNum } from "@/lib/format";
+import { getLeague, getNextClubMatch, previousRoundResults } from "@/lib/league";
 import { postImage } from "@/lib/images";
 import { getSettings, logoUrl } from "@/lib/settings";
-import { HOME_TEAM, OPINION_CATEGORIES, PRESS_CATEGORY, VIDEO_CATEGORY } from "@/lib/site";
-import type { Fixture, Post } from "@/lib/types";
-
-function FixtureList({ fixtures, empty }: { fixtures: Fixture[]; empty: string }) {
-  return fixtures.length ? (
-    <ul className="fixtures">
-      {fixtures.map((f, i) => (
-        <FixtureRow key={i} f={f} />
-      ))}
-    </ul>
-  ) : (
-    <p className="muted empty">{empty}</p>
-  );
-}
+import { OPINION_CATEGORIES, PRESS_CATEGORY, VIDEO_CATEGORY } from "@/lib/site";
+import type { Post } from "@/lib/types";
 
 export default function Home() {
   const isSample = isSampleContent();
@@ -67,11 +57,8 @@ export default function Home() {
   const press = take(inCat(PRESS_CATEGORY), 2);
   const more = take(news, 6);
 
-  const byDate = (a: Fixture, b: Fixture) => a.date.localeCompare(b.date);
-  const live = league.fixtures.filter((f) => f.status === "live");
-  const upcoming = league.fixtures.filter((f) => f.status === "scheduled").sort(byDate);
-  const results = league.fixtures.filter((f) => f.status === "finished").sort((a, b) => byDate(b, a));
-  const clubFixtures = league.fixtures.filter((f) => f.home === HOME_TEAM || f.away === HOME_TEAM).sort(byDate);
+  const nextMatch = getNextClubMatch(league);
+  const lastRound = previousRoundResults(league, nextMatch);
 
   return (
     <>
@@ -98,17 +85,13 @@ export default function Home() {
         </section>
 
         <aside className="home-side">
-          <div className="panel">
-            <ResultsTabs
-              panels={[
-                { key: "all", label: "همه بازی‌ها", content: <FixtureList fixtures={[...live, ...upcoming, ...results].slice(0, 6)} empty="بازی‌ای ثبت نشده." /> },
-                { key: "live", label: "زنده", content: <FixtureList fixtures={live} empty="الان بازی‌ای در جریان نیست." /> },
-                { key: "upcoming", label: "پیش رو", content: <FixtureList fixtures={upcoming.slice(0, 6)} empty="بازی پیش رویی ثبت نشده." /> },
-                { key: "results", label: "نتایج", content: <FixtureList fixtures={results.slice(0, 6)} empty="هنوز نتیجه‌ای ثبت نشده." /> },
-                { key: "club", label: "بازی‌های نساجی", content: <FixtureList fixtures={clubFixtures} empty="بازی‌ای از نساجی ثبت نشده." /> },
-              ]}
-            />
-          </div>
+          <NextMatchCard f={nextMatch} />
+          {lastRound.fixtures.length > 0 && (
+            <div className="panel">
+              <SectionHeader title={lastRound.round ? `نتایج هفته ${faNum(lastRound.round)}` : "نتایج اخیر"} href="/league/" />
+              <ResultList fixtures={lastRound.fixtures} />
+            </div>
+          )}
           <div className="panel">
             <SectionHeader title="جدول رده‌بندی لیگ" href="/league/" />
             <HomeStandings rows={league.standings} />

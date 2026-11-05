@@ -210,30 +210,6 @@ export function HeroSlider({ slides, logo }: { slides: HeroSlide[]; logo: string
   );
 }
 
-/** Results widget: a filter pill switches between pre-rendered lists. */
-export function ResultsTabs({ panels }: { panels: { key: string; label: string; content: React.ReactNode }[] }) {
-  const [active, setActive] = useState(panels[0]?.key);
-  const current = panels.find((p) => p.key === active) ?? panels[0];
-  return (
-    <div className="results">
-      <div className="section-header">
-        <h2>نتایج و بازی‌ها</h2>
-        <label className="pill-select">
-          <span className="sr-only">نمایش</span>
-          <select value={active} onChange={(e) => setActive(e.target.value)}>
-            {panels.map((p) => (
-              <option key={p.key} value={p.key}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      {current?.content}
-    </div>
-  );
-}
-
 /** Horizontal rail with arrow buttons (swipe on touch screens). */
 export function MediaRail({ children, label }: { children: React.ReactNode; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
