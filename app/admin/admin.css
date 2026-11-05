@@ -111,6 +111,7 @@ ul.a-hint { padding-right: 18px; margin: 8px 0 12px; }
 .admin-root .a-score input { width: 48px !important; min-width: 48px; text-align: center; font-weight: 800; }
 .a-inline-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; }
 .a-section-gap { margin-top: 12px; }
+.a-subtitle { font-size: 0.95rem; color: var(--heading); margin: 0 0 4px; }
 
 .a-filters { display: flex; flex-wrap: wrap; gap: 8px; }
 .a-filters input { flex: 1; min-width: 200px; }

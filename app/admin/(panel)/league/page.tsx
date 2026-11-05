@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { deleteFixture, saveFixture, saveLeagueInfo, saveStandings } from "./actions";
+import { deleteFixture, pasteStandings, saveFixture, saveLeagueInfo, saveStandings, syncStandings, undoStandings } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
 import { SubmitButton } from "../../ui-client";
 import { faDate } from "@/lib/format";
@@ -93,6 +93,47 @@ export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Re
         </Field>
         <SubmitButton className="a-btn">ذخیره</SubmitButton>
       </form>
+
+      <section id="sync" className="a-card">
+        <h2>به‌روزرسانی جدول از ورزش سه</h2>
+        <div className="a-grid-2">
+          <form action={syncStandings}>
+            <h3 className="a-subtitle">روش ۱: خودکار از روی آدرس صفحه</h3>
+            <p className="a-hint">صفحه‌ی جدول لیگ برتر را در ورزش سه باز کنید و آدرسش را از نوار مرورگر کپی کنید.</p>
+            <Field label="آدرس صفحه‌ی جدول">
+              <input name="url" defaultValue={league.standingsSource?.url} dir="ltr" placeholder="https://www.varzesh3.com/..." required />
+            </Field>
+            <label className="a-check">
+              <input type="checkbox" name="auto" defaultChecked={league.standingsSource?.auto ?? true} /> هر ۳۰ دقیقه خودکار به‌روز شود
+            </label>
+            <SubmitButton>دریافت جدول</SubmitButton>
+            {league.standingsSource?.lastSync && (
+              <p className="a-hint">
+                آخرین تلاش: {faDate(league.standingsSource.lastSync)} ساعت {isoToJalaliParts(league.standingsSource.lastSync).time}
+                {league.standingsSource.lastError ? ` — خطا: ${league.standingsSource.lastError}` : " — موفق"}
+              </p>
+            )}
+          </form>
+          <form action={pasteStandings}>
+            <h3 className="a-subtitle">روش ۲: کپی و چسباندن</h3>
+            <p className="a-hint">در ورزش سه، کل جدول را از ردیف عنوان تا آخرین تیم با موس انتخاب کنید، Ctrl+C بزنید و اینجا بچسبانید.</p>
+            <Field label="جدول کپی‌شده">
+              <textarea name="table" rows={7} required placeholder={"رتبه  تیم  بازی  برد  مساوی  باخت  زده  خورده  تفاضل  امتیاز\n۱  استقلال  ۱۰  ۷  ۲  ۱  ۱۸  ۶  ۱۲  ۲۳"} />
+            </Field>
+            <SubmitButton>به‌روزرسانی جدول</SubmitButton>
+          </form>
+        </div>
+        {league.previousStandings?.length ? (
+          <form action={undoStandings} className="a-section-gap">
+            <SubmitButton className="a-btn a-btn-small" confirm="جدول به حالت قبل از آخرین به‌روزرسانی برگردد؟">
+              برگرداندن جدول قبلی
+            </SubmitButton>
+          </form>
+        ) : null}
+        <p className="a-hint a-section-gap">
+          «۵ بازی اخیر» هر تیم از جدول فعلی حفظ می‌شود. نام تیم‌ها همان‌طور که در ورزش سه نوشته شده ذخیره می‌شود؛ هر نامی که «نساجی» داشته باشد، ردیف نساجی حساب می‌شود.
+        </p>
+      </section>
 
       <section id="fixtures" className="a-card">
         <h2>بازی‌ها</h2>

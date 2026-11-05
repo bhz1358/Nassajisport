@@ -2,10 +2,12 @@ import Link from "next/link";
 import { MainNav, TabBar } from "./client";
 import { NextMatchPill } from "./components";
 import { getClubMatch, getLeague } from "@/lib/league";
+import { maybeAutoSync } from "@/lib/league-sync";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { FOOTER_NAV, NAV } from "@/lib/site";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
+  maybeAutoSync();
   const settings = getSettings();
   const clubMatch = getClubMatch(getLeague());
   const { ticketsUrl, social } = settings;

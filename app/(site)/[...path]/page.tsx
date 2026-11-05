@@ -5,6 +5,7 @@ import { ReadingProgress, ShareBar } from "../client";
 import { CategoryBadge, LatestTimeline, SectionHeader, StoryCard, Thumb } from "../components";
 import { getByPath, getNews, getPostsInCategory } from "@/lib/content";
 import { faDate, faNum, faTime, readingMinutes } from "@/lib/format";
+import { postImage, withImageFallbacks } from "@/lib/images";
 
 type Props = { params: Promise<{ path: string[] }> };
 
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.seo?.title || post.title,
     description: post.seo?.description || post.excerpt,
-    openGraph: post.featuredImage ? { images: [post.featuredImage] } : undefined,
+    openGraph: postImage(post) ? { images: [postImage(post)!] } : undefined,
   };
 }
 
@@ -33,7 +34,7 @@ export default async function PostPage({ params }: Props) {
     return (
       <article className="article article-page">
         <h1>{post.title}</h1>
-        <div className="prose" dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div className="prose" dangerouslySetInnerHTML={{ __html: withImageFallbacks(post.content) }} />
       </article>
     );
   }
@@ -79,7 +80,7 @@ export default async function PostPage({ params }: Props) {
             </div>
           </header>
           {post.featuredImage && <Thumb post={post} className="article-image" />}
-          <div className="prose" dangerouslySetInnerHTML={{ __html: post.content }} />
+          <div className="prose" dangerouslySetInnerHTML={{ __html: withImageFallbacks(post.content) }} />
           {post.tags.length > 0 && (
             <p className="tags">
               {post.tags.map((t) => (

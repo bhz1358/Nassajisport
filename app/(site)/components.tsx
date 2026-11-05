@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { categoryName } from "@/lib/content";
 import { faNum, faShortDate, faTime, faWeekday, readingMinutes } from "@/lib/format";
+import { postImage } from "@/lib/images";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { HOME_TEAM, VIDEO_CATEGORY } from "@/lib/site";
 import { splitTitle } from "@/lib/title";
@@ -19,11 +20,12 @@ export function HighlightTitle({ title }: { title: string }) {
 }
 
 export function Thumb({ post, className = "", eager = false }: { post: Post; className?: string; eager?: boolean }) {
+  const src = postImage(post);
   return (
     <div className={`thumb ${className}`}>
-      {post.featuredImage ? (
+      {src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.featuredImage} alt="" loading={eager ? "eager" : "lazy"} />
+        <img src={src} alt="" loading={eager ? "eager" : "lazy"} decoding="async" />
       ) : (
         <div className="thumb-empty" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}

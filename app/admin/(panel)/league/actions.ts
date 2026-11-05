@@ -5,6 +5,8 @@ import { requireAdmin } from "@/lib/auth";
 import { num, str, withError } from "@/lib/form";
 import { jalaliPartsToIso, toLatinDigits } from "@/lib/jalali";
 import { getLeague, saveLeague, sortStandings } from "@/lib/league";
+import { applyStandings, syncFromUrl } from "@/lib/league-sync";
+import { parseStandings } from "@/lib/standings-import";
 import type { Fixture, StandingRow } from "@/lib/types";
 
 const BACK = "/admin/league/";
@@ -100,4 +102,41 @@ export async function deleteFixture(fd: FormData) {
   }
   saveLeague({ ...league, fixtures: league.fixtures.filter((_, j) => j !== i) });
   redirect(`${BACK}?ok=deleted#fixtures`);
+}
+
+/** Saves the source page (e.g. Varzesh3) and reads the table from it right away. */
+export async function syncStandings(fd: FormData) {
+  await requireAdmin();
+  const url = str(fd, "url");
+  if (!/^https?:\/\/\S+$/i.test(url)) redirect(withError(BACK, "آدرس صفحه‌ی جدول را کامل وارد کنید (با https://)."));
+  const auto = fd.get("auto") === "on";
+  const result = await syncFromUrl(url);
+  const league = getLeague();
+  saveLeague({
+    ...league,
+    standingsSource: { url, auto, lastSync: new Date().toISOString(), lastError: result.ok ? undefined : result.error },
+  });
+  if (!result.ok) redirect(withError(BACK, result.error) + "#sync");
+  const note = result.warnings.length ? ` (${result.warnings.length} ردیف خوانده نشد)` : "";
+  redirect(`${BACK}?ok=${encodeURIComponent(`جدول با ${result.count} تیم به‌روز شد${note}.`)}#standings`);
+}
+
+/** Table copied from the browser and pasted into the panel. */
+export async function pasteStandings(fd: FormData) {
+  await requireAdmin();
+  const { rows, warnings } = parseStandings(String(fd.get("table") ?? ""));
+  if (rows.length < 2) {
+    redirect(withError(BACK, "جدولی در متن چسبانده‌شده پیدا نشد. کل جدول را (از ردیف عنوان تا آخرین تیم) انتخاب و کپی کنید.") + "#sync");
+  }
+  applyStandings(rows);
+  const note = warnings.length ? ` — خوانده نشد: ${warnings.join(" ")}` : "";
+  redirect(`${BACK}?ok=${encodeURIComponent(`جدول با ${rows.length} تیم به‌روز شد${note}`)}#standings`);
+}
+
+export async function undoStandings() {
+  await requireAdmin();
+  const league = getLeague();
+  if (!league.previousStandings?.length) redirect(withError(BACK, "جدول قبلی‌ای برای برگرداندن نیست."));
+  saveLeague({ ...league, standings: league.previousStandings, previousStandings: league.standings });
+  redirect(`${BACK}?ok=${encodeURIComponent("جدول قبلی برگردانده شد.")}#standings`);
 }

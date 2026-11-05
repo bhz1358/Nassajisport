@@ -124,6 +124,10 @@ export type LeagueData = {
   isSample: boolean;
   standings: StandingRow[];
   fixtures: Fixture[];
+  /** Page the standings are read from (e.g. Varzesh3), and whether to refresh it automatically. */
+  standingsSource?: { url: string; auto: boolean; lastSync?: string; lastError?: string };
+  /** The table as it was before the last import, so a bad import can be undone. */
+  previousStandings?: StandingRow[];
 };
 
 export type ColorMode = "auto" | "light" | "dark";

@@ -14,6 +14,7 @@ import {
 } from "./components";
 import { categoryName, getNews, isSampleContent } from "@/lib/content";
 import { getLeague, tableAroundClub } from "@/lib/league";
+import { postImage } from "@/lib/images";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { HOME_TEAM, OPINION_CATEGORIES, PRESS_CATEGORY, VIDEO_CATEGORY } from "@/lib/site";
 import type { Fixture, Post } from "@/lib/types";
@@ -53,7 +54,7 @@ export default function Home() {
     title: p.title,
     excerpt: p.excerpt,
     kicker: categoryName(p.categories[0] ?? "") || "خبر ویژه",
-    image: p.featuredImage,
+    image: postImage(p),
     isVideo: p.categories.includes(VIDEO_CATEGORY),
   }));
   const breaking = news.slice(0, 6);
