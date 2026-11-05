@@ -10,18 +10,19 @@
 **از گیت‌هاب (اگر سرور به github.com دسترسی دارد):**
 
 ```bash
-git clone -b claude/inspiring-maxwell-qyht0s https://github.com/bhz1358/behzad.git nassaji
+apt-get install -y git
+git clone https://github.com/bhz1358/Nassajisport.git nassaji
 cd nassaji
 ```
 
 اگر مخزن خصوصی است، گیت نام کاربری و یک Personal Access Token می‌خواهد (نه رمز گیت‌هاب).
 
-**یا با فایل زیپ:** در گیت‌هاب، روی شاخه‌ی `claude/inspiring-maxwell-qyht0s` دکمه‌ی Code ← Download ZIP را بزنید، بعد از کامپیوتر خودتان:
+**یا با فایل زیپ:** در صفحه‌ی مخزن در گیت‌هاب، دکمه‌ی Code ← Download ZIP را بزنید، بعد از کامپیوتر خودتان:
 
 ```bash
-scp behzad-claude-inspiring-maxwell-qyht0s.zip user@172.27.110.7:~
+scp Nassajisport-main.zip user@172.27.110.7:~
 ssh user@172.27.110.7
-sudo apt-get install -y unzip && unzip behzad-*.zip && cd behzad-*/
+sudo apt-get install -y unzip && unzip Nassajisport-main.zip && cd Nassajisport-main/
 ```
 
 ## ۲. نصب
