@@ -59,22 +59,46 @@ async function get(url, asJson = false) {
 
 async function fromRestApi(site) {
   const found = [];
-  for (let page = 1; ; page++) {
+  let total = 0;
+  for (let page = 1; total === 0 || page <= total; page++) {
+    // Slow pages (big media libraries) get smaller batches and a few retries.
     let r;
-    try {
-      r = await get(`${site}/wp-json/wp/v2/media?per_page=100&page=${page}&_fields=source_url,media_details`, true);
-    } catch (e) {
-      if (page === 1) console.log(`  REST API not available (${e.message}); using the other sources.`);
-      break;
+    let lastError;
+    for (const perPage of [100, 100, 50, 20]) {
+      try {
+        const offset = (page - 1) * 100;
+        r = await get(`${site}/wp-json/wp/v2/media?per_page=${perPage}&offset=${offset}&_fields=source_url,media_details`, true);
+        if (perPage < 100 && Array.isArray(r.body)) {
+          // Fetch the rest of this 100-item page in the same smaller batches.
+          for (let o = offset + perPage; o < offset + 100; o += perPage) {
+            const more = await get(`${site}/wp-json/wp/v2/media?per_page=${perPage}&offset=${o}&_fields=source_url,media_details`, true);
+            if (!Array.isArray(more.body) || more.body.length === 0) break;
+            r.body.push(...more.body);
+          }
+        }
+        break;
+      } catch (e) {
+        lastError = e;
+        r = undefined;
+        await new Promise((res) => setTimeout(res, 2000));
+      }
+    }
+    if (!r) {
+      if (page === 1) {
+        console.log(`  REST API not available (${lastError?.message}); using the other sources.`);
+        break;
+      }
+      console.log(`\n  Page ${page} of the media list failed (${lastError?.message}); skipping it. Run again later to retry.`);
+      continue;
     }
     if (!Array.isArray(r.body) || r.body.length === 0) break;
     for (const m of r.body) {
       if (m.source_url) found.push(m.source_url);
       for (const s of Object.values(m.media_details?.sizes ?? {})) if (s?.source_url) found.push(s.source_url);
     }
-    const total = Number(r.headers.get("x-wp-totalpages") || 0);
-    process.stdout.write(`\r  REST API: page ${page}${total ? `/${total}` : ""}, ${found.length} files`);
-    if (total && page >= total) break;
+    // Pages are always counted in 100s, whatever batch size was used.
+    total = total || Math.ceil(Number(r.headers.get("x-wp-total") || 0) / 100) || Infinity;
+    process.stdout.write(`\r  REST API: page ${page}${Number.isFinite(total) ? `/${total}` : ""}, ${found.length} files`);
   }
   if (found.length) process.stdout.write("\n");
   return found;
