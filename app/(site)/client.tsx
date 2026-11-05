@@ -261,3 +261,56 @@ export function MediaRail({ children, label }: { children: React.ReactNode; labe
     </div>
   );
 }
+
+/**
+ * Shows as many of its children as fit above the bottom of `target` (the sidebar),
+ * so the main column ends level with it. When the columns stack (narrow screens)
+ * the first `mobileCount` are shown instead. Everything is in the HTML for search
+ * engines and no-JS readers; only the visible count changes.
+ */
+export function FitToColumn({
+  target,
+  mobileCount,
+  className,
+  children,
+}: {
+  target: string;
+  mobileCount: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const box = ref.current;
+    const side = document.querySelector<HTMLElement>(target);
+    if (!box || !side) return;
+    const fit = () => {
+      const items = [...box.children] as HTMLElement[];
+      items.forEach((el) => (el.hidden = false));
+      const stacked = side.getBoundingClientRect().top >= box.getBoundingClientRect().top;
+      if (stacked) {
+        items.forEach((el, i) => (el.hidden = i >= mobileCount));
+        return;
+      }
+      const limit = side.getBoundingClientRect().bottom;
+      let hiding = false;
+      for (const el of items) {
+        if (!hiding && el.getBoundingClientRect().bottom > limit + 1) hiding = true;
+        el.hidden = hiding;
+      }
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(side);
+    window.addEventListener("resize", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [target, mobileCount]);
+  return (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  );
+}

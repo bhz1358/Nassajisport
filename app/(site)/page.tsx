@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HeroSlider, MediaRail, ResultsTabs, type HeroSlide } from "./client";
+import { FitToColumn, HeroSlider, MediaRail, ResultsTabs, type HeroSlide } from "./client";
 import {
   BreakingBar,
   FixtureRow,
@@ -60,6 +60,8 @@ export default function Home() {
   // With only a handful of posts the hero uses them all; repeat rather than leave the section empty.
   const freshDaily = take(news.filter((p) => !p.categories.includes(VIDEO_CATEGORY)), 5);
   const daily = freshDaily.length ? freshDaily : news.slice(0, 5);
+  // More news under the cards; FitToColumn shows as many as fit beside the sidebar.
+  const dailyMore = take(news.filter((p) => !p.categories.includes(VIDEO_CATEGORY)), 24);
   const videos = take(inCat(VIDEO_CATEGORY), 8);
   const opinions = take(inCat(...OPINION_CATEGORIES), 3);
   const press = take(inCat(PRESS_CATEGORY), 2);
@@ -86,6 +88,13 @@ export default function Home() {
               <NewsCard key={p.id} post={p} withImage={i === 0} featured={i === 0} />
             ))}
           </div>
+          {dailyMore.length > 0 && (
+            <FitToColumn target=".home-side" mobileCount={6} className="daily-more">
+              {dailyMore.map((p) => (
+                <StoryRow key={p.id} post={p} />
+              ))}
+            </FitToColumn>
+          )}
         </section>
 
         <aside className="home-side">
