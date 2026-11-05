@@ -5,7 +5,7 @@ import { SubmitButton } from "../../ui-client";
 import { COLOR_MODES, isHex, THEME_PRESETS, themeVars } from "@/lib/themes";
 import type { Settings } from "@/lib/types";
 
-export function ThemePicker({ theme, siteTitle }: { theme: Settings["theme"]; siteTitle: string }) {
+export function ThemePicker({ theme, siteTitle, logo }: { theme: Settings["theme"]; siteTitle: string; logo: string }) {
   const [preset, setPreset] = useState(theme.preset);
   const [brand, setBrand] = useState(theme.brand ?? THEME_PRESETS[0].brand);
   const [accent, setAccent] = useState(theme.accent ?? THEME_PRESETS[0].accent);
@@ -83,7 +83,8 @@ export function ThemePicker({ theme, siteTitle }: { theme: Settings["theme"]; si
             <span className="tp-live">نساجی ۱ - ۱ سپاهان · ۶۳′</span>
           </div>
           <div className="tp-header">
-            <span className="tp-logo">{siteTitle.charAt(0)}</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logo} alt="" className="tp-logo" />
             <strong>{siteTitle}</strong>
             <span className="tp-btn">خرید بلیت</span>
           </div>

@@ -66,6 +66,27 @@ export async function saveUpload(file: File): Promise<string> {
   return `/uploads/${dir.split(path.sep).join("/")}/${name}`;
 }
 
+/**
+ * Saves an image converted to WebP (max `size` px on its longest side).
+ * Falls back to the original file if the image library is unavailable.
+ */
+export async function saveUploadAsWebp(file: File, size = 512): Promise<string> {
+  const ext = path.extname(file.name).toLowerCase();
+  if (![".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"].includes(ext)) throw new Error("فقط عکس (jpg، png، webp، gif، avif) مجاز است.");
+  if (file.size > MAX_UPLOAD_BYTES) throw new Error("حجم فایل بیشتر از ۲۵ مگابایت است.");
+  const input = Buffer.from(await file.arrayBuffer());
+  if (!looksLike(input, ext)) throw new Error("محتوای فایل با پسوندش جور نیست.");
+  let sharp: typeof import("sharp").default;
+  try {
+    sharp = (await import("sharp")).default;
+  } catch {
+    return saveUpload(file);
+  }
+  const webp = await sharp(input).rotate().resize(size, size, { fit: "inside", withoutEnlargement: true }).webp({ quality: 88 }).toBuffer();
+  const base = path.basename(file.name, ext);
+  return saveUpload(new File([new Uint8Array(webp)], `${base}.webp`, { type: "image/webp" }));
+}
+
 export type MediaItem = { url: string; size: number; mtime: string; isVideo: boolean };
 
 /** Files uploaded through the admin panel, newest first. */

@@ -2,16 +2,18 @@ import Link from "next/link";
 import { logout } from "../actions";
 import { AdminNav } from "./nav";
 import { requireAdmin } from "@/lib/auth";
-import { getSettings } from "@/lib/settings";
+import { getSettings, logoUrl } from "@/lib/settings";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAdmin();
-  const { title } = getSettings();
+  const settings = getSettings();
+  const { title } = settings;
   return (
     <div className="a-shell">
       <aside className="a-side">
         <Link href="/admin/" className="a-brand">
-          <span className="logo-mark">{title.charAt(0)}</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoUrl(settings)} alt="" className="logo-img" width={40} height={40} />
           <span>
             <strong>{title}</strong>
             <small>پنل مدیریت</small>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MainNav, TabBar } from "./client";
 import { ScoreStrip } from "./components";
 import { getLeague } from "@/lib/league";
-import { getSettings } from "@/lib/settings";
+import { getSettings, logoUrl } from "@/lib/settings";
 import { NAV } from "@/lib/site";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +22,8 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <header className="site-header">
         <div className="container header-inner">
           <Link href="/" className="logo" aria-label={settings.title}>
-            <span className="logo-mark">{settings.title.charAt(0)}</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoUrl(settings)} alt="" className="logo-img" width={52} height={52} />
             <span className="logo-text">
               <strong>{settings.title}</strong>
               <small>پایگاه خبری تحلیلی</small>
@@ -41,9 +42,13 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       </main>
       <footer className="site-footer">
         <div className="container footer-inner">
-          <div>
-            <strong>{settings.title}</strong>
-            <p>{settings.description}</p>
+          <div className="footer-brand">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoUrl(settings)} alt="" width={56} height={56} loading="lazy" />
+            <div>
+              <strong>{settings.title}</strong>
+              <p>{settings.description}</p>
+            </div>
           </div>
           <nav className="footer-links" aria-label="بخش‌ها">
             {NAV.slice(1).map((n) => (

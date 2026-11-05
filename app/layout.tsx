@@ -12,6 +12,7 @@ export function generateMetadata(): Metadata {
   return {
     title: { default: s.title, template: `%s | ${s.title}` },
     description: s.description,
+    icons: { icon: "/favicon.png", apple: "/apple-touch-icon.png" },
   };
 }
 

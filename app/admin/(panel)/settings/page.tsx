@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Field, Flash, PageHead } from "../../ui";
-import { SubmitButton } from "../../ui-client";
+import { ImageField, SubmitButton } from "../../ui-client";
 import { requireAdmin } from "@/lib/auth";
-import { str, withError } from "@/lib/form";
-import { getSettings, saveSettings } from "@/lib/settings";
+import { file, str, withError } from "@/lib/form";
+import { saveUploadAsWebp } from "@/lib/media";
+import { DEFAULT_LOGO, getSettings, logoUrl, saveSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "تنظیمات" };
 
@@ -16,8 +17,19 @@ async function save(fd: FormData) {
   const urls = { ticketsUrl: str(fd, "ticketsUrl"), instagram: str(fd, "instagram"), telegram: str(fd, "telegram") };
   if (!Object.values(urls).every(okUrl)) redirect(withError("/admin/settings/", "آدرس‌ها باید با https:// شروع شوند."));
   const s = getSettings();
+  // New logos are converted to WebP; clearing the field brings back the default logo.
+  let logo = str(fd, "logo") || undefined;
+  const upload = file(fd, "logoFile");
+  if (upload) {
+    try {
+      logo = await saveUploadAsWebp(upload, 512);
+    } catch (e) {
+      redirect(withError("/admin/settings/", (e as Error).message));
+    }
+  }
   saveSettings({
     ...s,
+    logo: logo === DEFAULT_LOGO ? undefined : logo,
     title: str(fd, "title") || s.title,
     description: str(fd, "description"),
     ticketsUrl: urls.ticketsUrl,
@@ -33,6 +45,8 @@ export default function SettingsPage({ searchParams }: { searchParams: Promise<R
       <PageHead title="تنظیمات سایت" />
       <Flash searchParams={searchParams} />
       <form action={save} className="a-card a-form-narrow">
+        <ImageField name="logo" defaultValue={logoUrl(s)} label="لوگو" />
+        <p className="a-hint">عکس بارگذاری‌شده خودکار به WebP تبدیل می‌شود. بهترین نتیجه: لوگوی مربعی با پس‌زمینه‌ی شفاف. برای برگشت به لوگوی پیش‌فرض، عکس را حذف و ذخیره کنید.</p>
         <Field label="نام سایت">
           <input name="title" defaultValue={s.title} required />
         </Field>

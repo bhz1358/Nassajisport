@@ -22,6 +22,10 @@ export function getSettings(): Settings {
   });
 }
 
+export const DEFAULT_LOGO = "/logo.webp";
+
+export const logoUrl = (s: Settings) => s.logo || DEFAULT_LOGO;
+
 export function saveSettings(settings: Settings) {
   writeStore("settings", settings);
 }

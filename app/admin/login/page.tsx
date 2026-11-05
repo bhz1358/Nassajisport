@@ -4,7 +4,7 @@ import { login } from "../actions";
 import { Field, Flash } from "../ui";
 import { SubmitButton } from "../ui-client";
 import { currentUser, getUsers } from "@/lib/auth";
-import { getSettings } from "@/lib/settings";
+import { getSettings, logoUrl } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "ورود" };
 
@@ -15,7 +15,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <div className="a-login">
       <form action={login} className="a-card a-login-card">
         <div className="a-login-brand">
-          <span className="logo-mark">{getSettings().title.charAt(0)}</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoUrl(getSettings())} alt="" className="logo-img" width={56} height={56} />
           <div>
             <strong>{getSettings().title}</strong>
             <span>پنل مدیریت</span>

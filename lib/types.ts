@@ -131,6 +131,8 @@ export type ColorMode = "auto" | "light" | "dark";
 export type Settings = {
   title: string;
   description: string;
+  /** Site logo URL; the bundled /logo.webp when not set. */
+  logo?: string;
   ticketsUrl: string;
   social: { instagram: string; telegram: string };
   theme: {
