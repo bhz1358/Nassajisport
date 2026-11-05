@@ -43,3 +43,29 @@ test("reports rows whose numbers don't fit any layout", () => {
   assert.equal(rows.length, 0);
   assert.equal(warnings.length, 1);
 });
+
+test("short table with only played and points (e.g. a screenshot of Varzesh3)", () => {
+  const text = ["رتبه\tتیم\tبازی\tامتیاز", "۱\tپرسپولیس\t۱۱\t۲۳", "۲\tسپاهان\t۱۱\t۲۳", "۱۲\tنساجی مازندران\t۱۱\t۱۱", "۱۸\tمس شهر بابک\t۱۱\t۵"].join("\n");
+  const { rows, warnings } = parseStandings(text);
+  assert.equal(warnings.length, 0);
+  assert.equal(rows.length, 4);
+  assert.deepEqual(
+    rows.map((r) => [r.team, r.played, r.points, r.partial]),
+    [["پرسپولیس", 11, 23, true], ["سپاهان", 11, 23, true], ["نساجی مازندران", 11, 11, true], ["مس شهر بابک", 11, 5, true]],
+  );
+});
+
+test("Varzesh3 table as copied from the browser: names on their own lines, goals as 19-5, form, a deduction", async () => {
+  const fs = await import("node:fs");
+  const text = fs.readFileSync(new URL("./fixtures/varzesh3-copy.txt", import.meta.url), "utf8");
+  const { rows, warnings } = parseStandings(text);
+  assert.deepEqual(warnings, []);
+  assert.equal(rows.length, 18);
+  assert.deepEqual(rows[0], { team: "پرسپولیس", played: 11, won: 7, drawn: 2, lost: 2, goalsFor: 19, goalsAgainst: 5, points: 23, form: ["W", "D", "W", "L", "W"] });
+  const malavan = rows.find((r) => r.team === "ملوان");
+  assert.equal(malavan.points, 10);
+  assert.equal(malavan.deducted, 2);
+  assert.equal(rows[11].team, "نساجی مازندران");
+  assert.equal(rows[17].goalsAgainst, 22);
+  assert.equal(rows.filter((r) => r.deducted).length, 1);
+});

@@ -38,15 +38,20 @@ export async function saveStandings(fd: FormData) {
       .replace(/[^WDL]/g, "")
       .slice(-5)
       .split("") as StandingRow["form"];
+    // With no W/D/L entered, the row keeps the played/points typed in (a short table).
+    const partial = won + drawn + lost === 0 && num(fd, `played_${i}`) > 0;
+    const deducted = Math.max(0, num(fd, `deducted_${i}`));
     rows.push({
       team,
-      played: won + drawn + lost,
+      played: partial ? num(fd, `played_${i}`) : won + drawn + lost,
       won,
       drawn,
       lost,
       goalsFor: num(fd, `gf_${i}`),
       goalsAgainst: num(fd, `ga_${i}`),
-      points: won * 3 + drawn,
+      points: partial ? num(fd, `points_${i}`) : won * 3 + drawn - deducted,
+      ...(partial ? { partial: true } : {}),
+      ...(!partial && deducted > 0 ? { deducted } : {}),
       ...(form && form.length ? { form } : {}),
     });
   }

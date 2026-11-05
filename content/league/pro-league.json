@@ -1,18 +1,35 @@
 {
   "competition": "لیگ برتر فوتبال ایران",
   "season": "۱۴۰۵-۱۴۰۶",
-  "updatedAt": "2026-10-26T14:33:00Z",
+  "updatedAt": "2026-11-05T19:56:02.538Z",
   "isSample": true,
   "standings": [
     {
-      "team": "استقلال",
-      "played": 8,
-      "won": 6,
+      "team": "پرسپولیس",
+      "played": 11,
+      "won": 7,
       "drawn": 2,
-      "lost": 0,
-      "goalsFor": 14,
-      "goalsAgainst": 4,
-      "points": 20,
+      "lost": 2,
+      "goalsFor": 19,
+      "goalsAgainst": 5,
+      "points": 23,
+      "form": [
+        "W",
+        "D",
+        "W",
+        "L",
+        "W"
+      ]
+    },
+    {
+      "team": "سپاهان",
+      "played": 11,
+      "won": 7,
+      "drawn": 2,
+      "lost": 2,
+      "goalsFor": 19,
+      "goalsAgainst": 7,
+      "points": 23,
       "form": [
         "W",
         "W",
@@ -22,257 +39,275 @@
       ]
     },
     {
-      "team": "پرسپولیس",
-      "played": 8,
+      "team": "فولاد",
+      "played": 11,
       "won": 6,
-      "drawn": 2,
-      "lost": 0,
-      "goalsFor": 14,
-      "goalsAgainst": 4,
-      "points": 20,
+      "drawn": 4,
+      "lost": 1,
+      "goalsFor": 11,
+      "goalsAgainst": 5,
+      "points": 22,
       "form": [
+        "W",
         "W",
         "D",
         "W",
-        "W",
-        "L"
+        "W"
       ]
     },
     {
-      "team": "سپاهان",
-      "played": 8,
-      "won": 6,
-      "drawn": 2,
+      "team": "استقلال",
+      "played": 10,
+      "won": 5,
+      "drawn": 5,
       "lost": 0,
-      "goalsFor": 13,
-      "goalsAgainst": 5,
+      "goalsFor": 12,
+      "goalsAgainst": 3,
       "points": 20,
       "form": [
-        "W",
-        "W",
+        "D",
         "W",
         "D",
-        "L"
+        "W",
+        "D"
       ]
     },
     {
       "team": "تراکتور",
-      "played": 8,
-      "won": 5,
+      "played": 10,
+      "won": 6,
       "drawn": 2,
-      "lost": 1,
+      "lost": 2,
       "goalsFor": 12,
       "goalsAgainst": 5,
-      "points": 17,
+      "points": 20,
       "form": [
+        "W",
+        "L",
+        "D",
+        "L",
+        "W"
+      ]
+    },
+    {
+      "team": "چادرملو اردکان",
+      "played": 11,
+      "won": 4,
+      "drawn": 4,
+      "lost": 3,
+      "goalsFor": 11,
+      "goalsAgainst": 14,
+      "points": 16,
+      "form": [
+        "W",
+        "D",
+        "W",
+        "D",
+        "W"
+      ]
+    },
+    {
+      "team": "آلومینیوم اراک",
+      "played": 11,
+      "won": 3,
+      "drawn": 5,
+      "lost": 3,
+      "goalsFor": 11,
+      "goalsAgainst": 9,
+      "points": 14,
+      "form": [
+        "D",
+        "L",
+        "L",
+        "D",
+        "L"
+      ]
+    },
+    {
+      "team": "خیبر خرم آباد",
+      "played": 11,
+      "won": 3,
+      "drawn": 5,
+      "lost": 3,
+      "goalsFor": 14,
+      "goalsAgainst": 13,
+      "points": 14,
+      "form": [
+        "D",
         "D",
         "W",
         "W",
+        "L"
+      ]
+    },
+    {
+      "team": "فجر سپاسی",
+      "played": 10,
+      "won": 3,
+      "drawn": 5,
+      "lost": 2,
+      "goalsFor": 10,
+      "goalsAgainst": 12,
+      "points": 14,
+      "form": [
         "L",
+        "L",
+        "W",
+        "W",
+        "D"
+      ]
+    },
+    {
+      "team": "گل گهر",
+      "played": 10,
+      "won": 4,
+      "drawn": 1,
+      "lost": 5,
+      "goalsFor": 10,
+      "goalsAgainst": 9,
+      "points": 13,
+      "form": [
+        "L",
+        "W",
+        "W",
+        "L",
+        "L"
+      ]
+    },
+    {
+      "team": "پیکان",
+      "played": 11,
+      "won": 3,
+      "drawn": 4,
+      "lost": 4,
+      "goalsFor": 10,
+      "goalsAgainst": 11,
+      "points": 13,
+      "form": [
+        "L",
+        "D",
+        "L",
+        "D",
         "W"
       ]
     },
     {
       "team": "نساجی مازندران",
-      "played": 8,
-      "won": 5,
-      "drawn": 2,
-      "lost": 1,
-      "goalsFor": 12,
-      "goalsAgainst": 6,
-      "points": 17,
-      "form": [
-        "W",
-        "D",
-        "W",
-        "L",
-        "W"
-      ]
-    },
-    {
-      "team": "گل‌گهر سیرجان",
-      "played": 8,
-      "won": 4,
-      "drawn": 3,
-      "lost": 1,
-      "goalsFor": 11,
-      "goalsAgainst": 7,
-      "points": 15,
-      "form": [
-        "L",
-        "W",
-        "D",
-        "W",
-        "D"
-      ]
-    },
-    {
-      "team": "فولاد خوزستان",
-      "played": 8,
-      "won": 4,
-      "drawn": 2,
-      "lost": 2,
-      "goalsFor": 10,
-      "goalsAgainst": 7,
-      "points": 14,
-      "form": [
-        "W",
-        "L",
-        "D",
-        "W",
-        "L"
-      ]
-    },
-    {
-      "team": "ملوان بندرانزلی",
-      "played": 8,
-      "won": 4,
-      "drawn": 2,
-      "lost": 2,
-      "goalsFor": 10,
-      "goalsAgainst": 8,
-      "points": 14,
-      "form": [
-        "D",
-        "L",
-        "W",
-        "W",
-        "L"
-      ]
-    },
-    {
-      "team": "چادرملو اردکان",
-      "played": 8,
-      "won": 3,
-      "drawn": 3,
-      "lost": 2,
-      "goalsFor": 9,
-      "goalsAgainst": 8,
-      "points": 12,
-      "form": [
-        "L",
-        "D",
-        "W",
-        "D",
-        "W"
-      ]
-    },
-    {
-      "team": "ذوب‌آهن",
-      "played": 8,
-      "won": 3,
-      "drawn": 2,
-      "lost": 3,
-      "goalsFor": 8,
-      "goalsAgainst": 9,
+      "played": 11,
+      "won": 2,
+      "drawn": 5,
+      "lost": 4,
+      "goalsFor": 7,
+      "goalsAgainst": 10,
       "points": 11,
       "form": [
         "D",
-        "L",
         "D",
-        "W",
+        "D",
+        "D",
         "L"
       ]
     },
     {
-      "team": "آلومینیوم اراک",
-      "played": 8,
-      "won": 2,
+      "team": "ملوان",
+      "played": 11,
+      "won": 3,
       "drawn": 3,
-      "lost": 3,
-      "goalsFor": 7,
-      "goalsAgainst": 10,
-      "points": 9,
+      "lost": 5,
+      "goalsFor": 12,
+      "goalsAgainst": 14,
+      "points": 10,
+      "deducted": 2,
       "form": [
-        "L",
         "D",
         "L",
         "W",
-        "D"
-      ]
-    },
-    {
-      "team": "خیبر خرم‌آباد",
-      "played": 8,
-      "won": 2,
-      "drawn": 3,
-      "lost": 3,
-      "goalsFor": 7,
-      "goalsAgainst": 10,
-      "points": 9,
-      "form": [
-        "D",
-        "L",
-        "L",
-        "D",
-        "W"
-      ]
-    },
-    {
-      "team": "شمس آذر قزوین",
-      "played": 8,
-      "won": 2,
-      "drawn": 2,
-      "lost": 4,
-      "goalsFor": 6,
-      "goalsAgainst": 11,
-      "points": 8,
-      "form": [
-        "L",
-        "L",
-        "D",
-        "W",
-        "L"
-      ]
-    },
-    {
-      "team": "مس رفسنجان",
-      "played": 8,
-      "won": 1,
-      "drawn": 3,
-      "lost": 4,
-      "goalsFor": 5,
-      "goalsAgainst": 11,
-      "points": 6,
-      "form": [
-        "W",
-        "L",
-        "L",
         "D",
         "L"
       ]
     },
     {
       "team": "استقلال خوزستان",
-      "played": 8,
-      "won": 1,
-      "drawn": 3,
-      "lost": 4,
-      "goalsFor": 5,
-      "goalsAgainst": 12,
-      "points": 6,
+      "played": 11,
+      "won": 2,
+      "drawn": 4,
+      "lost": 5,
+      "goalsFor": 7,
+      "goalsAgainst": 14,
+      "points": 10,
       "form": [
+        "W",
         "L",
         "L",
-        "D",
-        "L",
+        "W",
         "D"
       ]
     },
     {
-      "team": "هوادار",
-      "played": 8,
-      "won": 0,
-      "drawn": 3,
+      "team": "صنعت نفت آبادان",
+      "played": 11,
+      "won": 2,
+      "drawn": 4,
       "lost": 5,
-      "goalsFor": 4,
-      "goalsAgainst": 13,
-      "points": 3,
+      "goalsFor": 6,
+      "goalsAgainst": 15,
+      "points": 10,
       "form": [
         "L",
         "L",
+        "W",
+        "L",
+        "W"
+      ]
+    },
+    {
+      "team": "ذوب آهن",
+      "played": 11,
+      "won": 1,
+      "drawn": 6,
+      "lost": 4,
+      "goalsFor": 6,
+      "goalsAgainst": 10,
+      "points": 9,
+      "form": [
+        "D",
+        "L",
         "L",
         "D",
+        "D"
+      ]
+    },
+    {
+      "team": "شمس آذر قزوین",
+      "played": 11,
+      "won": 1,
+      "drawn": 4,
+      "lost": 6,
+      "goalsFor": 7,
+      "goalsAgainst": 13,
+      "points": 7,
+      "form": [
+        "L",
+        "D",
+        "D",
+        "L",
+        "L"
+      ]
+    },
+    {
+      "team": "مس شهر بابک",
+      "played": 11,
+      "won": 0,
+      "drawn": 5,
+      "lost": 6,
+      "goalsFor": 7,
+      "goalsAgainst": 22,
+      "points": 5,
+      "form": [
+        "D",
+        "L",
+        "L",
+        "L",
         "L"
       ]
     }

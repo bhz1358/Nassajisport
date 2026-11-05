@@ -37,6 +37,10 @@ const norm = (s: string) =>
     .trim();
 
 const NUM = /^[+\-−]?\d+$/;
+/** "19-5": goals scored and conceded in one cell. */
+const GOAL_PAIR = /^(\d+)\s*[-–:]\s*(\d+)$/;
+/** Form guide: W/D/L (or Persian ب/م/ش), e.g. "WDWLW". */
+const FORM = /^[WDLبمش]{2,10}$/i;
 const toNum = (s: string) => Number(s.replace("−", "-"));
 
 /** Teams are written differently on each site; keep the club's own name exact so its row is highlighted. */
@@ -66,21 +70,55 @@ function htmlToRows(html: string): string[][] {
   return [];
 }
 
-/** Copied text → rows of cells (tabs when copied from a table, otherwise runs of spaces). */
+const isNumberish = (t: string) => NUM.test(t) || GOAL_PAIR.test(t);
+
+/**
+ * Copied text → rows of cells. Handles one team per line, and the layout a browser
+ * produces when copying a styled table, where the rank, the team name and the numbers
+ * land on separate lines.
+ */
 function textToRows(text: string): string[][] {
-  return text
+  const lines = text
     .split(/\r?\n/)
     .map((line) => norm(line.replace(/\t/g, " \t ")))
     .filter(Boolean)
     .map((line) => (line.includes("\t") ? line.split("\t").map((c) => c.trim()).filter(Boolean) : line.split(" ")));
+  const rows: string[][] = [];
+  let pendingName: string[] = [];
+  for (const cells of lines) {
+    const numeric = cells.filter(isNumberish).length;
+    const hasWords = cells.some((c) => !isNumberish(c) && !FORM.test(c) && /\p{L}/u.test(c));
+    if (hasWords && numeric < 2) {
+      // A name on its own line (or a header): the numbers follow on the next line.
+      pendingName = cells;
+      if (cells.some((c) => /امتیاز/.test(c))) {
+        rows.push(cells);
+        pendingName = [];
+      }
+    } else if (!hasWords && numeric >= 4 && pendingName.length) {
+      rows.push([...pendingName, ...cells]);
+      pendingName = [];
+    } else if (hasWords) {
+      rows.push(cells);
+      pendingName = [];
+    }
+    // Lines holding only a rank number are skipped.
+  }
+  return rows;
 }
 
-function consistent(r: Partial<Record<Col, number>>): boolean {
+/** Most points a row can legally lose to a deduction before we treat the numbers as misread. */
+const MAX_DEDUCTION = 15;
+
+function consistent(r: Partial<Record<Col, number>>, allowDeduction = false): boolean {
   const { played, won, drawn, lost, goalsFor, goalsAgainst, diff, points } = r;
   if (won === undefined || drawn === undefined || lost === undefined) return false;
   if (played !== undefined && played !== won + drawn + lost) return false;
-  if (points !== undefined && points !== won * 3 + drawn) return false;
   if (diff !== undefined && goalsFor !== undefined && goalsAgainst !== undefined && diff !== goalsFor - goalsAgainst) return false;
+  if (points !== undefined) {
+    const gap = won * 3 + drawn - points;
+    if (gap !== 0 && !(allowDeduction && gap > 0 && gap <= MAX_DEDUCTION)) return false;
+  }
   return true;
 }
 
@@ -95,7 +133,7 @@ export function parseStandings(input: string): ParseResult {
   let headerCols: Col[] | undefined;
   for (const r of raw) {
     const cols = r.map((c) => HEADER_WORDS.find(([re]) => re.test(c))?.[1]).filter((c): c is Col => !!c);
-    if (cols.length >= 4 && cols.includes("points")) {
+    if ((cols.length >= 4 || (cols.length >= 2 && cols.includes("played"))) && cols.includes("points")) {
       headerCols = cols;
       break;
     }
@@ -104,25 +142,52 @@ export function parseStandings(input: string): ParseResult {
   const out: StandingRow[] = [];
   for (const cells of raw) {
     // A team row: some words (the name) and enough numbers.
-    const words = cells.filter((c) => !NUM.test(c) && /\p{L}/u.test(c));
-    let nums = cells.filter((c) => NUM.test(c)).map(toNum);
-    if (words.length === 0 || nums.length < 5) continue;
+    const formCell = cells.find((c) => FORM.test(c));
+    const words = cells.filter((c) => !isNumberish(c) && c !== formCell && /\p{L}/u.test(c));
+    let nums = cells.filter(isNumberish).flatMap((c) => {
+      const pair = c.match(GOAL_PAIR);
+      return pair ? [Number(pair[1]), Number(pair[2])] : [toNum(c)];
+    });
+    const form = formCell
+      ? ([...formCell.toUpperCase()].map((ch) => ({ W: "W", D: "D", L: "L", ب: "W", م: "D", ش: "L" })[ch]).filter(Boolean) as StandingRow["form"])
+      : undefined;
+    if (words.length === 0 || nums.length < 2) continue;
     const name = teamName(words.join(" "));
     if (!name || /امتیاز|تیم/.test(name)) continue;
 
     // Drop a leading rank number when there is one more number than columns.
-    const layouts = headerCols ? [headerCols] : LAYOUTS;
+    // The header's order first; it can miss a combined "goals" column, so the known layouts follow.
+    const layouts = headerCols ? [headerCols, ...LAYOUTS] : LAYOUTS;
     let picked: Partial<Record<Col, number>> | undefined;
-    for (const layout of layouts) {
-      for (const candidate of [nums, nums.slice(1), nums.slice(0, -1)]) {
-        if (candidate.length !== layout.length) continue;
-        const r = Object.fromEntries(layout.map((c, i) => [c, candidate[i]])) as Partial<Record<Col, number>>;
-        if (consistent(r)) {
-          picked = r;
-          break;
+    // First an exact fit; then allow a points deduction, but only where played and goal difference still check out.
+    for (const allowDeduction of [false, true]) {
+      for (const layout of layouts) {
+        if (allowDeduction && !(layout.includes("played") && layout.includes("diff") && layout.includes("points"))) continue;
+        for (const candidate of [nums, nums.slice(1), nums.slice(0, -1)]) {
+          if (candidate.length !== layout.length) continue;
+          const r = Object.fromEntries(layout.map((c, i) => [c, candidate[i]])) as Partial<Record<Col, number>>;
+          if (consistent(r, allowDeduction)) {
+            picked = r;
+            break;
+          }
         }
+        if (picked) break;
       }
       if (picked) break;
+    }
+    // Short tables (rank, team, played, points) give no W/D/L: keep what is known.
+    if (!picked && (!headerCols || !headerCols.includes("won"))) {
+      for (const candidate of [nums, nums.slice(1)]) {
+        const order = headerCols?.filter((c) => c === "played" || c === "points") ?? ["played", "points"];
+        if (candidate.length !== 2 || order.length !== 2) continue;
+        const r = Object.fromEntries(order.map((c, i) => [c, candidate[i]])) as Partial<Record<Col, number>>;
+        if (r.played! >= 0 && r.points! >= 0 && r.points! <= r.played! * 3) {
+          out.push({ team: name, played: r.played!, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: r.points!, partial: true });
+          picked = r;
+        }
+        break;
+      }
+      if (picked) continue;
     }
     if (!picked) {
       warnings.push(`ردیف «${name}» خوانده نشد (اعداد: ${nums.join(" ")}).`);
@@ -137,7 +202,9 @@ export function parseStandings(input: string): ParseResult {
       lost,
       goalsFor: picked.goalsFor ?? 0,
       goalsAgainst: picked.goalsAgainst ?? (picked.goalsFor !== undefined && picked.diff !== undefined ? picked.goalsFor - picked.diff : 0),
-      points: won * 3 + drawn,
+      points: picked.points ?? won * 3 + drawn,
+      ...(picked.points !== undefined && picked.points < won * 3 + drawn ? { deducted: won * 3 + drawn - picked.points } : {}),
+      ...(form && form.length ? { form } : {}),
     });
     nums = [];
   }

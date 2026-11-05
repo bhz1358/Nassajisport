@@ -347,6 +347,9 @@ export function FormDots({ form }: { form?: StandingRow["form"] }) {
   );
 }
 
+/** A dash for columns the source table did not give (see StandingRow.partial). */
+const known = (r: StandingRow, n: number) => (r.partial ? "—" : faNum(n));
+
 export function StandingsTable({ rows, offset = 0, compact = false }: { rows: StandingRow[]; offset?: number; compact?: boolean }) {
   return (
     <table className={`standings ${compact ? "is-compact" : ""}`}>
@@ -380,15 +383,22 @@ export function StandingsTable({ rows, offset = 0, compact = false }: { rows: St
             <td>{faNum(r.played)}</td>
             {!compact && (
               <>
-                <td>{faNum(r.won)}</td>
-                <td>{faNum(r.drawn)}</td>
-                <td>{faNum(r.lost)}</td>
-                <td>{faNum(r.goalsFor)}</td>
-                <td>{faNum(r.goalsAgainst)}</td>
+                <td>{known(r, r.won)}</td>
+                <td>{known(r, r.drawn)}</td>
+                <td>{known(r, r.lost)}</td>
+                <td>{known(r, r.goalsFor)}</td>
+                <td>{known(r, r.goalsAgainst)}</td>
               </>
             )}
-            <td dir="ltr">{faNum(r.goalsFor - r.goalsAgainst)}</td>
-            <td className="pts">{faNum(r.points)}</td>
+            <td dir="ltr">{known(r, r.goalsFor - r.goalsAgainst)}</td>
+            <td className="pts">
+              {faNum(r.points)}
+              {r.deducted ? (
+                <sup className="deducted" title={`${faNum(r.deducted)} امتیاز کسر شده`}>
+                  −{faNum(r.deducted)}
+                </sup>
+              ) : null}
+            </td>
             {!compact && (
               <td className="form-col">
                 <FormDots form={r.form} />

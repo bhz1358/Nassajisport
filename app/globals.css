@@ -501,7 +501,8 @@ a:hover .play { transform: scale(1.08); }
 .standings .team-col { text-align: right; }
 .standings td.team-col { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .standings .pos { color: var(--muted); font-weight: 700; }
-.standings .pts { font-weight: 900; color: var(--heading); }
+.standings .pts { font-weight: 900; color: var(--heading); white-space: nowrap; }
+.standings .deducted { color: var(--loss); font-size: 0.65rem; font-weight: 800; margin-right: 2px; }
 .standings tr.is-club td { background: var(--club-row); color: #fff; font-weight: 800; border-block: 1px solid var(--line-gold); }
 .standings tr.is-club td:first-child { border-right: 1px solid var(--line-gold); }
 .standings tr.is-club td:last-child { border-left: 1px solid var(--line-gold); }

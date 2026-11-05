@@ -169,7 +169,7 @@ export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Re
       <section id="standings" className="a-card">
         <h2>جدول لیگ</h2>
         <p className="a-hint">
-          تعداد بازی و امتیاز خودکار حساب می‌شود و جدول بعد از ذخیره مرتب می‌شود. «۵ بازی اخیر» را با حروف ب (برد)، م (مساوی)، ش (شکست) از قدیم به جدید بنویسید، مثلاً «ببمشب».
+          اگر برد، مساوی و باخت را وارد کنید، تعداد بازی و امتیاز خودکار حساب می‌شود؛ اگر خالی بمانند، همان بازی و امتیازی که نوشته‌اید ذخیره می‌شود. جدول بعد از ذخیره مرتب می‌شود. «۵ بازی اخیر» را با حروف ب (برد)، م (مساوی)، ش (شکست) از قدیم به جدید بنویسید، مثلاً «ببمشب».
           آخرین به‌روزرسانی: {faDate(league.updatedAt)}
         </p>
         <form action={saveStandings}>
@@ -179,11 +179,14 @@ export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Re
               <thead>
                 <tr>
                   <th>تیم</th>
+                  <th>بازی</th>
+                  <th>امتیاز</th>
                   <th>برد</th>
                   <th>مساوی</th>
                   <th>باخت</th>
                   <th>زده</th>
                   <th>خورده</th>
+                  <th>کسر امتیاز</th>
                   <th>۵ بازی اخیر</th>
                   <th>حذف</th>
                 </tr>
@@ -194,17 +197,26 @@ export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Re
                     <td>
                       <input name={`team_${i}`} defaultValue={r?.team} placeholder={r ? "" : "تیم جدید"} aria-label="تیم" />
                     </td>
+                    <td>
+                      <input name={`played_${i}`} defaultValue={r?.played ?? ""} inputMode="numeric" className="a-narrow" aria-label="بازی" />
+                    </td>
+                    <td>
+                      <input name={`points_${i}`} defaultValue={r?.points ?? ""} inputMode="numeric" className="a-narrow" aria-label="امتیاز" />
+                    </td>
                     {(["won", "drawn", "lost", "gf", "ga"] as const).map((k) => (
                       <td key={k}>
                         <input
                           name={`${k}_${i}`}
-                          defaultValue={r ? { won: r.won, drawn: r.drawn, lost: r.lost, gf: r.goalsFor, ga: r.goalsAgainst }[k] : ""}
+                          defaultValue={r && !r.partial ? { won: r.won, drawn: r.drawn, lost: r.lost, gf: r.goalsFor, ga: r.goalsAgainst }[k] : ""}
                           inputMode="numeric"
                           className="a-narrow"
                           aria-label={k}
                         />
                       </td>
                     ))}
+                    <td>
+                      <input name={`deducted_${i}`} defaultValue={r?.deducted ?? ""} inputMode="numeric" className="a-narrow" aria-label="کسر امتیاز" />
+                    </td>
                     <td>
                       <input
                         name={`form_${i}`}

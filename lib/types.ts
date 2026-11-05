@@ -46,6 +46,10 @@ export type StandingRow = {
   points: number;
   /** Last results, oldest first. */
   form?: ("W" | "D" | "L")[];
+  /** Points taken away by the league (disciplinary deduction); points already include it. */
+  deducted?: number;
+  /** Only played and points are known (the source table had no W/D/L or goals). */
+  partial?: boolean;
 };
 
 export type Fixture = {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { FixtureRow, MatchHero, SampleNotice, SectionHeader, StandingsTable } from "../components";
+import { faNum } from "@/lib/format";
 import { getClubMatch, getLeague } from "@/lib/league";
 
 export const metadata: Metadata = { title: "مرکز لیگ" };
@@ -30,6 +31,14 @@ export default function LeaguePage() {
           <div className="table-scroll">
             <StandingsTable rows={league.standings} />
           </div>
+          {league.standings.some((r) => r.deducted) && (
+            <p className="legend">
+              {league.standings
+                .filter((r) => r.deducted)
+                .map((r) => `${r.team}: ${faNum(r.deducted!)} امتیاز کسر شده`)
+                .join("، ")}
+            </p>
+          )}
           <p className="legend">
             <span className="form-W">ب</span> برد <span className="form-D">م</span> مساوی <span className="form-L">ش</span> شکست
           </p>

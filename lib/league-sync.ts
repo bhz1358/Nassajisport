@@ -9,7 +9,8 @@ const MIN_TEAMS = 8;
 export function applyStandings(rows: StandingRow[]) {
   const league = getLeague();
   const formByTeam = new Map(league.standings.map((r) => [r.team, r.form]));
-  const merged = rows.map((r) => ({ ...r, ...(formByTeam.get(r.team) ? { form: formByTeam.get(r.team) } : {}) }));
+  // The source's own form guide wins; otherwise the one already on the site is kept.
+  const merged = rows.map((r) => (r.form?.length || !formByTeam.get(r.team) ? r : { ...r, form: formByTeam.get(r.team) }));
   saveLeague({ ...league, previousStandings: league.standings, standings: sortStandings(merged), isSample: false });
 }
 
