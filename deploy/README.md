@@ -78,11 +78,13 @@ sudo systemctl restart nassaji    # راه‌اندازی دوباره
 sudo journalctl -u nassaji -f     # لاگ‌ها
 ```
 
-**عکس‌های وردپرس:** محتوای پوشه‌ی `wp-content/uploads` سایت قدیم را در `/var/lib/nassaji/data/uploads/` کپی کنید و مالکیت را درست کنید:
+**عکس‌های وردپرس:** لازم نیست از cPanel چیزی کپی کنید. بعد از درون‌ریزی فایل XML در پنل، این دستور همه‌ی عکس‌ها را مستقیم از آدرس‌های عمومی سایت قدیم دانلود می‌کند:
 
 ```bash
-sudo chown -R nassaji:nassaji /var/lib/nassaji/data/uploads
+sudo bash deploy/fetch-media.sh https://nassajisport.com
 ```
+
+اجرای دوباره فقط عکس‌های جاافتاده را می‌گیرد. فهرست عکس‌هایی که دانلود نشدند در `/var/lib/nassaji/data/uploads/fetch-failed.txt` است.
 
 **برگرداندن پشتیبان:**
 
