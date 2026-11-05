@@ -1,6 +1,6 @@
 // Menu items point at category slugs. The slugs are placeholders until the
 // real WordPress export is imported; then they are matched to the old site.
-export const NAV: { label: string; href: string; external?: boolean }[] = [
+export const NAV: { label: string; href: string }[] = [
   { label: "خانه", href: "/" },
   { label: "اخبار", href: "/category/news/" },
   { label: "تیم", href: "/team/" },
@@ -12,14 +12,6 @@ export const NAV: { label: string; href: string; external?: boolean }[] = [
   { label: "نشست خبری", href: "/category/press-conference/" },
   { label: "مرکز لیگ", href: "/league/" },
 ];
-
-// TODO: set the real ticket sales URL.
-export const TICKETS_URL = process.env.NEXT_PUBLIC_TICKETS_URL ?? "#";
-
-export const SOCIAL = {
-  instagram: "https://instagram.com/",
-  telegram: "https://t.me/",
-};
 
 export const HOME_TEAM = "نساجی مازندران";
 

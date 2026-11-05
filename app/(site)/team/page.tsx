@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SampleNotice, SectionHeader } from "../components";
-import { PlayerCard, Pitch, Shirt } from "../squad-ui";
+import { BenchList, MatchPitch, PlayerCard } from "../squad-ui";
 import { faDate, faNum } from "@/lib/format";
-import { getSquad, lineupRows, POSITIONS } from "@/lib/squad";
+import { getSquad, POSITIONS } from "@/lib/squad";
 
 export const metadata: Metadata = { title: "تیم و بازیکنان" };
 
 export default function TeamPage() {
   const squad = getSquad();
-  const rows = lineupRows(squad);
-  const bySlug = new Map(squad.players.map((p) => [p.slug, p]));
-  const subs = (squad.lineup?.substitutes ?? []).map((s) => bySlug.get(s)).filter((p) => !!p);
+  const lu = squad.lineup;
 
   return (
     <>
@@ -32,37 +29,37 @@ export default function TeamPage() {
         </nav>
       </header>
 
-      {squad.lineup && (
+      {lu && (
         <section id="lineup" className="block lineup">
           <SectionHeader title="ترکیب آخرین بازی" />
+          <p className="lineup-meta">
+            <strong>{lu.match}</strong>
+            <span>
+              {faDate(lu.date)}
+              {lu.competition && ` · ${lu.competition}`}
+              {lu.venue && ` · ${lu.venue}`}
+            </span>
+          </p>
           <div className="lineup-grid">
-            <Pitch rows={rows} formation={squad.lineup.formation} />
-            <div className="panel lineup-info">
-              <dl className="facts">
-                <div>
-                  <dt>بازی</dt>
-                  <dd>{squad.lineup.match}</dd>
+            <MatchPitch lineup={lu} />
+            <div className="lineup-teams">
+              {[
+                { t: lu.home, away: false },
+                { t: lu.away, away: true },
+              ].map(({ t, away }) => (
+                <div key={t.team} className="panel lineup-team">
+                  <h3>
+                    {t.team} <span dir="ltr">{t.formation}</span>
+                  </h3>
+                  {t.coach && (
+                    <p className="muted">
+                      سرمربی: <strong>{t.coach}</strong>
+                    </p>
+                  )}
+                  <h4>ذخیره‌ها</h4>
+                  <BenchList players={t.substitutes} away={away} />
                 </div>
-                <div>
-                  <dt>تاریخ</dt>
-                  <dd>{faDate(squad.lineup.date)}</dd>
-                </div>
-                <div>
-                  <dt>آرایش</dt>
-                  <dd dir="ltr">{squad.lineup.formation}</dd>
-                </div>
-              </dl>
-              <h3>ذخیره‌ها</h3>
-              <ul className="subs">
-                {subs.map((p) => (
-                  <li key={p.slug}>
-                    <Link href={`/team/${p.slug}/`}>
-                      <Shirt number={p.number} size={30} />
-                      <span>{p.name}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              ))}
             </div>
           </div>
         </section>

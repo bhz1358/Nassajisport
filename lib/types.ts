@@ -20,15 +20,19 @@ export type Post = {
   tags: string[];
   featuredImage?: string;
   sticky?: boolean;
+  /** Missing means published (imported posts). Drafts are hidden from the public site. */
+  status?: "publish" | "draft";
   /** SEO title/description from Yoast or Rank Math, when the old site had them. */
   seo?: { title?: string; description?: string };
 };
 
-export type Content = {
-  site: { title: string; description: string; sourceUrl?: string; importedAt?: string };
-  posts: Post[];
-  categories: Category[];
-  isSample: boolean;
+export type Comment = {
+  postId: number;
+  id: number;
+  parent?: number;
+  author: string;
+  date: string;
+  content: string;
 };
 
 export type StandingRow = {
@@ -84,14 +88,33 @@ export type Squad = {
   isSample: boolean;
   players: Player[];
   staff: { role: string; name: string; photo?: string }[];
-  lineup?: {
-    match: string;
-    date: string;
-    /** e.g. "4-3-3"; starters are listed goalkeeper first, then each line from right to left. */
-    formation: string;
-    starters: string[];
-    substitutes: string[];
-  };
+  lineup?: MatchLineup;
+};
+
+export type LineupPlayer = {
+  number: number;
+  name: string;
+  /** Links to the club player's profile when set. */
+  slug?: string;
+  captain?: boolean;
+};
+
+export type TeamLineup = {
+  team: string;
+  /** e.g. "4-3-3"; starters are listed goalkeeper first, then each line from right to left. */
+  formation: string;
+  coach?: string;
+  starters: LineupPlayer[];
+  substitutes: LineupPlayer[];
+};
+
+export type MatchLineup = {
+  match: string;
+  date: string;
+  competition?: string;
+  venue?: string;
+  home: TeamLineup;
+  away: TeamLineup;
 };
 
 export type LeagueData = {
@@ -101,4 +124,29 @@ export type LeagueData = {
   isSample: boolean;
   standings: StandingRow[];
   fixtures: Fixture[];
+};
+
+export type ColorMode = "auto" | "light" | "dark";
+
+export type Settings = {
+  title: string;
+  description: string;
+  ticketsUrl: string;
+  social: { instagram: string; telegram: string };
+  theme: {
+    preset: string;
+    /** Used when preset is "custom". */
+    brand?: string;
+    accent?: string;
+    mode: ColorMode;
+  };
+  sourceUrl?: string;
+  importedAt?: string;
+};
+
+export type AdminUser = {
+  username: string;
+  /** scrypt: "salt:hash" in hex */
+  password: string;
+  createdAt: string;
 };

@@ -3,19 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReadingProgress, ShareBar } from "../client";
 import { CategoryBadge, LatestTimeline, SectionHeader, StoryCard, Thumb } from "../components";
-import { getByPath, getContent, getNews, getPostsInCategory } from "@/lib/content";
+import { getByPath, getNews, getPostsInCategory } from "@/lib/content";
 import { faDate, faNum, faTime, readingMinutes } from "@/lib/format";
 
 type Props = { params: Promise<{ path: string[] }> };
 
-// Every post and page keeps the exact URL it had on WordPress.
-export function generateStaticParams() {
-  return getContent().posts.map((p) => ({
-    path: p.path.split("/").filter(Boolean),
-  }));
-}
-
-export const dynamicParams = false;
+// Every post and page keeps the exact URL it had on WordPress (looked up by path).
 
 async function load(params: Props["params"]) {
   const { path } = await params;

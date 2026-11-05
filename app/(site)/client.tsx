@@ -79,7 +79,7 @@ const TABS = [
 export function TabBar({ ticketsUrl }: { ticketsUrl: string }) {
   const pathname = usePathname();
   return (
-    <nav className="tabbar" aria-label="دسترسی سریع">
+    <nav className={`tabbar ${ticketsUrl ? "" : "no-tickets"}`} aria-label="دسترسی سریع">
       {TABS.map((t) => {
         const active = t.href === "/" ? pathname === "/" : pathname.startsWith(t.href);
         return (
@@ -91,12 +91,14 @@ export function TabBar({ ticketsUrl }: { ticketsUrl: string }) {
           </Link>
         );
       })}
+      {ticketsUrl && (
       <a href={ticketsUrl} target="_blank" rel="noopener" className="tab-tickets">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
           <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z" fill="currentColor" />
         </svg>
         بلیت
       </a>
+      )}
     </nav>
   );
 }

@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LeadStory, StoryCard, VideoCard } from "../../components";
-import { getCategory, getContent, getPostsInCategory } from "@/lib/content";
+import { getCategory, getPostsInCategory } from "@/lib/content";
 import { VIDEO_CATEGORY } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return getContent().categories.map((c) => ({ slug: c.slug }));
-}
-
-export const dynamicParams = false;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

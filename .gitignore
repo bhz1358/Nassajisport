@@ -8,3 +8,6 @@ next-env.d.ts
 wordpress-export/
 *.sql
 *.sql.gz
+
+# Admin panel database and uploads (back this up)
+data/

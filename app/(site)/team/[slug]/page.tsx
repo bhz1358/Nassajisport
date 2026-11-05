@@ -8,11 +8,6 @@ import { ageOn, getPlayer, getSquad, newsAboutPlayer, positionLabel } from "@/li
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return getSquad().players.map((p) => ({ slug: p.slug }));
-}
-
-export const dynamicParams = false;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const player = getPlayer((await params).slug);

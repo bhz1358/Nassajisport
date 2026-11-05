@@ -1,7 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
 import { getNews } from "./content";
-import type { Player, Position, Squad } from "./types";
+import { readStore, seedFromContent, writeStore } from "./store";
+import type { LineupPlayer, Player, Position, Squad, TeamLineup } from "./types";
 
 export const POSITIONS: { key: Position; label: string; plural: string }[] = [
   { key: "GK", label: "دروازه‌بان", plural: "دروازه‌بان‌ها" },
@@ -10,12 +9,16 @@ export const POSITIONS: { key: Position; label: string; plural: string }[] = [
   { key: "FW", label: "مهاجم", plural: "مهاجمان" },
 ];
 
+export const FORMATIONS = ["4-3-3", "4-4-2", "4-2-3-1", "4-1-4-1", "4-5-1", "3-5-2", "3-4-3", "5-3-2", "5-4-1", "4-3-2-1", "4-4-1-1"];
+
 export const positionLabel = (p: Position) => POSITIONS.find((x) => x.key === p)!.label;
 
-// Edited by hand for now; an admin panel will write this file later.
 export function getSquad(): Squad {
-  const file = path.join(process.cwd(), "content", "squad", "squad.json");
-  return JSON.parse(fs.readFileSync(file, "utf8"));
+  return readStore<Squad>("squad", () => seedFromContent("squad/squad.json"));
+}
+
+export function saveSquad(squad: Squad) {
+  writeStore("squad", squad);
 }
 
 export function getPlayer(slug: string): Player | undefined {
@@ -29,20 +32,44 @@ export function ageOn(birthDate: string, at = new Date()): number {
   return age;
 }
 
-/** Splits the starting XI into lines (goalkeeper, then each outfield line) using the formation string. */
-export function lineupRows(squad: Squad): Player[][] {
-  const lu = squad.lineup;
-  if (!lu) return [];
-  const bySlug = new Map(squad.players.map((p) => [p.slug, p]));
-  const starters = lu.starters.map((s) => bySlug.get(s)).filter((p): p is Player => !!p);
-  const sizes = [1, ...lu.formation.split("-").map(Number)];
-  const rows: Player[][] = [];
+/** Splits a team's starting XI into lines (goalkeeper, then each outfield line) using its formation. */
+export function lineupRows(team: TeamLineup): LineupPlayer[][] {
+  const sizes = [1, ...team.formation.split("-").map(Number).filter((n) => n > 0)];
+  const rows: LineupPlayer[][] = [];
   let i = 0;
   for (const n of sizes) {
-    rows.push(starters.slice(i, i + n));
+    rows.push(team.starters.slice(i, i + n));
     i += n;
   }
-  return rows;
+  // Anyone beyond the formation's 11 (bad data) still shows up in the last line.
+  if (i < team.starters.length) rows[rows.length - 1].push(...team.starters.slice(i));
+  return rows.filter((r) => r.length > 0);
+}
+
+/**
+ * Parses one player per line: "number name", optionally ending in "(c)" or "(ک)" for the captain.
+ * This is the format the admin lineup editor uses.
+ */
+export function parseLineupText(text: string, players: Player[] = []): LineupPlayer[] {
+  const toLatin = (s: string) => s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const m = toLatin(line).match(/^(\d{1,3})[\s\-–.:]+(.+)$/);
+      let number = m ? Number(m[1]) : 0;
+      let name = (m ? m[2] : line).trim();
+      const captain = /\((c|C|ک|کاپیتان)\)\s*$/.test(name);
+      name = name.replace(/\((c|C|ک|کاپیتان)\)\s*$/, "").trim();
+      const match = players.find((p) => p.name === name) ?? (number ? players.find((p) => p.number === number) : undefined);
+      if (!number && match) number = match.number;
+      return { number, name, ...(match && match.name === name ? { slug: match.slug } : {}), ...(captain ? { captain } : {}) };
+    });
+}
+
+export function lineupToText(list: LineupPlayer[]): string {
+  return list.map((p) => `${p.number} ${p.name}${p.captain ? " (c)" : ""}`).join("\n");
 }
 
 export function newsAboutPlayer(player: Player) {

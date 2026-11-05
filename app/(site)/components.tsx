@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { categoryName } from "@/lib/content";
 import { faNum, faShortDate, faTime, faWeekday, readingMinutes } from "@/lib/format";
-import { HOME_TEAM, TICKETS_URL, VIDEO_CATEGORY } from "@/lib/site";
+import { getSettings } from "@/lib/settings";
+import { HOME_TEAM, VIDEO_CATEGORY } from "@/lib/site";
 import type { Fixture, Post, StandingRow } from "@/lib/types";
 
 const isVideo = (p: Post) => p.categories.includes(VIDEO_CATEGORY);
@@ -156,7 +157,7 @@ export function LatestTimeline({ posts }: { posts: Post[] }) {
 const CREST_COLORS = ["#1a4fa3", "#c0163a", "#0f766e", "#7c3aed", "#b45309", "#0369a1", "#be185d", "#4d7c0f"];
 
 export function Crest({ team, size = 28 }: { team: string; size?: number }) {
-  const color = team === HOME_TEAM ? "#c0163a" : CREST_COLORS[[...team].reduce((a, c) => a + c.charCodeAt(0), 0) % CREST_COLORS.length];
+  const color = team === HOME_TEAM ? "var(--acc-600)" : CREST_COLORS[[...team].reduce((a, c) => a + c.charCodeAt(0), 0) % CREST_COLORS.length];
   return (
     <span className="crest" style={{ width: size, height: size, background: color, fontSize: size * 0.42 }} aria-hidden="true">
       {team.charAt(0)}
@@ -189,6 +190,7 @@ function StatusLabel({ f }: { f: Fixture }) {
 
 /** The club's featured match: the first thing a fan looks for. */
 export function MatchHero({ f, competition }: { f: Fixture; competition: string }) {
+  const { ticketsUrl } = getSettings();
   return (
     <section className={`match-hero ${f.status === "live" ? "is-live" : ""}`} aria-label="بازی نساجی">
       <div className="match-hero-top">
@@ -218,8 +220,8 @@ export function MatchHero({ f, competition }: { f: Fixture; competition: string 
           <Link href="/league/" className="btn btn-ghost">
             مرکز لیگ
           </Link>
-          {f.status === "scheduled" && (
-            <a href={TICKETS_URL} className="btn btn-primary" target="_blank" rel="noopener">
+          {f.status === "scheduled" && ticketsUrl && (
+            <a href={ticketsUrl} className="btn btn-primary" target="_blank" rel="noopener">
               خرید بلیت
             </a>
           )}

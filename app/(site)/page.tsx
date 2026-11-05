@@ -12,13 +12,13 @@ import {
   StoryRow,
   VideoCard,
 } from "./components";
-import { getContent, getNews } from "@/lib/content";
+import { getNews, isSampleContent } from "@/lib/content";
 import { getClubMatch, getLeague, tableAroundClub } from "@/lib/league";
 import { OPINION_CATEGORIES, PRESS_CATEGORY, VIDEO_CATEGORY, YOUTH_CATEGORY } from "@/lib/site";
 import type { Post } from "@/lib/types";
 
 export default function Home() {
-  const { isSample } = getContent();
+  const isSample = isSampleContent();
   const news = getNews();
   const league = getLeague();
   const clubMatch = getClubMatch(league);

@@ -1,13 +1,24 @@
-import fs from "node:fs";
-import path from "node:path";
 import { HOME_TEAM } from "./site";
+import { readStore, seedFromContent, writeStore } from "./store";
 import type { Fixture, LeagueData, StandingRow } from "./types";
 
-// For now league data comes from a JSON file that can be edited by hand.
-// A live provider (football API, polled server-side and cached) will replace this.
+// Edited in the admin panel. A live provider (football API, polled server-side) can write here later.
 export function getLeague(): LeagueData {
-  const file = path.join(process.cwd(), "content", "league", "pro-league.json");
-  return JSON.parse(fs.readFileSync(file, "utf8"));
+  return readStore<LeagueData>("league", () => seedFromContent("league/pro-league.json"));
+}
+
+export function saveLeague(league: LeagueData) {
+  writeStore("league", { ...league, updatedAt: new Date().toISOString() });
+}
+
+/** Points, then goal difference, then goals scored. */
+export function sortStandings(rows: StandingRow[]): StandingRow[] {
+  return [...rows].sort(
+    (a, b) =>
+      b.points - a.points ||
+      b.goalsFor - b.goalsAgainst - (a.goalsFor - a.goalsAgainst) ||
+      b.goalsFor - a.goalsFor,
+  );
 }
 
 const involvesClub = (f: Fixture) => f.home === HOME_TEAM || f.away === HOME_TEAM;

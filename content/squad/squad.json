@@ -451,27 +451,175 @@
   "lineup": {
     "match": "نساجی مازندران - سپاهان",
     "date": "2026-10-26T13:30:00Z",
-    "formation": "4-3-3",
-    "starters": [
-      "player-1",
-      "player-2",
-      "player-4",
-      "player-5",
-      "player-3",
-      "player-6",
-      "player-8",
-      "player-10",
-      "player-7",
-      "player-9",
-      "player-11"
-    ],
-    "substitutes": [
-      "player-12",
-      "player-13",
-      "player-14",
-      "player-16",
-      "player-19",
-      "player-24"
-    ]
+    "competition": "لیگ برتر فوتبال ایران",
+    "venue": "ورزشگاه وطنی قائم‌شهر",
+    "home": {
+      "team": "نساجی مازندران",
+      "formation": "4-3-3",
+      "coach": "سرمربی نمونه",
+      "starters": [
+        {
+          "number": 1,
+          "name": "دروازه‌بان نمونه ۱",
+          "slug": "player-1"
+        },
+        {
+          "number": 2,
+          "name": "مدافع نمونه ۱",
+          "slug": "player-2"
+        },
+        {
+          "number": 4,
+          "name": "مدافع نمونه ۳",
+          "slug": "player-4"
+        },
+        {
+          "number": 5,
+          "name": "مدافع نمونه ۴",
+          "slug": "player-5"
+        },
+        {
+          "number": 3,
+          "name": "مدافع نمونه ۲",
+          "slug": "player-3"
+        },
+        {
+          "number": 6,
+          "name": "هافبک نمونه ۱",
+          "slug": "player-6"
+        },
+        {
+          "number": 8,
+          "name": "هافبک نمونه ۲",
+          "slug": "player-8"
+        },
+        {
+          "number": 10,
+          "name": "هافبک نمونه ۳",
+          "slug": "player-10"
+        },
+        {
+          "number": 7,
+          "name": "مهاجم نمونه ۱",
+          "slug": "player-7"
+        },
+        {
+          "number": 9,
+          "name": "مهاجم نمونه ۲",
+          "slug": "player-9",
+          "captain": true
+        },
+        {
+          "number": 11,
+          "name": "مهاجم نمونه ۳",
+          "slug": "player-11"
+        }
+      ],
+      "substitutes": [
+        {
+          "number": 12,
+          "name": "دروازه‌بان نمونه ۲",
+          "slug": "player-12"
+        },
+        {
+          "number": 13,
+          "name": "مدافع نمونه ۵",
+          "slug": "player-13"
+        },
+        {
+          "number": 14,
+          "name": "هافبک نمونه ۴",
+          "slug": "player-14"
+        },
+        {
+          "number": 16,
+          "name": "هافبک نمونه ۵",
+          "slug": "player-16"
+        },
+        {
+          "number": 19,
+          "name": "مهاجم نمونه ۴",
+          "slug": "player-19"
+        },
+        {
+          "number": 24,
+          "name": "مدافع نمونه ۷",
+          "slug": "player-24"
+        }
+      ]
+    },
+    "away": {
+      "team": "سپاهان",
+      "formation": "4-2-3-1",
+      "coach": "سرمربی نمونه سپاهان",
+      "starters": [
+        {
+          "number": 1,
+          "name": "بازیکن نمونه ۱"
+        },
+        {
+          "number": 2,
+          "name": "بازیکن نمونه ۲"
+        },
+        {
+          "number": 5,
+          "name": "بازیکن نمونه ۳"
+        },
+        {
+          "number": 4,
+          "name": "بازیکن نمونه ۴"
+        },
+        {
+          "number": 3,
+          "name": "بازیکن نمونه ۵"
+        },
+        {
+          "number": 6,
+          "name": "بازیکن نمونه ۶"
+        },
+        {
+          "number": 8,
+          "name": "بازیکن نمونه ۷"
+        },
+        {
+          "number": 10,
+          "name": "بازیکن نمونه ۸"
+        },
+        {
+          "number": 7,
+          "name": "بازیکن نمونه ۹"
+        },
+        {
+          "number": 9,
+          "name": "بازیکن نمونه ۱۰"
+        },
+        {
+          "number": 11,
+          "name": "بازیکن نمونه ۱۱"
+        }
+      ],
+      "substitutes": [
+        {
+          "number": 12,
+          "name": "ذخیره نمونه ۱"
+        },
+        {
+          "number": 14,
+          "name": "ذخیره نمونه ۲"
+        },
+        {
+          "number": 17,
+          "name": "ذخیره نمونه ۳"
+        },
+        {
+          "number": 19,
+          "name": "ذخیره نمونه ۴"
+        },
+        {
+          "number": 23,
+          "name": "ذخیره نمونه ۵"
+        }
+      ]
+    }
   }
 }
