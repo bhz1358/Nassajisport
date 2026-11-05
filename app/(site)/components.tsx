@@ -1,30 +1,44 @@
 import Link from "next/link";
 import { categoryName } from "@/lib/content";
 import { faNum, faShortDate, faTime, faWeekday, readingMinutes } from "@/lib/format";
-import { getSettings } from "@/lib/settings";
+import { getSettings, logoUrl } from "@/lib/settings";
 import { HOME_TEAM, VIDEO_CATEGORY } from "@/lib/site";
+import { splitTitle } from "@/lib/title";
 import type { Fixture, Post, StandingRow } from "@/lib/types";
 
 const isVideo = (p: Post) => p.categories.includes(VIDEO_CATEGORY);
 
-export function Thumb({ post, className = "" }: { post: Post; className?: string }) {
+export function HighlightTitle({ title }: { title: string }) {
+  const [gold, rest] = splitTitle(title);
+  return (
+    <>
+      {gold && <span className="gold-text">{gold}</span>}
+      {rest}
+    </>
+  );
+}
+
+export function Thumb({ post, className = "", eager = false }: { post: Post; className?: string; eager?: boolean }) {
   return (
     <div className={`thumb ${className}`}>
       {post.featuredImage ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.featuredImage} alt="" loading="lazy" />
+        <img src={post.featuredImage} alt="" loading={eager ? "eager" : "lazy"} />
       ) : (
-        <div className="thumb-empty" aria-hidden="true" />
+        <div className="thumb-empty" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoUrl(getSettings())} alt="" />
+        </div>
       )}
       {isVideo(post) && <PlayIcon />}
     </div>
   );
 }
 
-function PlayIcon() {
+export function PlayIcon({ large = false }: { large?: boolean }) {
   return (
-    <span className="play" aria-label="ویدیو">
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+    <span className={`play ${large ? "play-lg" : ""}`} aria-label="ویدیو">
+      <svg viewBox="0 0 24 24" width={large ? 26 : 20} height={large ? 26 : 20} aria-hidden="true">
         <path d="M8 5v14l11-7z" fill="currentColor" />
       </svg>
     </span>
@@ -45,13 +59,14 @@ function Meta({ post, withReading = false }: { post: Post; withReading?: boolean
   );
 }
 
-export function SectionHeader({ title, href, tone }: { title: React.ReactNode; href?: string; tone?: "dark" }) {
+export function SectionHeader({ title, href, action }: { title: React.ReactNode; href?: string; action?: React.ReactNode; tone?: "dark" }) {
   return (
-    <div className={`section-header ${tone === "dark" ? "on-dark" : ""}`}>
+    <div className="section-header">
       <h2>{title}</h2>
+      {action}
       {href && (
         <Link href={href} className="more">
-          بیشتر <span aria-hidden="true">←</span>
+          مشاهده همه <span aria-hidden="true">←</span>
         </Link>
       )}
     </div>
@@ -60,14 +75,30 @@ export function SectionHeader({ title, href, tone }: { title: React.ReactNode; h
 
 /* ---------- Story cards ---------- */
 
+/** Glass card from the design: gold tag, optional photo, title, meta. */
+export function NewsCard({ post, withImage = false, featured = false }: { post: Post; withImage?: boolean; featured?: boolean }) {
+  return (
+    <Link href={post.path} className={`news-card ${featured ? "is-featured" : ""} ${withImage ? "has-image" : ""}`}>
+      {withImage && <Thumb post={post} className="news-card-media" />}
+      <div className="news-card-body">
+        <span className="tag">{categoryName(post.categories[0] ?? "") || "خبر"}</span>
+        <h3>{post.title}</h3>
+        <Meta post={post} />
+      </div>
+    </Link>
+  );
+}
+
 export function LeadStory({ post }: { post: Post }) {
   return (
     <Link href={post.path} className="lead">
-      <Thumb post={post} className="lead-media" />
+      <Thumb post={post} className="lead-media" eager />
       <div className="lead-body">
-        <CategoryBadge slug={post.categories[0]} />
-        <h2>{post.title}</h2>
-        <p className="lead-excerpt">{post.excerpt}</p>
+        <span className="tag">{categoryName(post.categories[0] ?? "") || "خبر"}</span>
+        <h2>
+          <HighlightTitle title={post.title} />
+        </h2>
+        {post.excerpt && <p className="lead-excerpt">{post.excerpt}</p>}
         <Meta post={post} withReading />
       </div>
     </Link>
@@ -92,6 +123,7 @@ export function StoryRow({ post }: { post: Post }) {
     <Link href={post.path} className="story-row">
       <Thumb post={post} className="story-row-media" />
       <div>
+        <span className="kicker">{categoryName(post.categories[0] ?? "")}</span>
         <h3>{post.title}</h3>
         <Meta post={post} />
       </div>
@@ -104,6 +136,7 @@ export function VideoCard({ post }: { post: Post }) {
     <Link href={post.path} className="video-card">
       <Thumb post={post} className="video-media" />
       <h3>{post.title}</h3>
+      <Meta post={post} />
     </Link>
   );
 }
@@ -152,12 +185,41 @@ export function LatestTimeline({ posts }: { posts: Post[] }) {
   );
 }
 
+/** Breaking-news bar: crimson to gold, headlines scroll slowly and pause on hover. */
+export function BreakingBar({ posts }: { posts: Post[] }) {
+  if (posts.length === 0) return null;
+  const items = posts.map((p) => (
+    <Link key={p.id} href={p.path}>
+      {p.title}
+    </Link>
+  ));
+  return (
+    <div className="breaking" role="region" aria-label="اخبار فوری">
+      <div className="container breaking-inner">
+        <strong className="breaking-label">
+          <span className="live-dot" /> اخبار فوری
+        </strong>
+        <div className="breaking-track">
+          <div className="breaking-run">
+            {items}
+            {/* Second copy makes the loop seamless; hidden from screen readers. */}
+            <span aria-hidden="true" className="breaking-dup">
+              {items}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Football ---------- */
 
-const CREST_COLORS = ["#1a4fa3", "#c0163a", "#0f766e", "#7c3aed", "#b45309", "#0369a1", "#be185d", "#4d7c0f"];
+const CREST_COLORS = ["#6d28d9", "#b91c1c", "#0f766e", "#1d4ed8", "#b45309", "#0369a1", "#be185d", "#4d7c0f"];
 
 export function Crest({ team, size = 28 }: { team: string; size?: number }) {
-  const color = team === HOME_TEAM ? "var(--acc-600)" : CREST_COLORS[[...team].reduce((a, c) => a + c.charCodeAt(0), 0) % CREST_COLORS.length];
+  const color =
+    team === HOME_TEAM ? "var(--brand-600)" : CREST_COLORS[[...team].reduce((a, c) => a + c.charCodeAt(0), 0) % CREST_COLORS.length];
   return (
     <span className="crest" style={{ width: size, height: size, background: color, fontSize: size * 0.42 }} aria-hidden="true">
       {team.charAt(0)}
@@ -186,6 +248,27 @@ function StatusLabel({ f }: { f: Fixture }) {
     );
   if (f.status === "finished") return <span className="status">پایان بازی</span>;
   return <span className="status">{faShortDate(f.date)}</span>;
+}
+
+/** Compact pill in the header: the club's live or next match. */
+export function NextMatchPill({ f }: { f?: Fixture }) {
+  if (!f) return null;
+  const label = f.status === "live" ? "زنده" : f.status === "scheduled" ? "بازی بعدی" : "آخرین بازی";
+  return (
+    <Link href="/league/" className={`next-pill ${f.status === "live" ? "is-live" : ""}`} title={`${f.home} - ${f.away}`}>
+      {f.status === "live" && <span className="live-dot" />}
+      <span className="next-pill-label">{label}</span>
+      <Crest team={f.home} size={22} />
+      {f.status === "scheduled" ? (
+        <span className="next-pill-score">{faTime(f.date)}</span>
+      ) : (
+        <span className="next-pill-score">
+          {faNum(f.homeScore ?? 0)}-{faNum(f.awayScore ?? 0)}
+        </span>
+      )}
+      <Crest team={f.away} size={22} />
+    </Link>
+  );
 }
 
 /** The club's featured match: the first thing a fan looks for. */
@@ -231,42 +314,6 @@ export function MatchHero({ f, competition }: { f: Fixture; competition: string 
   );
 }
 
-export function ScoreStrip({ fixtures }: { fixtures: Fixture[] }) {
-  if (fixtures.length === 0) return null;
-  return (
-    <div className="score-strip" aria-label="نتایج بازی‌ها">
-      <div className="container score-strip-inner">
-        <Link href="/league/" className="strip-label">
-          لیگ برتر
-        </Link>
-        <ul>
-          {fixtures.map((f, i) => (
-            <li key={i} className={f.home === HOME_TEAM || f.away === HOME_TEAM ? "is-club" : ""}>
-              <Link href="/league/">
-                <span className="strip-teams">
-                  <span>{f.home}</span>
-                  <span>{f.away}</span>
-                </span>
-                <span className="strip-score">
-                  {f.status === "scheduled" ? (
-                    <span className="strip-time">{faTime(f.date)}</span>
-                  ) : (
-                    <>
-                      <span>{faNum(f.homeScore ?? 0)}</span>
-                      <span>{faNum(f.awayScore ?? 0)}</span>
-                    </>
-                  )}
-                </span>
-                {f.status === "live" && <span className="strip-live">{faNum(f.minute ?? 0)}′</span>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
 export function FixtureRow({ f }: { f: Fixture }) {
   const isClub = f.home === HOME_TEAM || f.away === HOME_TEAM;
   return (
@@ -298,17 +345,9 @@ export function FormDots({ form }: { form?: StandingRow["form"] }) {
   );
 }
 
-export function StandingsTable({
-  rows,
-  offset = 0,
-  compact = false,
-}: {
-  rows: StandingRow[];
-  offset?: number;
-  compact?: boolean;
-}) {
+export function StandingsTable({ rows, offset = 0, compact = false }: { rows: StandingRow[]; offset?: number; compact?: boolean }) {
   return (
-    <table className="standings">
+    <table className={`standings ${compact ? "is-compact" : ""}`}>
       <thead>
         <tr>
           <th>#</th>

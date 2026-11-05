@@ -5,6 +5,7 @@ export type ThemePreset = { id: string; name: string; brand: string; accent: str
 // Each theme is two colours: brand (header, headings, dark sections) and accent
 // (badges, buttons, live states). Every other shade is derived from them in CSS.
 export const THEME_PRESETS: ThemePreset[] = [
+  { id: "luxury", name: "مشکی طلایی (لوکس)", brand: "#8e1b2e", accent: "#c9a45c" },
   { id: "blue-pomegranate", name: "آبی اناری", brand: "#1a4fa3", accent: "#c0163a" },
   { id: "classic-red", name: "قرمز کلاسیک", brand: "#7a1222", accent: "#e3a008" },
   { id: "navy-gold", name: "سرمه‌ای طلایی", brand: "#1e3a5f", accent: "#c8961e" },
@@ -28,6 +29,15 @@ export function resolveTheme(theme: Settings["theme"]): { brand: string; accent:
   return { brand: p.brand, accent: p.accent };
 }
 
+/** Black or white, whichever reads better on the given colour (WCAG relative luminance). */
+export function readableOn(hex: string): string {
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const [r, g, b] = [1, 3, 5].map((i) => lin(parseInt(hex.slice(i, i + 2), 16) / 255));
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  // Contrast against near-black (#1a1408) vs white; pick the larger.
+  return (L + 0.05) / 0.0575 > 1.05 / (L + 0.05) ? "#1a1408" : "#ffffff";
+}
+
 /** The palette as CSS custom properties; every shade is mixed from the two theme colours. */
 export function themeVars(brand: string, accent: string): Record<string, string> {
   if (!isHex(brand) || !isHex(accent)) ({ brand, accent } = DEFAULT_THEME);
@@ -42,6 +52,7 @@ export function themeVars(brand: string, accent: string): Record<string, string>
     "--acc-500": tint(accent, 85),
     "--acc-600": accent,
     "--acc-700": shade(accent, 82),
+    "--on-acc": readableOn(accent),
   };
 }
 

@@ -144,6 +144,8 @@ export type Settings = {
   };
   sourceUrl?: string;
   importedAt?: string;
+  /** Bumped when a redesign changes the default theme (see getSettings). */
+  designVersion?: number;
 };
 
 export type AdminUser = {

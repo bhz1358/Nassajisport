@@ -34,7 +34,7 @@
 .a-nav-title { font-size: 0.7rem; color: var(--on-dark-3); padding: 0 10px 4px; font-weight: 700; }
 .a-nav a { padding: 7px 10px; border-radius: 8px; color: var(--on-dark-1); font-weight: 600; }
 .a-nav a:hover { background: rgb(255 255 255 / 0.08); color: #fff; }
-.a-nav a[aria-current="page"] { background: var(--acc-600); color: #fff; }
+.a-nav a[aria-current="page"] { background: var(--acc-600); color: var(--on-acc); }
 .a-side-foot { display: grid; gap: 10px; border-top: 1px solid rgb(255 255 255 / 0.1); padding-top: 12px; }
 .a-side-foot form { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
 .a-side-foot .a-link { color: var(--on-dark-1); }
@@ -73,8 +73,8 @@ ul.a-hint { padding-right: 18px; margin: 8px 0 12px; }
 }
 .a-btn:hover { border-color: var(--brand-600); color: var(--brand); }
 .a-btn:disabled { opacity: 0.6; cursor: progress; }
-.a-btn-primary { background: var(--acc-600); border-color: var(--acc-600); color: #fff; }
-.a-btn-primary:hover { background: var(--acc-700); color: #fff; }
+.a-btn-primary { background: var(--acc-600); border-color: var(--acc-600); color: var(--on-acc); }
+.a-btn-primary:hover { background: var(--acc-700); color: var(--on-acc); }
 .a-btn-danger { color: var(--loss); border-color: color-mix(in srgb, var(--loss) 35%, transparent); background: transparent; }
 .a-btn-danger:hover { background: var(--loss); color: #fff; border-color: var(--loss); }
 .a-btn-small { min-height: 30px; padding: 0 10px; font-size: 0.8rem; }

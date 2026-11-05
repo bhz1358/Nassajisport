@@ -4,13 +4,19 @@ export const NAV: { label: string; href: string }[] = [
   { label: "خانه", href: "/" },
   { label: "اخبار", href: "/category/news/" },
   { label: "تیم", href: "/team/" },
-  { label: "ویدیو", href: "/category/video/" },
-  { label: "نقد و بررسی", href: "/category/review/" },
+  { label: "جدول و نتایج", href: "/league/" },
+  { label: "چندرسانه‌ای", href: "/category/video/" },
+  { label: "تحلیل", href: "/category/review/" },
+  { label: "نشست خبری", href: "/category/press-conference/" },
+];
+
+/** Footer: every section, including the ones that don't fit in the header. */
+export const FOOTER_NAV: { label: string; href: string }[] = [
+  ...NAV.slice(1),
   { label: "تیم پایه", href: "/category/youth/" },
   { label: "مقاله", href: "/category/article/" },
   { label: "جام حذفی", href: "/category/hazfi-cup/" },
-  { label: "نشست خبری", href: "/category/press-conference/" },
-  { label: "مرکز لیگ", href: "/league/" },
+  { label: "جست‌وجو", href: "/search/" },
 ];
 
 export const HOME_TEAM = "نساجی مازندران";

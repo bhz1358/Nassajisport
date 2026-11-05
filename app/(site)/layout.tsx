@@ -1,66 +1,79 @@
 import Link from "next/link";
 import { MainNav, TabBar } from "./client";
-import { ScoreStrip } from "./components";
-import { getLeague } from "@/lib/league";
+import { NextMatchPill } from "./components";
+import { getClubMatch, getLeague } from "@/lib/league";
 import { getSettings, logoUrl } from "@/lib/settings";
-import { NAV } from "@/lib/site";
+import { FOOTER_NAV, NAV } from "@/lib/site";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   const settings = getSettings();
-  const league = getLeague();
-  // Live first, then upcoming, then latest results.
-  const order = { live: 0, scheduled: 1, finished: 2 } as const;
-  const strip = [...league.fixtures].sort((a, b) => order[a.status] - order[b.status] || a.date.localeCompare(b.date));
+  const clubMatch = getClubMatch(getLeague());
   const { ticketsUrl, social } = settings;
+  const logo = logoUrl(settings);
 
   return (
     <>
       <a href="#main" className="skip-link">
         رفتن به محتوا
       </a>
-      <ScoreStrip fixtures={strip} />
       <header className="site-header">
-        <div className="container header-inner">
-          <Link href="/" className="logo" aria-label={settings.title}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl(settings)} alt="" className="logo-img" width={52} height={52} />
-            <span className="logo-text">
-              <strong>{settings.title}</strong>
-              <small>پایگاه خبری تحلیلی</small>
-            </span>
-          </Link>
-          <MainNav items={NAV} />
-          {ticketsUrl && (
-            <a className="btn btn-primary header-tickets" href={ticketsUrl} target="_blank" rel="noopener">
-              خرید بلیت
-            </a>
-          )}
+        <div className="container">
+          <div className="header-bar">
+            <Link href="/" className="logo" aria-label={settings.title}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logo} alt="" className="logo-img" width={46} height={46} />
+              <span className="logo-text">
+                <strong>{settings.title}</strong>
+                <small>{settings.description}</small>
+              </span>
+            </Link>
+            <MainNav items={NAV} />
+            <div className="header-actions">
+              <NextMatchPill f={clubMatch} />
+              {ticketsUrl && (
+                <a className="btn-outline btn-sm header-tickets" href={ticketsUrl} target="_blank" rel="noopener">
+                  خرید بلیت
+                </a>
+              )}
+              <Link href="/search/" className="icon-btn" aria-label="جست‌وجو">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M16 16l4.5 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+              </Link>
+            </div>
+          </div>
         </div>
       </header>
       <main id="main" className="container main">
         {children}
       </main>
       <footer className="site-footer">
-        <div className="container footer-inner">
-          <div className="footer-brand">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl(settings)} alt="" width={56} height={56} loading="lazy" />
-            <div>
-              <strong>{settings.title}</strong>
-              <p>{settings.description}</p>
+        <div className="container">
+          <div className="footer-top">
+            <div className="footer-brand">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logo} alt="" width={64} height={64} loading="lazy" />
+              <div>
+                <strong>{settings.title}</strong>
+                <p>{settings.description}</p>
+              </div>
             </div>
+            <nav className="footer-links" aria-label="بخش‌ها">
+              {FOOTER_NAV.map((n) => (
+                <Link key={n.href} href={n.href}>
+                  {n.label}
+                </Link>
+              ))}
+            </nav>
+            {(social.instagram || social.telegram) && (
+              <div className="footer-social">
+                {social.instagram && <a href={social.instagram}>اینستاگرام</a>}
+                {social.telegram && <a href={social.telegram}>تلگرام</a>}
+              </div>
+            )}
           </div>
-          <nav className="footer-links" aria-label="بخش‌ها">
-            {NAV.slice(1).map((n) => (
-              <Link key={n.href} href={n.href}>
-                {n.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="footer-social">
-            {social.instagram && <a href={social.instagram}>اینستاگرام</a>}
-            {social.telegram && <a href={social.telegram}>تلگرام</a>}
-          </div>
+          <p className="footer-copy">© {settings.title}. تمامی حقوق محفوظ است.</p>
         </div>
       </footer>
       <TabBar ticketsUrl={ticketsUrl} />

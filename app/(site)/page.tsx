@@ -1,28 +1,41 @@
 import Link from "next/link";
+import { HeroSlider, MediaRail, ResultsTabs, type HeroSlide } from "./client";
 import {
-  LatestTimeline,
-  LeadStory,
-  MatchHero,
+  BreakingBar,
+  FixtureRow,
+  NewsCard,
   OpinionCard,
   QuoteCard,
   SampleNotice,
   SectionHeader,
   StandingsTable,
-  StoryCard,
   StoryRow,
   VideoCard,
 } from "./components";
-import { getNews, isSampleContent } from "@/lib/content";
-import { getClubMatch, getLeague, tableAroundClub } from "@/lib/league";
-import { OPINION_CATEGORIES, PRESS_CATEGORY, VIDEO_CATEGORY, YOUTH_CATEGORY } from "@/lib/site";
-import type { Post } from "@/lib/types";
+import { categoryName, getNews, isSampleContent } from "@/lib/content";
+import { getLeague, tableAroundClub } from "@/lib/league";
+import { getSettings, logoUrl } from "@/lib/settings";
+import { HOME_TEAM, OPINION_CATEGORIES, PRESS_CATEGORY, VIDEO_CATEGORY } from "@/lib/site";
+import type { Fixture, Post } from "@/lib/types";
+
+function FixtureList({ fixtures, empty }: { fixtures: Fixture[]; empty: string }) {
+  return fixtures.length ? (
+    <ul className="fixtures">
+      {fixtures.map((f, i) => (
+        <FixtureRow key={i} f={f} />
+      ))}
+    </ul>
+  ) : (
+    <p className="muted empty">{empty}</p>
+  );
+}
 
 export default function Home() {
   const isSample = isSampleContent();
   const news = getNews();
   const league = getLeague();
-  const clubMatch = getClubMatch(league);
   const around = tableAroundClub(league.standings);
+  const logo = logoUrl(getSettings());
 
   // Each story appears once on the page: take() hands out posts that were not used yet.
   const used = new Set<number>();
@@ -33,41 +46,81 @@ export default function Home() {
   };
   const inCat = (...slugs: string[]) => news.filter((p) => p.categories.some((c) => slugs.includes(c)));
 
-  const [lead, ...secondary] = take([...news.filter((p) => p.sticky), ...news], 3);
-  const videos = take(inCat(VIDEO_CATEGORY), 4);
+  const heroPosts = take([...news.filter((p) => p.sticky), ...news], 4);
+  const slides: HeroSlide[] = heroPosts.map((p) => ({
+    id: p.id,
+    path: p.path,
+    title: p.title,
+    excerpt: p.excerpt,
+    kicker: categoryName(p.categories[0] ?? "") || "خبر ویژه",
+    image: p.featuredImage,
+    isVideo: p.categories.includes(VIDEO_CATEGORY),
+  }));
+  const breaking = news.slice(0, 6);
+  // With only a handful of posts the hero uses them all; repeat rather than leave the section empty.
+  const freshDaily = take(news.filter((p) => !p.categories.includes(VIDEO_CATEGORY)), 5);
+  const daily = freshDaily.length ? freshDaily : news.slice(0, 5);
+  const videos = take(inCat(VIDEO_CATEGORY), 8);
   const opinions = take(inCat(...OPINION_CATEGORIES), 3);
   const press = take(inCat(PRESS_CATEGORY), 2);
-  const youth = take(inCat(YOUTH_CATEGORY), 3);
-  const more = take(news, 8);
-  const timeline = news.slice(0, 8);
+  const more = take(news, 6);
+
+  const byDate = (a: Fixture, b: Fixture) => a.date.localeCompare(b.date);
+  const live = league.fixtures.filter((f) => f.status === "live");
+  const upcoming = league.fixtures.filter((f) => f.status === "scheduled").sort(byDate);
+  const results = league.fixtures.filter((f) => f.status === "finished").sort((a, b) => byDate(b, a));
+  const clubFixtures = league.fixtures.filter((f) => f.home === HOME_TEAM || f.away === HOME_TEAM).sort(byDate);
 
   return (
     <>
+      <HeroSlider slides={slides} logo={logo} />
+      <BreakingBar posts={breaking} />
+
       {isSample && <SampleNotice>پیش‌نمایش با محتوای نمونه؛ با وارد کردن خروجی وردپرس، خبرهای واقعی جایگزین می‌شوند.</SampleNotice>}
 
-      <section className="top-grid">
-        {lead && (
-          <div className="top-lead">
-            <LeadStory post={lead} />
+      <div className="home-main">
+        <section aria-labelledby="daily-title">
+          <SectionHeader title={<span id="daily-title">اخبار روزانه</span>} href="/category/news/" />
+          <div className="daily-grid">
+            {daily.map((p, i) => (
+              <NewsCard key={p.id} post={p} withImage={i === 0} featured={i === 0} />
+            ))}
           </div>
-        )}
-        <div className="top-secondary">
-          {secondary.map((p) => (
-            <StoryCard key={p.id} post={p} />
-          ))}
-        </div>
-        <aside className="top-side">
-          {clubMatch && <MatchHero f={clubMatch} competition={league.competition} />}
+        </section>
+
+        <aside className="home-side">
           <div className="panel">
-            <SectionHeader title="آخرین اخبار" />
-            <LatestTimeline posts={timeline} />
+            <ResultsTabs
+              panels={[
+                { key: "all", label: "همه بازی‌ها", content: <FixtureList fixtures={[...live, ...upcoming, ...results].slice(0, 6)} empty="بازی‌ای ثبت نشده." /> },
+                { key: "live", label: "زنده", content: <FixtureList fixtures={live} empty="الان بازی‌ای در جریان نیست." /> },
+                { key: "upcoming", label: "پیش رو", content: <FixtureList fixtures={upcoming.slice(0, 6)} empty="بازی پیش رویی ثبت نشده." /> },
+                { key: "results", label: "نتایج", content: <FixtureList fixtures={results.slice(0, 6)} empty="هنوز نتیجه‌ای ثبت نشده." /> },
+                { key: "club", label: "بازی‌های نساجی", content: <FixtureList fixtures={clubFixtures} empty="بازی‌ای از نساجی ثبت نشده." /> },
+              ]}
+            />
+          </div>
+          <div className="panel">
+            <SectionHeader title="جدول رده‌بندی لیگ" href="/league/" />
+            <StandingsTable rows={around.rows} offset={around.offset} compact />
           </div>
         </aside>
-      </section>
+      </div>
+
+      {videos.length > 0 && (
+        <section className="block" aria-labelledby="media-title">
+          <SectionHeader title={<span id="media-title">چندرسانه‌ای</span>} href="/category/video/" />
+          <MediaRail label="ویدیوها">
+            {videos.map((p) => (
+              <VideoCard key={p.id} post={p} />
+            ))}
+          </MediaRail>
+        </section>
+      )}
 
       {opinions.length > 0 && (
         <section className="block">
-          <SectionHeader title="نقد و تحلیل" href="/category/review/" />
+          <SectionHeader title="تحلیل و یادداشت" href="/category/review/" />
           <div className="rail rail-3">
             {opinions.map((p) => (
               <OpinionCard key={p.id} post={p} />
@@ -76,49 +129,16 @@ export default function Home() {
         </section>
       )}
 
-      {videos.length > 0 && (
-        <section className="video-band">
-          <div className="container">
-            <SectionHeader title="ویدیو" href="/category/video/" tone="dark" />
-            <div className="video-grid">
-              {videos.map((p) => (
-                <VideoCard key={p.id} post={p} />
-              ))}
-            </div>
+      <div className="split block">
+        <section>
+          <SectionHeader title="اخبار بیشتر" href="/category/news/" />
+          <div className="rows">
+            {more.map((p) => (
+              <StoryRow key={p.id} post={p} />
+            ))}
           </div>
         </section>
-      )}
-
-      <div className="split">
-        <div>
-          <section className="block">
-            <SectionHeader title="اخبار بیشتر" href="/category/news/" />
-            <div className="rows">
-              {more.map((p) => (
-                <StoryRow key={p.id} post={p} />
-              ))}
-            </div>
-          </section>
-          {youth.length > 0 && (
-            <section className="block">
-              <SectionHeader title="تیم پایه" href="/category/youth/" />
-              <div className="rail rail-3">
-                {youth.map((p) => (
-                  <StoryCard key={p.id} post={p} />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-
-        <aside className="sticky-side">
-          <div className="panel">
-            <SectionHeader title="جدول لیگ" href="/league/" />
-            <StandingsTable rows={around.rows} offset={around.offset} compact />
-            <Link href="/league/" className="panel-link">
-              جدول کامل و نتایج
-            </Link>
-          </div>
+        <aside className="side-stack">
           {press.length > 0 && (
             <div className="panel">
               <SectionHeader title="نشست خبری" href="/category/press-conference/" />
@@ -129,6 +149,15 @@ export default function Home() {
               </div>
             </div>
           )}
+          <Link href="/team/" className="team-cta">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logo} alt="" width={56} height={56} />
+            <span>
+              <strong>تیم نساجی مازندران</strong>
+              <small>ترکیب، بازیکنان و کادر فنی</small>
+            </span>
+            <span aria-hidden="true">←</span>
+          </Link>
         </aside>
       </div>
     </>
