@@ -53,18 +53,48 @@ export function ShareBar({ title }: { title: string }) {
 
 type NavItem = { label: string; href: string };
 
+/**
+ * Main menu as a glass track: a frosted "glider" sits under the current page and
+ * slides to whatever link the pointer or keyboard is on.
+ */
 export function MainNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
+  const nav = useRef<HTMLElement>(null);
+  const [glide, setGlide] = useState<{ x: number; w: number } | null>(null);
+  const activeIndex = items.findIndex((item) => (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)));
+
+  const moveTo = useCallback((el: HTMLElement | null | undefined) => {
+    setGlide(el ? { x: el.offsetLeft, w: el.offsetWidth } : null);
+  }, []);
+  const toActive = useCallback(() => {
+    const links = nav.current?.querySelectorAll<HTMLElement>("a");
+    moveTo(activeIndex >= 0 ? links?.[activeIndex] : null);
+  }, [activeIndex, moveTo]);
+
+  useEffect(() => {
+    toActive();
+    const el = nav.current;
+    if (!el) return;
+    // Fonts loading or the window resizing change link widths.
+    const ro = new ResizeObserver(() => toActive());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [toActive]);
+
   return (
-    <nav className="nav" aria-label="منوی اصلی">
-      {items.map((item) => {
-        const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-        return (
-          <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined}>
-            {item.label}
-          </Link>
-        );
-      })}
+    <nav ref={nav} className="nav has-glider" aria-label="منوی اصلی" onMouseLeave={toActive} onBlur={toActive}>
+      <span className="nav-glider" aria-hidden="true" style={glide ? { width: glide.w, transform: `translateX(${glide.x}px)` } : { opacity: 0 }} />
+      {items.map((item, i) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-current={i === activeIndex ? "page" : undefined}
+          onMouseEnter={(e) => moveTo(e.currentTarget)}
+          onFocus={(e) => moveTo(e.currentTarget)}
+        >
+          {item.label}
+        </Link>
+      ))}
     </nav>
   );
 }
