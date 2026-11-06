@@ -3,13 +3,6 @@
 export const SOCIAL_NETWORKS = [
   { key: "instagram", label: "اینستاگرام", placeholder: "https://instagram.com/..." },
   { key: "telegram", label: "تلگرام", placeholder: "https://t.me/..." },
-  { key: "whatsapp", label: "واتس‌اپ", placeholder: "https://wa.me/98..." },
-  { key: "youtube", label: "یوتیوب", placeholder: "https://youtube.com/@..." },
-  { key: "aparat", label: "آپارات", placeholder: "https://aparat.com/..." },
-  { key: "x", label: "ایکس (توییتر)", placeholder: "https://x.com/..." },
-  { key: "rubika", label: "روبیکا", placeholder: "https://rubika.ir/..." },
-  { key: "eitaa", label: "ایتا", placeholder: "https://eitaa.com/..." },
-  { key: "bale", label: "بله", placeholder: "https://ble.ir/..." },
 ] as const;
 
 export type SocialKey = (typeof SOCIAL_NETWORKS)[number]["key"];
