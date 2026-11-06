@@ -15,7 +15,7 @@ export function AdSlot({
   const video = isVideoFile(ad.image) || isVideoFile(ad.mobileImage);
   return (
     <aside
-      className={`ad ad-slot-${slot} ${video ? "ad-has-video" : ""} ${ad.mobileImage ? "ad-has-mobile" : ""} ${className}`}
+      className={`pbox pbox-${slot} ${video ? "pbox-video" : ""} ${ad.mobileImage ? "pbox-mobile" : ""} ${className}`}
       aria-label="تبلیغات"
     >
       <a href={`/go/ad/${ad.id}/`} target="_blank" rel="sponsored noopener">
@@ -41,7 +41,7 @@ export function AdSlot({
           </picture>
         )}
       </a>
-      <span className="ad-label">تبلیغات</span>
+      <span className="pbox-tag">تبلیغات</span>
     </aside>
   );
 }

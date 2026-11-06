@@ -34,7 +34,7 @@ export default async function PlayerPage({ params }: Props) {
 
   return (
     <>
-      <AdSlot slot={1} className="ad-top" />
+      <AdSlot slot={1} className="pbox-top" />
       {squad.isSample && <SampleNotice>اطلاعات این بازیکن نمونه است.</SampleNotice>}
       <nav className="breadcrumb" aria-label="مسیر">
         <Link href="/team/">تیم</Link>

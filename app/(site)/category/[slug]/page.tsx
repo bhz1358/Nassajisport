@@ -23,7 +23,7 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <section>
-      <AdSlot slot={1} className="ad-top" />
+      <AdSlot slot={1} className="pbox-top" />
       <h1 className="page-title">{cat.name}</h1>
       {!first ? (
         <p className="muted">هنوز مطلبی در این بخش نیست.</p>

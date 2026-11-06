@@ -13,7 +13,7 @@ export default function TeamPage() {
 
   return (
     <>
-      <AdSlot slot={1} className="ad-top" />
+      <AdSlot slot={1} className="pbox-top" />
       {squad.isSample && (
         <SampleNotice>بازیکنان، آمار و ترکیب این صفحه نمونه است. اطلاعات واقعی تیم بعداً از پنل مدیریت وارد می‌شود.</SampleNotice>
       )}

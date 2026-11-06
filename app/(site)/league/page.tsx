@@ -15,7 +15,7 @@ export default function LeaguePage() {
 
   return (
     <>
-      <AdSlot slot={1} className="ad-top" />
+      <AdSlot slot={1} className="pbox-top" />
       {league.isSample && (
         <SampleNotice>نتایج و جدول این صفحه نمونه است. بعد از انتخاب سرویس نتایج زنده، این صفحه خودکار به‌روز می‌شود.</SampleNotice>
       )}

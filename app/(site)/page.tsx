@@ -70,7 +70,7 @@ export default function Home() {
     <>
       <HeroSlider slides={slides} logo={logo} />
       <BreakingBar posts={breaking} />
-      <AdSlot slot={1} className="ad-top" />
+      <AdSlot slot={1} className="pbox-top" />
 
       {isSample && <SampleNotice>پیش‌نمایش با محتوای نمونه؛ با وارد کردن خروجی وردپرس، خبرهای واقعی جایگزین می‌شوند.</SampleNotice>}
 
@@ -104,11 +104,11 @@ export default function Home() {
             <SectionHeader title="جدول رده‌بندی لیگ" href="/league/" />
             <HomeStandings rows={league.standings} />
           </div>
-          <AdSlot slot={4} className="ad-sticky" />
+          <AdSlot slot={4} className="pbox-sticky" />
         </aside>
       </div>
 
-      <AdSlot slot={3} className="ad-wide" />
+      <AdSlot slot={3} className="pbox-wide" />
 
       {videos.length > 0 && (
         <section className="block" aria-labelledby="media-title">

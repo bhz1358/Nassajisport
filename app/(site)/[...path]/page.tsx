@@ -63,7 +63,7 @@ export default async function PostPage({ params }: Props) {
   return (
     <>
       <ReadingProgress />
-      <AdSlot slot={1} className="ad-top" />
+      <AdSlot slot={1} className="pbox-top" />
       <div className="article-layout">
         <article className="article">
           <header className="article-head">
@@ -95,7 +95,7 @@ export default async function PostPage({ params }: Props) {
           {post.featuredImage && <Thumb post={post} className="article-image" />}
           {/* Ad 3 sits after the second paragraph; short posts get it at the end. */}
           <div className="prose" dangerouslySetInnerHTML={{ __html: bodyStart }} />
-          <AdSlot slot={3} className="ad-inline" />
+          <AdSlot slot={3} className="pbox-inline" />
           {bodyEnd && <div className="prose" dangerouslySetInnerHTML={{ __html: bodyEnd }} />}
           {post.tags.length > 0 && (
             <p className="tags">

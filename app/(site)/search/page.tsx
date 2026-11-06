@@ -32,7 +32,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <section className="search-page">
-      <AdSlot slot={1} className="ad-top" />
+      <AdSlot slot={1} className="pbox-top" />
       <h1 className="page-title">جست‌وجو</h1>
       <form role="search" className="search-form">
         <input name="q" defaultValue={q} placeholder="نام بازیکن، تیم یا موضوع خبر…" aria-label="عبارت جست‌وجو" autoFocus />

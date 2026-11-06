@@ -807,26 +807,26 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 .bio { margin: 0; color: var(--text-2); }
 
 /* ---------- Ads ---------- */
-.ad { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); line-height: 0; }
-.ad a { display: block; }
-.ad img { width: 100%; height: auto; display: block; }
-.ad-label {
+.pbox { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); line-height: 0; }
+.pbox a { display: block; }
+.pbox img { width: 100%; height: auto; display: block; }
+.pbox-tag {
   position: absolute; top: 8px; right: 8px; line-height: 1.6; font-size: 0.66rem; font-weight: 700;
   color: #e8e1d3; background: rgb(0 0 0 / 0.55); border-radius: 6px; padding: 0 7px; pointer-events: none;
 }
-.ad-top { margin-top: 24px; }
-.ad-wide { margin-top: 48px; }
-.ad-inline { margin: 26px 0; max-width: 720px; }
-.ad-slot-2 img { aspect-ratio: 300 / 250; object-fit: cover; }
-.ad-slot-4 img { aspect-ratio: 300 / 600; object-fit: cover; }
+.pbox-top { margin-top: 24px; }
+.pbox-wide { margin-top: 48px; }
+.pbox-inline { margin: 26px 0; max-width: 720px; }
+.pbox-2 img { aspect-ratio: 300 / 250; object-fit: cover; }
+.pbox-4 img { aspect-ratio: 300 / 600; object-fit: cover; }
 /* Video ads (and their image partner) get the slot's exact size up front, so nothing jumps when they load. */
-.ad video, .ad-has-video img, .ad-media-placeholder { width: 100%; display: block; object-fit: cover; }
-.ad-slot-1 :is(video, .ad-media-placeholder), .ad-slot-1.ad-has-video img { aspect-ratio: 1200 / 120; }
-.ad-slot-2 :is(video, .ad-media-placeholder) { aspect-ratio: 300 / 250; }
-.ad-slot-3 :is(video, .ad-media-placeholder), .ad-slot-3.ad-has-video img { aspect-ratio: 970 / 150; }
-.ad-slot-4 :is(video, .ad-media-placeholder) { aspect-ratio: 300 / 600; }
+.pbox video, .pbox-video img, .pbox-ph { width: 100%; display: block; object-fit: cover; }
+.pbox-1 :is(video, .pbox-ph), .pbox-1.pbox-video img { aspect-ratio: 1200 / 120; }
+.pbox-2 :is(video, .pbox-ph) { aspect-ratio: 300 / 250; }
+.pbox-3 :is(video, .pbox-ph), .pbox-3.pbox-video img { aspect-ratio: 970 / 150; }
+.pbox-4 :is(video, .pbox-ph) { aspect-ratio: 300 / 600; }
 /* The tall sidebar banner stays in view while the news column scrolls. */
-.ad-sticky { position: sticky; top: calc(var(--header-h) + 28px); }
+.pbox-sticky { position: sticky; top: calc(var(--header-h) + 28px); }
 
 /* ---------- Footer & tab bar ---------- */
 .site-footer {
@@ -934,9 +934,9 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .article-head h1 { font-size: 1.5rem; }
   .prose { font-size: 1.04rem; line-height: 2.1; }
   .standings .form-col { display: none; }
-  .ad-sticky { position: relative; top: auto; }
-  .ad-slot-4 img, .ad-slot-4 :is(video, .ad-media-placeholder) { aspect-ratio: 300 / 250; }
-  :is(.ad-slot-1, .ad-slot-3).ad-has-mobile :is(video, img, .ad-media-placeholder) { aspect-ratio: 320 / 100; }
+  .pbox-sticky { position: relative; top: auto; }
+  .pbox-4 img, .pbox-4 :is(video, .pbox-ph) { aspect-ratio: 300 / 250; }
+  :is(.pbox-1, .pbox-3).pbox-mobile :is(video, img, .pbox-ph) { aspect-ratio: 320 / 100; }
 
   .team-tabs { width: 100%; }
   .team-tabs a { flex: 1; text-align: center; }

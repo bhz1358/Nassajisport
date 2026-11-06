@@ -33,7 +33,7 @@ export function AdMedia({ image, mobileImage, title, eager }: { image: string; m
     return () => io.disconnect();
   }, [src]);
 
-  if (!src) return <span className="ad-media-placeholder" />;
+  if (!src) return <span className="pbox-ph" />;
   if (!isVideo(src)) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={title} loading={eager ? "eager" : "lazy"} decoding="async" />;

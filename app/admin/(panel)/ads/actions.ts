@@ -1,6 +1,7 @@
 "use server";
 
 import crypto from "node:crypto";
+import path from "node:path";
 import { redirect } from "next/navigation";
 import { getAds, safeAdUrl, saveAds, type Ad, type AdSlotId } from "@/lib/ads";
 import { requireAdmin } from "@/lib/auth";
@@ -14,7 +15,8 @@ const BACK = "/admin/ads/";
 // Banners keep their original file (no WebP conversion) so animated GIFs stay animated.
 async function imageFrom(fd: FormData, name: string, current?: string): Promise<string | undefined> {
   const upload = file(fd, `${name}File`);
-  if (upload) return saveUpload(upload);
+  // Saved under a neutral name: ad blockers hide files named like "728x90.gif".
+  if (upload) return saveUpload(new File([upload], `media${path.extname(upload.name).toLowerCase()}`, { type: upload.type }));
   return str(fd, name) || (fd.has(name) ? undefined : current);
 }
 
