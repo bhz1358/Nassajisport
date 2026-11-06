@@ -116,99 +116,166 @@ export type HeroSlide = {
 
 const SLIDE_MS = 7000;
 
-/** Featured stories: one big image at a time, auto-advancing unless the reader is interacting. */
+/** Splits a headline into words so they can rise one after another; the part before ":" is gold. */
+function HeroTitle({ title }: { title: string }) {
+  const [gold, rest] = splitTitle(title);
+  const words = [...(gold ? gold.split(/\s+/).map((w) => ({ w, gold: true })) : []), ...rest.split(/\s+/).map((w) => ({ w, gold: false }))].filter((x) => x.w);
+  return (
+    <h2 className="hero-title">
+      {words.map((x, i) => (
+        <span key={i} className={`hero-word ${x.gold ? "gold-text" : ""}`} style={{ animationDelay: `${0.18 + i * 0.05}s` }}>
+          {x.w}{" "}
+        </span>
+      ))}
+    </h2>
+  );
+}
+
+/**
+ * Featured stories, magazine style: the current story large, the whole list beside it.
+ * A gold line under the current headline shows when the next story comes. Advances on
+ * its own unless the reader is pointing at it, focused in it, or it is off screen.
+ */
 export function HeroSlider({ slides, logo }: { slides: HeroSlide[]; logo: string }) {
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [prev, setPrev] = useState(-1);
   const count = slides.length;
-  const go = useCallback((i: number) => setIndex(((i % count) + count) % count), [count]);
+  const root = useRef<HTMLElement>(null);
+  const list = useRef<HTMLOListElement>(null);
+  const bars = useRef<(HTMLSpanElement | null)[]>([]);
+  const state = useRef({ elapsed: 0, paused: false, visible: true });
 
+  const go = useCallback(
+    (i: number) => {
+      setIndex((cur) => {
+        const next = ((i % count) + count) % count;
+        if (next !== cur) setPrev(cur);
+        return next;
+      });
+      state.current.elapsed = 0;
+    },
+    [count],
+  );
+
+  // Progress line and auto-advance, without re-rendering on every frame.
   useEffect(() => {
-    if (paused || count < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setTimeout(() => go(index + 1), SLIDE_MS);
-    return () => clearTimeout(t);
-  }, [index, paused, count, go]);
+    if (count < 2) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const el = root.current;
+    const io = el ? new IntersectionObserver(([e]) => (state.current.visible = e.isIntersecting)) : undefined;
+    if (el) io?.observe(el);
+    let last = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const s = state.current;
+      const dt = Math.min(100, now - last);
+      last = now;
+      if (!reduce && !s.paused && s.visible && !document.hidden) s.elapsed += dt;
+      const bar = bars.current[index];
+      if (bar) bar.style.transform = `scaleX(${Math.min(1, s.elapsed / SLIDE_MS)})`;
+      if (s.elapsed >= SLIDE_MS) {
+        go(index + 1);
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      io?.disconnect();
+    };
+  }, [index, count, go]);
+
+  // On phones the list is a horizontal strip: keep the current story in view.
+  useEffect(() => {
+    const ul = list.current;
+    const item = ul?.children[index] as HTMLElement | undefined;
+    if (!ul || !item || ul.scrollWidth <= ul.clientWidth + 4) return;
+    const target = item.offsetLeft - (ul.clientWidth - item.offsetWidth) / 2;
+    ul.scrollTo({ left: target, behavior: "smooth" });
+  }, [index]);
 
   if (count === 0) return null;
+  const pause = (v: boolean) => (state.current.paused = v);
   return (
     <section
+      ref={root}
       className="hero"
       aria-roledescription="carousel"
       aria-label="خبرهای ویژه"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
+      onPointerEnter={(e) => e.pointerType === "mouse" && pause(true)}
+      onPointerLeave={() => pause(false)}
+      onFocusCapture={() => pause(true)}
+      onBlurCapture={() => pause(false)}
     >
-      {slides.map((s, i) => {
-        const [gold, rest] = splitTitle(s.title);
-        return (
-          <div
+      <div className="hero-main">
+        {slides.map((s, i) => (
+          <Link
             key={s.id}
-            className={`hero-slide ${i === index ? "is-active" : ""}`}
+            href={s.path}
+            className={`hero-slide ${i === index ? "is-active" : ""} ${i === prev ? "was-active" : ""}`}
+            aria-hidden={i !== index}
+            tabIndex={i === index ? 0 : -1}
             role="group"
             aria-roledescription="slide"
-            aria-label={`${i + 1} از ${count}`}
-            aria-hidden={i !== index}
+            aria-label={`${i + 1} از ${count}: ${s.title}`}
           >
-            <div className="hero-media">
+            <span className="hero-media">
               {s.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.image} alt="" loading={i === 0 ? "eager" : "lazy"} />
+                <img src={s.image} alt="" loading={i === 0 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : undefined} />
               ) : (
-                <div className="hero-empty">
+                <span className="hero-empty">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={logo} alt="" />
-                </div>
+                </span>
               )}
-            </div>
-            <div className="container hero-content">
-              <span className="hero-kicker">{s.kicker}</span>
-              <h2 className="hero-title">
-                {gold && <span className="gold-text">{gold}</span>}
-                {rest}
-              </h2>
-              {s.excerpt && <p className="hero-excerpt">{s.excerpt}</p>}
-              <Link href={s.path} className="btn-outline" tabIndex={i === index ? 0 : -1}>
-                {s.isVideo ? "مشاهده ویدیو" : "ادامه مطلب"}
-              </Link>
-            </div>
-          </div>
-        );
-      })}
+            </span>
+            <span className="hero-cap">
+              <span className="hero-kicker">
+                {s.isVideo && <span className="hero-play" aria-hidden="true" />}
+                {s.kicker}
+              </span>
+              <HeroTitle title={s.title} />
+              {s.excerpt && <span className="hero-excerpt">{s.excerpt}</span>}
+            </span>
+          </Link>
+        ))}
+        {count > 1 && (
+          <span className="hero-count" aria-hidden="true">
+            <b>{faDigits(String(index + 1).padStart(2, "0"))}</b> / {faDigits(String(count).padStart(2, "0"))}
+          </span>
+        )}
+      </div>
       {count > 1 && (
-        <div className="container hero-controls">
-          <div className="hero-dots" role="tablist" aria-label="انتخاب خبر">
-            {slides.map((s, i) => (
-              <button
-                key={s.id}
-                type="button"
-                role="tab"
-                aria-selected={i === index}
-                aria-label={`خبر ${i + 1}`}
-                className={i === index ? "is-active" : ""}
-                onClick={() => go(i)}
-              />
-            ))}
-          </div>
-          <div className="hero-arrows">
-            <button type="button" aria-label="خبر قبلی" onClick={() => go(index - 1)}>
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </button>
-            <button type="button" aria-label="خبر بعدی" onClick={() => go(index + 1)}>
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <ol className="hero-list" ref={list} aria-label="انتخاب خبر">
+          {slides.map((s, i) => (
+            <li key={s.id}>
+              <button type="button" className={`hero-item ${i === index ? "is-active" : ""}`} aria-current={i === index} onClick={() => go(i)}>
+                {s.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="hero-thumb" src={s.image} alt="" loading="lazy" />
+                ) : (
+                  <span className="hero-thumb is-empty">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logo} alt="" />
+                  </span>
+                )}
+                <span className="hero-item-text">
+                  <span className="hero-kicker">{s.kicker}</span>
+                  <span className="hero-item-title">{s.title}</span>
+                </span>
+                <span className="hero-bar" ref={(el) => void (bars.current[i] = el)} />
+              </button>
+            </li>
+          ))}
+        </ol>
       )}
     </section>
   );
 }
+
+const faDigits = (s: string) => s.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
 /** Horizontal rail with arrow buttons (swipe on touch screens). */
 export function MediaRail({ children, label }: { children: React.ReactNode; label: string }) {

@@ -31,13 +31,18 @@ export default function Home() {
   // Each story appears once on the page: take() hands out posts that were not used yet.
   const used = new Set<number>();
   const take = (list: Post[], n: number) => {
-    const out = list.filter((p) => !used.has(p.id)).slice(0, n);
-    out.forEach((p) => used.add(p.id));
+    const out: Post[] = [];
+    for (const p of list) {
+      if (out.length >= n) break;
+      if (used.has(p.id)) continue;
+      used.add(p.id);
+      out.push(p);
+    }
     return out;
   };
   const inCat = (...slugs: string[]) => news.filter((p) => p.categories.some((c) => slugs.includes(c)));
 
-  const heroPosts = take([...news.filter((p) => p.sticky), ...news], 4);
+  const heroPosts = take([...news.filter((p) => p.sticky), ...news], 5);
   const slides: HeroSlide[] = heroPosts.map((p) => ({
     id: p.id,
     path: p.path,
