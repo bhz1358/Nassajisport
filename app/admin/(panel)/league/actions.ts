@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { file, num, str, withError } from "@/lib/form";
 import { saveUploadAsWebp } from "@/lib/media";
 import { jalaliPartsToIso, toLatinDigits } from "@/lib/jalali";
@@ -14,7 +14,7 @@ import type { Fixture, StandingRow } from "@/lib/types";
 const BACK = "/admin/league/";
 
 export async function saveLeagueInfo(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("league");
   const league = getLeague();
   saveLeague({ ...league, competition: str(fd, "competition") || league.competition, season: str(fd, "season") || league.season });
   redirect(`${BACK}?ok=saved`);
@@ -22,7 +22,7 @@ export async function saveLeagueInfo(fd: FormData) {
 
 /** Played and points are computed, and the table is re-sorted, so they can never disagree. */
 export async function saveStandings(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("league");
   const count = num(fd, "count");
   const rows: StandingRow[] = [];
   for (let i = 0; i < count; i++) {
@@ -64,7 +64,7 @@ export async function saveStandings(fd: FormData) {
 const fixtureKey = (f: Fixture) => `${f.home}|${f.away}|${f.date}`;
 
 export async function saveFixture(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("league");
   const league = getLeague();
   const index = str(fd, "index");
   const home = str(fd, "home");
@@ -102,7 +102,7 @@ export async function saveFixture(fd: FormData) {
 }
 
 export async function deleteFixture(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("league");
   const league = getLeague();
   const i = num(fd, "index", -1);
   if (!league.fixtures[i] || fixtureKey(league.fixtures[i]) !== str(fd, "key")) {
@@ -114,7 +114,7 @@ export async function deleteFixture(fd: FormData) {
 
 /** Saves the source page (e.g. Varzesh3) and reads the table from it right away. */
 export async function syncStandings(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("league");
   const url = str(fd, "url");
   if (!/^https?:\/\/\S+$/i.test(url)) redirect(withError(BACK, "آدرس صفحه‌ی جدول را کامل وارد کنید (با https://)."));
   const auto = fd.get("auto") === "on";
@@ -131,7 +131,7 @@ export async function syncStandings(fd: FormData) {
 
 /** Table copied from the browser and pasted into the panel. */
 export async function pasteStandings(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("league");
   const { rows, warnings } = parseStandings(String(fd.get("table") ?? ""));
   if (rows.length < 2) {
     redirect(withError(BACK, "جدولی در متن چسبانده‌شده پیدا نشد. کل جدول را (از ردیف عنوان تا آخرین تیم) انتخاب و کپی کنید.") + "#sync");
@@ -142,7 +142,7 @@ export async function pasteStandings(fd: FormData) {
 }
 
 export async function undoStandings() {
-  await requireAdmin();
+  await requireAccess("league");
   const league = getLeague();
   if (!league.previousStandings?.length) redirect(withError(BACK, "جدول قبلی‌ای برای برگرداندن نیست."));
   saveLeague({ ...league, standings: league.previousStandings, previousStandings: league.standings });
@@ -151,7 +151,7 @@ export async function undoStandings() {
 
 /** Uploads (as WebP) or clears one team's logo; shown wherever the team appears. */
 export async function saveTeamLogo(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("league");
   const team = str(fd, "team");
   if (!team) redirect(withError(BACK, "نام تیم مشخص نیست."));
   const league = getLeague();
@@ -174,7 +174,7 @@ export async function saveTeamLogo(fd: FormData) {
 
 /** Schedule copied from a sports site (e.g. Varzesh3) and pasted into the panel. */
 export async function pasteFixtures(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("league");
   const { fixtures, warnings, rounds } = parseFixtures(String(fd.get("schedule") ?? ""));
   if (fixtures.length === 0) {
     redirect(withError(BACK, "بازی‌ای در متن پیدا نشد. فهرست را از سطر «هفته» تا آخرین بازی انتخاب و کپی کنید.") + "#fixtures");

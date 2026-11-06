@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import Link from "next/link";
 import { saveSeason, saveStaff } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
@@ -8,7 +9,8 @@ import { getSquad, POSITIONS } from "@/lib/squad";
 
 export const metadata: Metadata = { title: "بازیکنان و کادر" };
 
-export default function SquadAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function SquadAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("squad");
   const squad = getSquad();
   const staffRows = [...squad.staff, undefined, undefined];
   return (

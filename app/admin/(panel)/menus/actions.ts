@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { str, withError } from "@/lib/form";
 import { parseMenu, saveMenu, type MenuKey } from "@/lib/menus";
 
@@ -9,7 +9,7 @@ const BACK = "/admin/menus/";
 const key = (fd: FormData): MenuKey => (str(fd, "menu") === "footer" ? "footer" : "header");
 
 export async function saveMenuAction(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("menus");
   const k = key(fd);
   let items;
   try {
@@ -23,7 +23,7 @@ export async function saveMenuAction(fd: FormData) {
 
 /** Back to the built-in menu. */
 export async function resetMenuAction(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("menus");
   const k = key(fd);
   saveMenu(k, null);
   redirect(`${BACK}?ok=saved#${k}`);

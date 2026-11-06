@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
+import { can, canEditPost } from "@/lib/roles";
 import Link from "next/link";
 import { Flash, PageHead } from "../../ui";
 import { categoryName, getAllPosts, getCategories } from "@/lib/content";
@@ -9,6 +11,9 @@ export const metadata: Metadata = { title: "خبرها" };
 const PAGE_SIZE = 40;
 
 export default async function PostsList({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const me = await requireAccess("posts");
+  // Writers see the posts they wrote.
+  const mineOnly = !can(me.role, "publish");
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
   const status = sp.status ?? "";
@@ -16,7 +21,7 @@ export default async function PostsList({ searchParams }: { searchParams: Promis
   const type = sp.type ?? "";
   const page = Math.max(1, Number(sp.page) || 1);
 
-  const all = getAllPosts();
+  const all = getAllPosts().filter((p) => !mineOnly || p.createdBy === me.username);
   const filtered = all.filter(
     (p) =>
       (!q || p.title.includes(q) || p.tags.some((t) => t.includes(q))) &&
@@ -30,7 +35,7 @@ export default async function PostsList({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHead title="خبرها و برگه‌ها">
+      <PageHead title={mineOnly ? "خبرهای من" : "خبرها و برگه‌ها"}>
         <Link href="/admin/posts/new/" className="a-btn a-btn-primary">
           + خبر جدید
         </Link>
@@ -80,9 +85,15 @@ export default async function PostsList({ searchParams }: { searchParams: Promis
               return (
                 <tr key={p.id}>
                   <td>
-                    <Link href={`/admin/posts/${p.id}/`} className="a-strong">
-                      {p.title}
-                    </Link>
+                    {canEditPost(me.role, me.username, p) ? (
+                      <Link href={`/admin/posts/${p.id}/`} className="a-strong">
+                        {p.title}
+                      </Link>
+                    ) : (
+                      <span className="a-strong" title="منتشرشده؛ ویرایش با سردبیر است">
+                        {p.title}
+                      </span>
+                    )}
                     {p.type === "page" && <span className="a-tag">برگه</span>}
                     {p.sticky && <span className="a-tag is-accent">ویژه</span>}
                   </td>

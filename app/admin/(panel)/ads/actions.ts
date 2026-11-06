@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { redirect } from "next/navigation";
 import { getAds, safeAdUrl, saveAds, type Ad, type AdSlotId } from "@/lib/ads";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { file, str, withError } from "@/lib/form";
 import { jalaliPartsToIso } from "@/lib/jalali";
 import { saveUpload } from "@/lib/media";
@@ -21,7 +21,7 @@ async function imageFrom(fd: FormData, name: string, current?: string): Promise<
 }
 
 export async function saveAd(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("ads");
   const id = str(fd, "id");
   const ads = getAds();
   const existing = ads.find((a) => a.id === id);
@@ -70,7 +70,7 @@ export async function saveAd(fd: FormData) {
 }
 
 export async function deleteAd(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("ads");
   const id = str(fd, "id");
   saveAds(getAds().filter((a) => a.id !== id));
   // Its counts go too, so a later ad can never inherit them.

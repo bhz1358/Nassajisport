@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { deletePlayer, savePlayer } from "../actions";
@@ -16,6 +17,7 @@ export default async function PlayerAdmin({
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string>>;
 }) {
+  await requireAccess("squad");
   const { slug } = await params;
   const isNew = slug === "new";
   const p = isNew ? undefined : getPlayer(slug);

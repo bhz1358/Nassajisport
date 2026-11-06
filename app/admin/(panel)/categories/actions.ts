@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { getAllPosts, getCategories, saveCategories, savePosts } from "@/lib/content";
 import { str, withError } from "@/lib/form";
 
@@ -9,7 +9,7 @@ const BACK = "/admin/categories/";
 const slugOk = (s: string) => /^[\p{L}\p{N}-]+$/u.test(s);
 
 export async function saveCategory(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("categories");
   const original = str(fd, "original");
   const name = str(fd, "name");
   const slug = str(fd, "slug").toLowerCase();
@@ -33,7 +33,7 @@ export async function saveCategory(fd: FormData) {
 }
 
 export async function deleteCategory(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("categories");
   const slug = str(fd, "slug");
   saveCategories(getCategories().filter((c) => c.slug !== slug).map((c) => (c.parent === slug ? { slug: c.slug, name: c.name } : c)));
   savePosts(getAllPosts().map((p) => ({ ...p, categories: p.categories.filter((c) => c !== slug) })));

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Flash, PageHead } from "../../ui";
 import { SubmitButton } from "../../ui-client";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { ADMIN_ID_START, getAllPosts, saveCategories, savePosts } from "@/lib/content";
 import { file, withError } from "@/lib/form";
 import { faDate, faNum } from "@/lib/format";
@@ -24,7 +24,7 @@ type Report = {
 
 async function runImport(fd: FormData) {
   "use server";
-  await requireAdmin();
+  await requireAccess("import");
   const xml = file(fd, "xml");
   if (!xml) redirect(withError("/admin/import/", "فایل XML انتخاب نشده."));
   let result: ConvertResult;
@@ -65,7 +65,8 @@ async function runImport(fd: FormData) {
   redirect("/admin/import/?ok=imported");
 }
 
-export default function ImportPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function ImportPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("import");
   const last = readStore<Report | null>("import-report", () => null);
   return (
     <>

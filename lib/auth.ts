@@ -4,6 +4,7 @@ import path from "node:path";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DATA_DIR, readStore, writeStore } from "./store";
+import { can, roleOf, type Role, type Section } from "./roles";
 import type { AdminUser } from "./types";
 
 const COOKIE = "ns_admin";
@@ -57,7 +58,7 @@ export function checkLogin(username: string, password: string): { ok: true } | {
     const same = (a: string, b: string) =>
       crypto.timingSafeEqual(crypto.createHash("sha256").update(a).digest(), crypto.createHash("sha256").update(b).digest());
     if (!same(username, envUser) || !same(password, envPass)) return { ok: false, reason: "نام کاربری یا رمز عبور درست نیست." };
-    saveUsers([{ username, password: hashPassword(password), createdAt: new Date().toISOString() }]);
+    saveUsers([{ username, role: "admin", password: hashPassword(password), createdAt: new Date().toISOString() }]);
     return { ok: true };
   }
   const user = users.find((u) => u.username === username);
@@ -104,11 +105,30 @@ export async function currentUser(): Promise<string | null> {
   }
 }
 
-/** Use at the top of every admin page and server action. */
-export async function requireAdmin(): Promise<string> {
+export type PanelUser = { username: string; name: string; role: Role };
+
+/** The signed-in panel user with their access level, or null. */
+export async function getPanelUser(): Promise<PanelUser | null> {
   const u = await currentUser();
-  if (!u) redirect("/admin/login/");
-  return u;
+  if (!u) return null;
+  const user = getUsers().find((x) => x.username === u);
+  return { username: u, name: user?.name || u, role: roleOf(user) };
+}
+
+/**
+ * Use at the top of every admin page and server action. With a section, users
+ * whose role does not include it are sent back to the dashboard.
+ */
+export async function requireAccess(section?: Section): Promise<PanelUser> {
+  const user = await getPanelUser();
+  if (!user) redirect("/admin/login/");
+  if (section && !can(user.role, section)) redirect(`/admin/?error=${encodeURIComponent("به این بخش دسترسی ندارید.")}`);
+  return user;
+}
+
+/** Any signed-in panel user; returns the username. */
+export async function requireAdmin(): Promise<string> {
+  return (await requireAccess()).username;
 }
 
 // Simple in-memory brake on password guessing: 8 failures per 15 minutes per key.

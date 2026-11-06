@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import { removeMedia, uploadMedia } from "./actions";
 import { Flash, PageHead } from "../../ui";
 import { CopyButton, SubmitButton } from "../../ui-client";
@@ -9,7 +10,8 @@ export const metadata: Metadata = { title: "رسانه" };
 
 const size = (b: number) => (b > 1024 * 1024 ? `${faNum(Math.round(b / 104857.6) / 10)} مگابایت` : `${faNum(Math.round(b / 1024))} کیلوبایت`);
 
-export default function MediaPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function MediaPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("media");
   const items = listMedia();
   return (
     <>

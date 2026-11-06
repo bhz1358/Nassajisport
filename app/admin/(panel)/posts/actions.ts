@@ -1,7 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
+import { can, canEditPost } from "@/lib/roles";
 import { getAllPosts, getComments, nextPostId, normalizePath, savePosts } from "@/lib/content";
 import { bool, file, num, str, withError } from "@/lib/form";
 import { jalaliPartsToIso } from "@/lib/jalali";
@@ -19,16 +20,23 @@ const slugify = (s: string) =>
     .replace(/^-|-$/g, "");
 
 export async function savePost(fd: FormData) {
-  const user = await requireAdmin();
+  const me = await requireAccess("posts");
+  const user = me.name;
   const id = num(fd, "id");
   const posts = getAllPosts();
   const existing = id ? posts.find((p) => p.id === id) : undefined;
   const back = existing ? `/admin/posts/${id}/` : "/admin/posts/new/";
+  if (id && !existing) redirect(withError("/admin/posts/", "این مطلب پیدا نشد."));
+  if (existing && !canEditPost(me.role, me.username, existing)) {
+    redirect(withError("/admin/posts/", "فقط خبرهای خودتان را که هنوز منتشر نشده‌اند می‌توانید ویرایش کنید."));
+  }
+  // Writers save drafts; an editor reviews, features and publishes them.
+  const canPublish = can(me.role, "publish");
 
   const title = str(fd, "title");
   if (!title) redirect(withError(back, "عنوان لازم است."));
   const slug = slugify(str(fd, "slug") || title);
-  const type = str(fd, "type") === "page" ? "page" : "post";
+  const type = canPublish && str(fd, "type") === "page" ? "page" : (existing?.type ?? "post");
   const date = jalaliPartsToIso(str(fd, "date"), str(fd, "time"));
   if (str(fd, "date") && !date) redirect(withError(back, "تاریخ را به شکل ۱۴۰۵/۰۸/۱۵ و ساعت را به شکل ۱۸:۳۰ وارد کنید."));
 
@@ -71,8 +79,9 @@ export async function savePost(fd: FormData) {
       .map((t) => t.trim())
       .filter(Boolean),
     featuredImage,
-    sticky: bool(fd, "sticky") || undefined,
-    status: str(fd, "status") === "draft" ? "draft" : "publish",
+    sticky: (canPublish ? bool(fd, "sticky") : existing?.sticky) || undefined,
+    status: canPublish && str(fd, "status") !== "draft" ? "publish" : "draft",
+    createdBy: existing ? existing.createdBy : me.username,
     seo: seoTitle || seoDescription ? { title: seoTitle || undefined, description: seoDescription || undefined } : undefined,
   };
 
@@ -81,7 +90,7 @@ export async function savePost(fd: FormData) {
 }
 
 export async function deletePost(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("publish");
   const id = num(fd, "id");
   savePosts(getAllPosts().filter((p) => p.id !== id));
   writeStore(

@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { file, num, str, withError } from "@/lib/form";
 import { jalaliPartsToIso } from "@/lib/jalali";
 import { saveUpload } from "@/lib/media";
@@ -11,13 +11,13 @@ import type { Player, Position, TeamLineup } from "@/lib/types";
 const POS: Position[] = ["GK", "DF", "MF", "FW"];
 
 export async function saveSeason(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("squad");
   saveSquad({ ...getSquad(), season: str(fd, "season") || getSquad().season });
   redirect("/admin/squad/?ok=saved");
 }
 
 export async function savePlayer(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("squad");
   const squad = getSquad();
   const original = str(fd, "original");
   const existing = squad.players.find((p) => p.slug === original);
@@ -84,7 +84,7 @@ export async function savePlayer(fd: FormData) {
 }
 
 export async function deletePlayer(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("squad");
   const squad = getSquad();
   const slug = str(fd, "slug");
   saveSquad({ ...squad, players: squad.players.filter((p) => p.slug !== slug) });
@@ -92,7 +92,7 @@ export async function deletePlayer(fd: FormData) {
 }
 
 export async function saveStaff(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("squad");
   const count = num(fd, "count");
   const staff = [];
   for (let i = 0; i < count; i++) {
@@ -116,7 +116,7 @@ function readTeam(fd: FormData, side: "home" | "away", players: Player[]): TeamL
 }
 
 export async function saveLineup(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("squad");
   const squad = getSquad();
   const back = "/admin/squad/lineup/";
   const date = jalaliPartsToIso(str(fd, "date"), str(fd, "time"));

@@ -6,7 +6,8 @@ import { getCategories } from "@/lib/content";
 import { isoToJalaliParts } from "@/lib/jalali";
 import type { Post } from "@/lib/types";
 
-export function PostForm({ post }: { post?: Post }) {
+/** canPublish: false for writers, who save drafts for an editor to publish. */
+export function PostForm({ post, canPublish = true }: { post?: Post; canPublish?: boolean }) {
   const cats = getCategories();
   const when = isoToJalaliParts(post?.date ?? new Date().toISOString());
   return (
@@ -44,18 +45,24 @@ export function PostForm({ post }: { post?: Post }) {
 
         <aside className="a-editor-side">
           <div className="a-card">
-            <Field label="وضعیت">
-              <select name="status" defaultValue={post?.status ?? "publish"}>
-                <option value="publish">منتشرشده</option>
-                <option value="draft">پیش‌نویس</option>
-              </select>
-            </Field>
-            <Field label="نوع">
-              <select name="type" defaultValue={post?.type ?? "post"}>
-                <option value="post">خبر</option>
-                <option value="page">برگه (مثل درباره ما)</option>
-              </select>
-            </Field>
+            {canPublish ? (
+              <>
+                <Field label="وضعیت">
+                  <select name="status" defaultValue={post?.status ?? "publish"}>
+                    <option value="publish">منتشرشده</option>
+                    <option value="draft">پیش‌نویس</option>
+                  </select>
+                </Field>
+                <Field label="نوع">
+                  <select name="type" defaultValue={post?.type ?? "post"}>
+                    <option value="post">خبر</option>
+                    <option value="page">برگه (مثل درباره ما)</option>
+                  </select>
+                </Field>
+              </>
+            ) : (
+              <p className="a-hint a-review-note">خبر به‌صورت پیش‌نویس ذخیره می‌شود و سردبیر پس از بررسی آن را منتشر می‌کند.</p>
+            )}
             <div className="a-row">
               <Field label="تاریخ انتشار" hint="شمسی">
                 <input name="date" defaultValue={when.date} dir="ltr" placeholder="1405/08/15" />
@@ -65,13 +72,15 @@ export function PostForm({ post }: { post?: Post }) {
               </Field>
             </div>
             <p className="a-hint">تاریخ آینده یعنی انتشار زمان‌بندی‌شده: خبر در آن ساعت خودکار نمایش داده می‌شود.</p>
-            <label className="a-check">
-              <input type="checkbox" name="sticky" defaultChecked={post?.sticky} /> خبر ویژه (بالای صفحه اصلی)
-            </label>
+            {canPublish && (
+              <label className="a-check">
+                <input type="checkbox" name="sticky" defaultChecked={post?.sticky} /> خبر ویژه (بالای صفحه اصلی)
+              </label>
+            )}
             <Field label="نویسنده">
               <input name="author" defaultValue={post?.author} />
             </Field>
-            <SubmitButton>{post ? "ذخیره تغییرات" : "انتشار"}</SubmitButton>
+            <SubmitButton>{!canPublish ? "ذخیره و ارسال برای بررسی" : post ? "ذخیره تغییرات" : "انتشار"}</SubmitButton>
             {post && post.status !== "draft" && (
               <Link href={post.path} target="_blank" className="a-link">
                 مشاهده در سایت ↗
@@ -100,7 +109,7 @@ export function PostForm({ post }: { post?: Post }) {
         </aside>
       </form>
 
-      {post && (
+      {post && canPublish && (
         <form action={deletePost} className="a-danger-zone">
           <input type="hidden" name="id" value={post.id} />
           <SubmitButton className="a-btn a-btn-danger" confirm={`«${post.title}» برای همیشه حذف شود؟`}>

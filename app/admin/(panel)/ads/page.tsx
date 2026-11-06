@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import { deleteAd, saveAd } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
 import { ImageField, SubmitButton } from "../../ui-client";
@@ -57,7 +58,8 @@ function AdForm({ ad }: { ad?: Ad }) {
   );
 }
 
-export default function AdsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function AdsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("ads");
   const ads = getAds();
   const stats = getAdStats();
   return (

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import { Flash, PageHead } from "../../ui";
 import { SubmitButton } from "../../ui-client";
 import { resetMenuAction, saveMenuAction } from "./actions";
@@ -13,7 +14,8 @@ const MENUS: { key: MenuKey; title: string; hint: string }[] = [
   { key: "footer", title: "منوی پایین سایت", hint: "در پایین همه‌ی صفحه‌ها؛ جای بخش‌هایی که در منوی بالا جا نمی‌شوند." },
 ];
 
-export default function MenusPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function MenusPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("menus");
   const menus = getMenus();
   const suggestions: MenuItem[] = [
     { label: "خانه", href: "/" },

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Field, Flash, PageHead } from "../../ui";
 import { ImageField, SubmitButton } from "../../ui-client";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { file, str, withError } from "@/lib/form";
 import { saveUploadAsWebp } from "@/lib/media";
 import { DEFAULT_LOGO, getSettings, logoUrl, saveSettings } from "@/lib/settings";
@@ -14,7 +14,7 @@ const okUrl = (u: string) => !u || /^https?:\/\/\S+$/i.test(u);
 
 async function save(fd: FormData) {
   "use server";
-  await requireAdmin();
+  await requireAccess("settings");
   const ticketsUrl = str(fd, "ticketsUrl");
   const social: SocialLinks = {};
   for (const n of SOCIAL_NETWORKS) {
@@ -45,7 +45,8 @@ async function save(fd: FormData) {
   redirect("/admin/settings/?ok=saved");
 }
 
-export default function SettingsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("settings");
   const s = getSettings();
   return (
     <>

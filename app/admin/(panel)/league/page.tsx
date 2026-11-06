@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import { deleteFixture, pasteFixtures, pasteStandings, saveFixture, saveLeagueInfo, saveStandings, saveTeamLogo, syncStandings, undoStandings } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
 import { ImageField, SubmitButton } from "../../ui-client";
@@ -72,7 +73,8 @@ function FixtureForm({ f, index }: { f?: Fixture; index: number | "new" }) {
   );
 }
 
-export default function LeagueAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function LeagueAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("league");
   const league = getLeague();
   const teams = league.standings.map((r) => r.team);
   // Every team in the table or the schedule, table order first.

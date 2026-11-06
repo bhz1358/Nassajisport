@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import { saveLineup } from "../actions";
 import { Field, Flash, PageHead } from "../../../ui";
 import { SubmitButton } from "../../../ui-client";
@@ -48,7 +49,8 @@ function TeamFields({ side, team, label }: { side: "home" | "away"; team?: TeamL
   );
 }
 
-export default function LineupAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function LineupAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("squad");
   const squad = getSquad();
   const lu = squad.lineup;
   const when = isoToJalaliParts(lu?.date ?? new Date().toISOString());

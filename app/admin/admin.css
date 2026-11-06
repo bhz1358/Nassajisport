@@ -286,3 +286,11 @@ a.a-stat:hover { border-color: var(--brand-600); }
   .a-menu-row { grid-template-columns: 24px minmax(0, 1fr); padding: 10px 0; border-bottom: 1px solid var(--border); }
   .a-menu-row > input:nth-of-type(2), .a-menu-tools { grid-column: 2; }
 }
+
+/* Users & roles */
+.a-roles dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 0; }
+.a-roles dl > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--surface-2); }
+.a-roles dt { font-weight: 800; }
+.a-roles dd { margin: 4px 0 0; font-size: 0.85rem; color: var(--muted); line-height: 1.8; }
+.a-user > summary { padding-inline-end: 12px !important; }
+.a-review-note { border: 1px dashed var(--line-gold); border-radius: 10px; padding: 8px 10px; }

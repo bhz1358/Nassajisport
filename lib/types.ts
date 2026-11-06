@@ -1,3 +1,4 @@
+import type { Role } from "./roles";
 import type { SocialLinks } from "./social";
 export type Category = {
   slug: string;
@@ -15,6 +16,8 @@ export type Post = {
   date: string;
   modified?: string;
   author?: string;
+  /** Panel user who created the post (writers may only edit their own drafts). */
+  createdBy?: string;
   excerpt: string;
   content: string;
   categories: string[];
@@ -164,6 +167,10 @@ export type Settings = {
 
 export type AdminUser = {
   username: string;
+  /** Display name shown in the panel; the username when empty. */
+  name?: string;
+  /** Access level (lib/roles.ts); users saved before roles existed are admins. */
+  role?: Role;
   /** scrypt: "salt:hash" in hex */
   password: string;
   createdAt: string;

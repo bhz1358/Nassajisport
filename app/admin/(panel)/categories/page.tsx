@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import { deleteCategory, saveCategory } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
 import { SubmitButton } from "../../ui-client";
@@ -7,7 +8,8 @@ import { faNum } from "@/lib/format";
 
 export const metadata: Metadata = { title: "دسته‌ها" };
 
-export default function CategoriesPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function CategoriesPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("categories");
   const cats = getCategories();
   const posts = getAllPosts();
   const count = (slug: string) => posts.filter((p) => p.categories.includes(slug)).length;

@@ -1,14 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { str, withError } from "@/lib/form";
 import { getSettings, saveSettings } from "@/lib/settings";
 import { isHex, THEME_PRESETS } from "@/lib/themes";
 import type { ColorMode } from "@/lib/types";
 
 export async function saveTheme(fd: FormData) {
-  await requireAdmin();
+  await requireAccess("appearance");
   const preset = str(fd, "preset");
   if (preset !== "custom" && !THEME_PRESETS.some((t) => t.id === preset)) redirect(withError("/admin/appearance/", "تم انتخاب‌شده معتبر نیست."));
   const brand = str(fd, "brand");

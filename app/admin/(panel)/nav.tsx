@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { can, sectionOfPath, type Role } from "@/lib/roles";
 
 const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
-  { title: "", items: [{ href: "/admin/", label: "داشبورد" }] },
+  { title: "", items: [{ href: "/admin/", label: "داشبورد" }, { href: "/admin/account/", label: "حساب من" }] },
   {
     title: "محتوا",
     items: [
@@ -28,22 +29,28 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/ads/", label: "تبلیغات" },
       { href: "/admin/appearance/", label: "ظاهر و تم رنگی" },
       { href: "/admin/settings/", label: "تنظیمات" },
-      { href: "/admin/users/", label: "مدیران" },
+      { href: "/admin/users/", label: "کاربران" },
       { href: "/admin/import/", label: "درون‌ریزی وردپرس" },
     ],
   },
 ];
 
-export function AdminNav() {
+/** Panel menu; sections the user's role cannot open are left out. */
+export function AdminNav({ role }: { role: Role }) {
   const pathname = usePathname();
+  const allowed = (href: string) => {
+    const section = sectionOfPath(href);
+    return !section || can(role, section);
+  };
+  const groups = GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => allowed(i.href)) })).filter((g) => g.items.length);
   // The longest matching link wins, so /admin/squad/lineup/ doesn't also light up /admin/squad/.
-  const all = GROUPS.flatMap((g) => g.items.map((i) => i.href));
+  const all = groups.flatMap((g) => g.items.map((i) => i.href));
   const active = all
     .filter((h) => (h === "/admin/" ? pathname === "/admin/" || pathname === "/admin" : pathname.startsWith(h)))
     .sort((a, b) => b.length - a.length)[0];
   return (
     <nav className="a-nav" aria-label="منوی مدیریت">
-      {GROUPS.map((g) => (
+      {groups.map((g) => (
         <div key={g.title} className="a-nav-group">
           {g.title && <span className="a-nav-title">{g.title}</span>}
           {g.items.map((i) => (

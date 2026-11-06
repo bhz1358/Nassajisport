@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAccess } from "@/lib/auth";
 import { saveTheme } from "./actions";
 import { ThemePicker } from "./ThemePicker";
 import { Flash, PageHead } from "../../ui";
@@ -6,7 +7,8 @@ import { getSettings, logoUrl } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "ظاهر و تم رنگی" };
 
-export default function AppearancePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+export default async function AppearancePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAccess("appearance");
   const s = getSettings();
   return (
     <>

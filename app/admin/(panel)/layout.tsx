@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { logout } from "../actions";
 import { AdminNav } from "./nav";
-import { requireAdmin } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
+import { roleInfo } from "@/lib/roles";
 import { getSettings, logoUrl } from "@/lib/settings";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireAdmin();
+  const user = await requireAccess();
   const settings = getSettings();
   const { title } = settings;
   return (
@@ -19,13 +20,15 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <small>پنل مدیریت</small>
           </span>
         </Link>
-        <AdminNav />
+        <AdminNav role={user.role} />
         <div className="a-side-foot">
           <Link href="/" target="_blank" className="a-btn a-btn-small">
             مشاهده سایت ↗
           </Link>
           <form action={logout}>
-            <span className="muted">{user}</span>
+            <span className="muted" title={roleInfo(user.role).label}>
+              {user.name} · {roleInfo(user.role).label}
+            </span>
             <button className="a-link">خروج</button>
           </form>
         </div>
