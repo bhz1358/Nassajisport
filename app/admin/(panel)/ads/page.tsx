@@ -100,28 +100,30 @@ export default function AdsPage({ searchParams }: { searchParams: Promise<Record
               const ctr = st.impressions ? ((st.clicks / st.impressions) * 100).toFixed(2) : "0";
               const sts = status(ad);
               return (
-                <details key={ad.id} className="a-ad-item">
-                  <summary>
-                    {isVideoFile(ad.image) ? (
-                      <video src={ad.image} muted playsInline preload="metadata" className="a-ad-thumb" />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={ad.image} alt="" className="a-ad-thumb" />
-                    )}
-                    <span className="a-strong">{ad.title}</span>
-                    <span className={`a-tag ${sts.tone}`}>{sts.label}</span>
-                    <span className="muted small">
-                      نمایش {faNum(st.impressions)} · کلیک {faNum(st.clicks)} · نرخ کلیک {faNum(Number(ctr))}٪
-                    </span>
-                  </summary>
-                  <AdForm ad={ad} />
-                  <form action={deleteAd} className="a-danger-zone">
+                <div key={ad.id} className="a-ad-row">
+                  <details className="a-ad-item">
+                    <summary>
+                      {isVideoFile(ad.image) ? (
+                        <video src={ad.image} muted playsInline preload="metadata" className="a-ad-thumb" />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={ad.image} alt="" className="a-ad-thumb" />
+                      )}
+                      <span className="a-strong">{ad.title}</span>
+                      <span className={`a-tag ${sts.tone}`}>{sts.label}</span>
+                      <span className="muted small">
+                        نمایش {faNum(st.impressions)} · کلیک {faNum(st.clicks)} · نرخ کلیک {faNum(Number(ctr))}٪
+                      </span>
+                    </summary>
+                    <AdForm ad={ad} />
+                  </details>
+                  <form action={deleteAd} className="a-ad-del">
                     <input type="hidden" name="id" value={ad.id} />
-                    <SubmitButton className="a-btn a-btn-small a-btn-danger" confirm={`تبلیغ «${ad.title}» حذف شود؟`}>
-                      حذف تبلیغ
+                    <SubmitButton className="a-btn a-btn-small a-btn-danger" confirm={`تبلیغ «${ad.title}» حذف شود؟ این کار برگشت ندارد.`} pendingText="در حال حذف…">
+                      حذف
                     </SubmitButton>
                   </form>
-                </details>
+                </div>
               );
             })}
           </section>

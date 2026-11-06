@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth";
 import { file, str, withError } from "@/lib/form";
 import { jalaliPartsToIso } from "@/lib/jalali";
 import { saveUpload } from "@/lib/media";
+import { readStore, writeStore } from "@/lib/store";
 
 const BACK = "/admin/ads/";
 
@@ -70,5 +71,11 @@ export async function deleteAd(fd: FormData) {
   await requireAdmin();
   const id = str(fd, "id");
   saveAds(getAds().filter((a) => a.id !== id));
+  // Its counts go too, so a later ad can never inherit them.
+  const stats = readStore<Record<string, unknown>>("ad-stats", () => ({}));
+  if (id in stats) {
+    const { [id]: _gone, ...rest } = stats;
+    writeStore("ad-stats", rest);
+  }
   redirect(`${BACK}?ok=deleted`);
 }

@@ -9,10 +9,12 @@ export function SubmitButton({
   confirm: confirmText,
   name,
   value,
+  pendingText = "در حال ذخیره…",
 }: {
   children: React.ReactNode;
   className?: string;
   confirm?: string;
+  pendingText?: string;
   name?: string;
   value?: string;
 }) {
@@ -28,7 +30,7 @@ export function SubmitButton({
         if (confirmText && !window.confirm(confirmText)) e.preventDefault();
       }}
     >
-      {pending ? "در حال ذخیره…" : children}
+      {pending ? pendingText : children}
     </button>
   );
 }

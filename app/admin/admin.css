@@ -253,7 +253,10 @@ a.a-stat:hover { border-color: var(--brand-600); }
 .a-slot-card { display: grid; gap: 4px; position: relative; padding-right: 54px; }
 .a-slot-num { position: absolute; right: 14px; top: 16px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; background: var(--acc-600); color: var(--on-acc); }
 .a-slot-card .a-tag { justify-self: start; margin: 4px 0 0; }
-.a-ad-item { border: 1px solid var(--border); border-radius: 10px; margin-top: 10px; }
+.a-ad-row { position: relative; margin-top: 10px; }
+.a-ad-item { border: 1px solid var(--border); border-radius: 10px; }
+.a-ad-item > summary { padding-inline-end: 84px !important; }
+.a-ad-del { position: absolute; top: 15px; inset-inline-end: 12px; }
 .a-ad-item > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; }
 .a-ad-item[open] > summary { border-bottom: 1px solid var(--border); }
 .a-ad-item .a-ad-form, .a-ad-item .a-danger-zone { padding: 12px; }
