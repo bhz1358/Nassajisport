@@ -38,5 +38,23 @@ export function AdMedia({ image, mobileImage, title, eager }: { image: string; m
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={title} loading={eager ? "eager" : "lazy"} decoding="async" />;
   }
-  return <video key={src} ref={ref} src={src} muted loop playsInline preload={eager ? "auto" : "metadata"} aria-label={title} title={title} />;
+  return (
+    <video
+      key={src}
+      ref={ref}
+      src={src}
+      muted
+      loop
+      playsInline
+      preload={eager ? "auto" : "metadata"}
+      aria-label={title}
+      title={title}
+      // A browser that cannot play the file (WebM on an older iPhone, for example)
+      // would show an empty black box: hide the ad there instead.
+      onError={(e) => {
+        const box = e.currentTarget.closest("aside");
+        if (box) box.hidden = true;
+      }}
+    />
+  );
 }

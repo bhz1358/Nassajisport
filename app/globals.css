@@ -366,11 +366,11 @@ a:hover .play { transform: scale(1.08); }
 
 /* ---------- Breaking bar ---------- */
 .breaking {
-  margin: 0 calc(50% - 50vw); color: #fff; overflow: hidden;
+  color: #fff; overflow: hidden; border-radius: var(--radius); border: 1px solid rgb(255 255 255 / 0.08);
   background: linear-gradient(to left, var(--brand-800), var(--brand-600) 45%, color-mix(in srgb, var(--acc-700) 85%, var(--brand-600)));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 10px 30px rgb(0 0 0 / 0.25);
 }
-.breaking-inner { display: flex; align-items: center; gap: 18px; height: 50px; }
+.breaking-inner { display: flex; align-items: center; gap: 18px; height: 50px; padding: 0 18px; }
 .breaking-label { display: flex; align-items: center; gap: 8px; font-weight: 900; white-space: nowrap; font-size: 0.95rem; }
 .breaking-track {
   flex: 1; overflow: hidden; min-width: 0;
@@ -906,7 +906,8 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .nav { flex-basis: 100%; order: 3; margin: 2px 0 4px; }
   .nav a { padding: 6px 11px; font-size: 0.85rem; }
 
-  .breaking-inner { height: 46px; gap: 12px; }
+  .breaking-inner { height: 46px; gap: 12px; padding: 0 12px; }
+  .breaking { border-radius: 12px; }
   .breaking-label { font-size: 0.85rem; }
 
   .home-main { margin-top: 32px; }

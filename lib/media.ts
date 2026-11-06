@@ -106,7 +106,7 @@ export function listMedia(): MediaItem[] {
           url: "/uploads/" + path.relative(UPLOADS_DIR, full).split(path.sep).join("/"),
           size: st.size,
           mtime: st.mtime.toISOString(),
-          isVideo: e.name.toLowerCase().endsWith(".mp4"),
+          isVideo: /\.(mp4|webm)$/i.test(e.name),
         });
       }
     }

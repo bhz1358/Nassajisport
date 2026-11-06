@@ -198,7 +198,7 @@ export function BreakingBar({ posts }: { posts: Post[] }) {
   ));
   return (
     <div className="breaking" role="region" aria-label="اخبار فوری">
-      <div className="container breaking-inner">
+      <div className="breaking-inner">
         <strong className="breaking-label">
           <span className="live-dot" /> اخبار فوری
         </strong>

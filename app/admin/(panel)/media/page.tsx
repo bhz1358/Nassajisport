@@ -18,7 +18,7 @@ export default function MediaPage({ searchParams }: { searchParams: Promise<Reco
 
       <form action={uploadMedia} className="a-card a-upload">
         <label className="a-dropzone">
-          <input type="file" name="files" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4" />
+          <input type="file" name="files" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm" />
           <span>عکس یا ویدیو را انتخاب کنید (چند فایل با هم هم می‌شود). حداکثر ۲۵ مگابایت برای هر فایل.</span>
         </label>
         <SubmitButton>بارگذاری</SubmitButton>
