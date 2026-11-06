@@ -16,6 +16,7 @@ export type Ad = {
   slot: AdSlotId;
   /** Advertiser or campaign name; also the image's alt text. */
   title: string;
+  /** Image or video (.mp4/.webm) URL; the field keeps its old name for saved data. */
   image: string;
   mobileImage?: string;
   url: string;
@@ -97,5 +98,8 @@ export function getAdStats(): Stats {
   }
   return stats;
 }
+
+/** Ad files can be an image or a short MP4/WebM video. */
+export const isVideoFile = (u?: string) => !!u && /\.(mp4|webm)(\?|#|$)/i.test(u);
 
 export const safeAdUrl = (u: string) => /^https?:\/\/[^\s]+$/i.test(u);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { deleteAd, saveAd } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
 import { ImageField, SubmitButton } from "../../ui-client";
-import { AD_SLOTS, getAds, getAdStats, isRunning, type Ad } from "@/lib/ads";
+import { AD_SLOTS, getAds, getAdStats, isRunning, isVideoFile, type Ad } from "@/lib/ads";
 import { faNum } from "@/lib/format";
 import { isoToJalaliParts } from "@/lib/jalali";
 
@@ -21,8 +21,8 @@ function AdForm({ ad }: { ad?: Ad }) {
     <form action={saveAd} className="a-ad-form" id={ad ? `ad-${ad.id}` : "new"}>
       <input type="hidden" name="id" value={ad?.id ?? ""} />
       <div className="a-ad-images">
-        <ImageField name="image" defaultValue={ad?.image} label="بنر (دسکتاپ)" />
-        <ImageField name="mobileImage" defaultValue={ad?.mobileImage} label="بنر موبایل (اختیاری)" />
+        <ImageField name="image" defaultValue={ad?.image} label="بنر (دسکتاپ)" video />
+        <ImageField name="mobileImage" defaultValue={ad?.mobileImage} label="بنر موبایل (اختیاری)" video />
       </div>
       <div className="a-grid-fields">
         <Field label="جایگاه">
@@ -66,7 +66,8 @@ export default function AdsPage({ searchParams }: { searchParams: Promise<Record
       <Flash searchParams={searchParams} />
       <p className="a-hint">
         هر جایگاه می‌تواند چند تبلیغ داشته باشد؛ با هر بار باز شدن صفحه یکی از تبلیغ‌های فعال آن جایگاه به نوبت نمایش داده می‌شود. جایگاهی که تبلیغ فعال
-        ندارد در سایت دیده نمی‌شود. فرمت‌ها: JPG، PNG، WebP و GIF متحرک.
+        ندارد در سایت دیده نمی‌شود. فرمت‌ها: عکس JPG، PNG، WebP و GIF متحرک، یا ویدیوی MP4 / WebM با همان ابعاد جایگاه (تا ۲۵
+        مگابایت؛ برای سرعت سایت زیر ۳ مگابایت و ۱۰ تا ۲۰ ثانیه پیشنهاد می‌شود). ویدیو بی‌صدا و تکرارشونده پخش می‌شود و صدای آن شنیده نمی‌شود.
       </p>
 
       <div className="a-slot-guide">
@@ -101,8 +102,12 @@ export default function AdsPage({ searchParams }: { searchParams: Promise<Record
               return (
                 <details key={ad.id} className="a-ad-item">
                   <summary>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={ad.image} alt="" className="a-ad-thumb" />
+                    {isVideoFile(ad.image) ? (
+                      <video src={ad.image} muted playsInline preload="metadata" className="a-ad-thumb" />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={ad.image} alt="" className="a-ad-thumb" />
+                    )}
                     <span className="a-strong">{ad.title}</span>
                     <span className={`a-tag ${sts.tone}`}>{sts.label}</span>
                     <span className="muted small">

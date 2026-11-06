@@ -781,6 +781,12 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 .ad-inline { margin: 26px 0; max-width: 720px; }
 .ad-slot-2 img { aspect-ratio: 300 / 250; object-fit: cover; }
 .ad-slot-4 img { aspect-ratio: 300 / 600; object-fit: cover; }
+/* Video ads (and their image partner) get the slot's exact size up front, so nothing jumps when they load. */
+.ad video, .ad-has-video img, .ad-media-placeholder { width: 100%; display: block; object-fit: cover; }
+.ad-slot-1 :is(video, .ad-media-placeholder), .ad-slot-1.ad-has-video img { aspect-ratio: 1200 / 120; }
+.ad-slot-2 :is(video, .ad-media-placeholder) { aspect-ratio: 300 / 250; }
+.ad-slot-3 :is(video, .ad-media-placeholder), .ad-slot-3.ad-has-video img { aspect-ratio: 970 / 150; }
+.ad-slot-4 :is(video, .ad-media-placeholder) { aspect-ratio: 300 / 600; }
 /* The tall sidebar banner stays in view while the news column scrolls. */
 .ad-sticky { position: sticky; top: calc(var(--header-h) + 28px); }
 
@@ -871,8 +877,9 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .article-head h1 { font-size: 1.5rem; }
   .prose { font-size: 1.04rem; line-height: 2.1; }
   .standings .form-col { display: none; }
-  .ad-sticky { position: static; }
-  .ad-slot-4 img { aspect-ratio: 300 / 250; }
+  .ad-sticky { position: relative; top: auto; }
+  .ad-slot-4 img, .ad-slot-4 :is(video, .ad-media-placeholder) { aspect-ratio: 300 / 250; }
+  :is(.ad-slot-1, .ad-slot-3).ad-has-mobile :is(video, img, .ad-media-placeholder) { aspect-ratio: 320 / 100; }
 
   .team-tabs { width: 100%; }
   .team-tabs a { flex: 1; text-align: center; }

@@ -167,38 +167,50 @@ export function RichEditor({ name, defaultValue }: { name: string; defaultValue:
   );
 }
 
-/** Image field: shows the current image, lets you upload a new one or paste a URL. */
-export function ImageField({ name, defaultValue, label }: { name: string; defaultValue?: string; label: string }) {
+const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/gif,image/avif";
+const VIDEO_ACCEPT = "video/mp4,video/webm";
+const isVideoSrc = (u: string) => /\.(mp4|webm)(\?|#|$)/i.test(u);
+
+/** Image field: shows the current image, lets you upload a new one or paste a URL. With `video`, also takes an MP4/WebM file and previews it. */
+export function ImageField({ name, defaultValue, label, video = false }: { name: string; defaultValue?: string; label: string; video?: boolean }) {
   const [url, setUrl] = useState(defaultValue ?? "");
   const [preview, setPreview] = useState(defaultValue ?? "");
+  const [previewIsVideo, setPreviewIsVideo] = useState(isVideoSrc(defaultValue ?? ""));
+  const noun = video ? "فایل" : "عکس";
   return (
     <div className="image-field">
       <span className="a-label">{label}</span>
       <div className="image-field-box">
-        {preview ? (
+        {preview && previewIsVideo ? (
+          <video src={preview} muted loop autoPlay playsInline />
+        ) : preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={preview} alt="" />
         ) : (
-          <span className="muted">بدون عکس</span>
+          <span className="muted">بدون {noun}</span>
         )}
       </div>
       <input
         type="file"
         name={`${name}File`}
-        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+        accept={video ? `${IMAGE_ACCEPT},${VIDEO_ACCEPT}` : IMAGE_ACCEPT}
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) setPreview(URL.createObjectURL(f));
+          if (f) {
+            setPreview(URL.createObjectURL(f));
+            setPreviewIsVideo(f.type.startsWith("video/"));
+          }
         }}
       />
       <input
         name={name}
         value={url}
         dir="ltr"
-        placeholder="یا آدرس عکس: /uploads/..."
+        placeholder={`یا آدرس ${noun}: /uploads/...`}
         onChange={(e) => {
           setUrl(e.target.value);
           setPreview(e.target.value);
+          setPreviewIsVideo(isVideoSrc(e.target.value));
         }}
       />
       {url && (
@@ -210,7 +222,7 @@ export function ImageField({ name, defaultValue, label }: { name: string; defaul
             setPreview("");
           }}
         >
-          حذف عکس
+          حذف {noun}
         </button>
       )}
     </div>

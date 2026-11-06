@@ -48,7 +48,7 @@ export async function saveAd(fd: FormData) {
   } catch (e) {
     redirect(withError(BACK, (e as Error).message) + back);
   }
-  if (!image) redirect(withError(BACK, "عکس بنر را بارگذاری کنید.") + back);
+  if (!image) redirect(withError(BACK, "عکس یا ویدیوی بنر را بارگذاری کنید.") + back);
 
   const ad: Ad = {
     id: existing?.id ?? crypto.randomBytes(5).toString("hex"),

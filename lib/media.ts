@@ -12,6 +12,7 @@ export const MEDIA_TYPES: Record<string, string> = {
   ".gif": "image/gif",
   ".avif": "image/avif",
   ".mp4": "video/mp4",
+  ".webm": "video/webm",
 };
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
@@ -39,6 +40,8 @@ function looksLike(buf: Buffer, ext: string): boolean {
     case ".avif":
     case ".mp4":
       return buf.subarray(4, 8).toString() === "ftyp";
+    case ".webm":
+      return hex.startsWith("1a45dfa3");
     default:
       return false;
   }
@@ -47,7 +50,7 @@ function looksLike(buf: Buffer, ext: string): boolean {
 /** Saves an uploaded file and returns its public URL (/uploads/admin/2026/11/....jpg). */
 export async function saveUpload(file: File): Promise<string> {
   const ext = path.extname(file.name).toLowerCase();
-  if (!MEDIA_TYPES[ext]) throw new Error(`نوع فایل «${ext || file.name}» مجاز نیست. فقط عکس (jpg، png، webp، gif، avif) و ویدیوی mp4.`);
+  if (!MEDIA_TYPES[ext]) throw new Error(`نوع فایل «${ext || file.name}» مجاز نیست. فقط عکس (jpg، png، webp، gif، avif) و ویدیو (mp4، webm).`);
   if (file.size > MAX_UPLOAD_BYTES) throw new Error("حجم فایل بیشتر از ۲۵ مگابایت است.");
   const buf = Buffer.from(await file.arrayBuffer());
   if (!looksLike(buf, ext)) throw new Error("محتوای فایل با پسوندش جور نیست.");
