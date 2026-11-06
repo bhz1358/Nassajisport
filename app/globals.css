@@ -377,8 +377,21 @@ a:hover .play { transform: scale(1.08); }
 .header-social a { width: 34px; height: 34px; border-radius: 10px; }
 .header-social svg { width: 17px; height: 17px; }
 .contact-social { justify-content: center; margin-top: 18px; }
-/* Laptops and tablets: the menu needs the room; the footer still has the icons. */
-@media (min-width: 721px) and (max-width: 1099px) { .header-social { display: none; } }
+/* Smaller laptops: a tighter header so the menu and the social icons both fit. */
+@media (min-width: 900px) and (max-width: 1279px) {
+  .header-bar { gap: 12px; padding: 0 12px; }
+  .nav a { padding: 7px 9px; font-size: 0.84rem; }
+  .header-actions { gap: 6px; }
+  .header-social { gap: 4px; }
+  .header-social a { width: 30px; height: 30px; }
+  .logo-text strong { font-size: 1.05rem; }
+}
+/* Tablets: the menu gets its own row, as on phones. */
+@media (min-width: 721px) and (max-width: 899px) {
+  :root:root { --header-h: 150px; }
+  .header-bar { height: auto; flex-wrap: wrap; padding: 10px 14px 8px; row-gap: 6px; }
+  .nav { flex-basis: 100%; order: 3; }
+}
 @media (max-width: 720px) { .header-social a { width: 32px; height: 32px; } .header-social svg { width: 16px; height: 16px; } }
 .contact-social a { color: var(--heading); background: var(--surface-2); border-color: var(--border); box-shadow: none; }
 
