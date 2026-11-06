@@ -2,7 +2,8 @@
 // Downloads club logos from a web page (e.g. an article listing Iranian club logos)
 // and assigns them to the teams in the league table.
 //
-//   node scripts/fetch-logos.mjs DATA_DIR https://example.com/logos-article/ [--force] [--list]
+//   node scripts/fetch-logos.mjs DATA_DIR https://example.com/logos-article/ [--force] [--reset] [--list]
+// --reset first removes the logos this tool added before (uploads made in the admin stay).
 //
 // Each image on the page is matched to a team by its alt/title text, its file name,
 // and the heading above it. Logos are saved as WebP in DATA_DIR/uploads/teams/.
@@ -14,7 +15,10 @@ import path from "node:path";
 // Persian team name (as in the table) → words that identify it in Persian or in file names.
 // Longer, more specific names come first so "استقلال خوزستان" is not taken for "استقلال".
 export const TEAM_ALIASES = [
-  ["استقلال خوزستان", ["استقلال خوزستان", "esteghlal-khuzestan", "esteghlal_khuzestan", "khuzestan"]],
+  // Foolad's full name is "فولاد خوزستان": checked before Esteghlal Khuzestan, and
+  // "khuzestan" alone is not used, because it appears in both clubs' names.
+  ["فولاد", ["فولاد خوزستان", "khuzestan-steel", "foolad", "fulad", "فولاد"]],
+  ["استقلال خوزستان", ["استقلال خوزستان", "esteghlal-khuzestan", "esteghlal_khuzestan", "esteghlalkhuzestan"]],
   ["صنعت نفت آبادان", ["صنعت نفت", "sanat-naft", "sanat_naft", "sanatnaft", "naft-abadan"]],
   ["مس شهر بابک", ["مس شهر بابک", "مس شهربابک", "shahr-babak", "shahrbabak", "mes-shahr"]],
   ["شمس آذر قزوین", ["شمس آذر", "shams-azar", "shams_azar", "shamsazar"]],
@@ -27,7 +31,6 @@ export const TEAM_ALIASES = [
   ["گل گهر", ["گل گهر", "گل‌گهر", "gol-gohar", "golgohar", "gol_gohar"]],
   ["پرسپولیس", ["پرسپولیس", "persepolis", "perspolis"]],
   ["سپاهان", ["سپاهان", "sepahan"]],
-  ["فولاد", ["فولاد", "foolad", "fulad"]],
   ["تراکتور", ["تراکتور", "tractor", "teraktor"]],
   ["پیکان", ["پیکان", "paykan", "peykan"]],
   ["ملوان", ["ملوان", "malavan"]],
@@ -119,6 +122,10 @@ async function main() {
   };
   const teams = [...new Set([...league.standings.map((r) => clean(r.team)), ...league.fixtures.flatMap((f) => [clean(f.home), clean(f.away)])])];
   const logos = { ...(league.teamLogos ?? {}) };
+  if (args.includes("--reset")) {
+    for (const [team, url] of Object.entries(logos)) if (url.startsWith("/uploads/teams/")) delete logos[team];
+    console.log("Removed the logos added by this tool earlier.");
+  }
 
   const UA = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36" };
   console.log(`Reading ${pageUrl} ...`);
