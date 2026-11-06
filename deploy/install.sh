@@ -106,12 +106,21 @@ NPM_FLAGS=(--no-audit --no-fund)
 [[ -n "${NPM_REGISTRY:-}" ]] && NPM_FLAGS+=(--registry "$NPM_REGISTRY")
 # Keep proxy settings when switching user, for servers that reach the internet through a proxy.
 KEEP_ENV=HTTP_PROXY,HTTPS_PROXY,NO_PROXY,http_proxy,https_proxy,no_proxy,npm_config_proxy,npm_config_https_proxy,npm_config_noproxy,NODE_EXTRA_CA_CERTS
-if ! sudo --preserve-env="$KEEP_ENV" -u "$APP_USER" -H bash -c "cd '$STAGE_DIR' && npm ci ${NPM_FLAGS[*]} && NEXT_TELEMETRY_DISABLED=1 DATA_DIR='$DATA_DIR' npm run build"; then
-  rm -rf "$STAGE_DIR"
-  die "Build failed; the site keeps running the current version. If npm downloads failed, retry with NPM_REGISTRY set to a mirror."
+# When the package list is unchanged, the packages already installed for the running
+# site are copied over, so most updates need no internet access at all.
+INSTALL_CMD="npm ci ${NPM_FLAGS[*]}"
+# npm writes node_modules/.package-lock.json only after a complete install, so an
+# install that was cut off (e.g. by a full disk) is not reused.
+if [[ -f "$APP_DIR/node_modules/.package-lock.json" && -f "$APP_DIR/node_modules/next/package.json" && -f "$APP_DIR/package-lock.json" ]] \
+  && cmp -s "$APP_DIR/package-lock.json" "$STAGE_DIR/package-lock.json"; then
+  echo "Packages unchanged: reusing the installed ones (no download needed)."
+  cp -a "$APP_DIR/node_modules" "$STAGE_DIR/node_modules"
+  INSTALL_CMD="true"
 fi
-# npm's download cache is not needed once the build is done.
-rm -rf /opt/nassaji/.npm/_cacache
+if ! sudo --preserve-env="$KEEP_ENV" -u "$APP_USER" -H bash -c "cd '$STAGE_DIR' && $INSTALL_CMD && NEXT_TELEMETRY_DISABLED=1 DATA_DIR='$DATA_DIR' npm run build"; then
+  rm -rf "$STAGE_DIR"
+  die "Build failed; the site keeps running the current version. If npm downloads failed (ETIMEDOUT), try again later or with NPM_REGISTRY set to a mirror."
+fi
 
 say "Switching to the new version"
 rm -rf "${APP_DIR}.old"
