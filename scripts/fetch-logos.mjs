@@ -1,0 +1,146 @@
+#!/usr/bin/env node
+// Downloads club logos from a web page (e.g. an article listing Iranian club logos)
+// and assigns them to the teams in the league table.
+//
+//   node scripts/fetch-logos.mjs DATA_DIR https://example.com/logos-article/ [--force]
+//
+// Each image on the page is matched to a team by its alt/title text, its file name,
+// and the heading above it. Logos are saved as WebP in DATA_DIR/uploads/teams/.
+// Teams that already have a logo keep it unless --force is given.
+
+import fs from "node:fs";
+import path from "node:path";
+
+// Persian team name (as in the table) → words that identify it in Persian or in file names.
+// Longer, more specific names come first so "استقلال خوزستان" is not taken for "استقلال".
+export const TEAM_ALIASES = [
+  ["استقلال خوزستان", ["استقلال خوزستان", "esteghlal-khuzestan", "esteghlal_khuzestan", "khuzestan"]],
+  ["صنعت نفت آبادان", ["صنعت نفت", "sanat-naft", "sanat_naft", "sanatnaft", "naft-abadan"]],
+  ["مس شهر بابک", ["مس شهر بابک", "مس شهربابک", "shahr-babak", "shahrbabak", "mes-shahr"]],
+  ["شمس آذر قزوین", ["شمس آذر", "shams-azar", "shams_azar", "shamsazar"]],
+  ["چادرملو اردکان", ["چادرملو", "chadormalu", "chadormellu", "chadormelo"]],
+  ["آلومینیوم اراک", ["آلومینیوم", "aluminium", "aluminum"]],
+  ["خیبر خرم آباد", ["خیبر", "kheybar", "khaybar"]],
+  ["فجر سپاسی", ["فجر سپاسی", "fajr-sepasi", "fajr_sepasi", "fajrsepasi"]],
+  ["نساجی مازندران", ["نساجی", "nassaji", "nasaji"]],
+  ["ذوب آهن", ["ذوب آهن", "ذوب‌آهن", "zob-ahan", "zobahan", "zob_ahan"]],
+  ["گل گهر", ["گل گهر", "گل‌گهر", "gol-gohar", "golgohar", "gol_gohar"]],
+  ["پرسپولیس", ["پرسپولیس", "persepolis", "perspolis"]],
+  ["سپاهان", ["سپاهان", "sepahan"]],
+  ["فولاد", ["فولاد", "foolad", "fulad"]],
+  ["تراکتور", ["تراکتور", "tractor", "teraktor"]],
+  ["پیکان", ["پیکان", "paykan", "peykan"]],
+  ["ملوان", ["ملوان", "malavan"]],
+  ["استقلال", ["استقلال", "esteghlal", "esteqlal"]],
+];
+
+const norm = (s) =>
+  (s ?? "")
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/‌/g, " ")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+const attr = (tag, name) => tag.match(new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, "i"))?.[1];
+
+/** Every <img> in page order, with the text that describes it. */
+export function findImages(html, base) {
+  const out = [];
+  let heading = "";
+  const re = /<(h[1-6])\b[^>]*>([\s\S]*?)<\/\1>|<img\b[^>]*>/gi;
+  for (const m of html.matchAll(re)) {
+    if (m[1]) {
+      heading = m[2].replace(/<[^>]+>/g, " ");
+      continue;
+    }
+    const tag = m[0];
+    // Lazy-loading themes keep the real file in data-* attributes; srcset's largest wins.
+    const srcset = attr(tag, "data-srcset") || attr(tag, "srcset");
+    const largest = srcset
+      ?.split(",")
+      .map((s) => s.trim().split(/\s+/))
+      .sort((a, b) => parseInt(b[1] || "0") - parseInt(a[1] || "0"))[0]?.[0];
+    const src = attr(tag, "data-lazy-src") || attr(tag, "data-src") || largest || attr(tag, "src");
+    if (!src || src.startsWith("data:")) continue;
+    let url;
+    try {
+      url = new URL(src, base).href;
+    } catch {
+      continue;
+    }
+    const file = decodeURIComponent(new URL(url).pathname.split("/").pop() ?? "");
+    out.push({ url, text: norm(`${attr(tag, "alt") ?? ""} ${attr(tag, "title") ?? ""} ${file}`), heading: norm(heading) });
+  }
+  return out;
+}
+
+/** Team name for an image, from its own text first, then from the heading above it. */
+export function matchTeam(img, teams) {
+  for (const source of [img.text, img.heading]) {
+    for (const [team, aliases] of TEAM_ALIASES) {
+      if (!teams.includes(team)) continue;
+      if (aliases.some((a) => source.includes(norm(a)))) return team;
+    }
+  }
+  return undefined;
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const force = args.includes("--force");
+  const [dataDir, pageUrl] = args.filter((a) => !a.startsWith("--"));
+  if (!dataDir || !pageUrl) {
+    console.error("Usage: node scripts/fetch-logos.mjs DATA_DIR PAGE_URL [--force]");
+    process.exit(1);
+  }
+  const leagueFile = path.join(dataDir, "league.json");
+  const league = JSON.parse(fs.readFileSync(leagueFile, "utf8"));
+  const teams = [...new Set([...league.standings.map((r) => r.team), ...league.fixtures.flatMap((f) => [f.home, f.away])])];
+  const logos = { ...(league.teamLogos ?? {}) };
+
+  const UA = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36" };
+  console.log(`Reading ${pageUrl} ...`);
+  const res = await fetch(pageUrl, { headers: UA, signal: AbortSignal.timeout(30_000) });
+  if (!res.ok) throw new Error(`The page answered HTTP ${res.status}`);
+  const images = findImages(await res.text(), pageUrl);
+  console.log(`${images.length} images on the page`);
+
+  const sharp = (await import("sharp")).default;
+  const dir = path.join(dataDir, "uploads", "teams");
+  fs.mkdirSync(dir, { recursive: true });
+  const done = new Set();
+  for (const img of images) {
+    const team = matchTeam(img, teams);
+    if (!team || done.has(team) || (logos[team] && !force)) continue;
+    try {
+      const r = await fetch(img.url, { headers: { ...UA, Referer: pageUrl }, signal: AbortSignal.timeout(30_000) });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const buf = Buffer.from(await r.arrayBuffer());
+      const webp = await sharp(buf).resize(256, 256, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 90 }).toBuffer();
+      const slug = TEAM_ALIASES.find(([t]) => t === team)[1].find((a) => /^[a-z]/.test(a)) ?? `team-${done.size}`;
+      fs.writeFileSync(path.join(dir, `${slug}.webp`), webp);
+      logos[team] = `/uploads/teams/${slug}.webp?v=${Date.now().toString(36)}`;
+      done.add(team);
+      console.log(`  ✓ ${team}`);
+    } catch (e) {
+      console.log(`  ✗ ${team}: ${e.message}`);
+    }
+  }
+
+  fs.copyFileSync(leagueFile, `${leagueFile}.before-logos`);
+  const tmp = `${leagueFile}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify({ ...league, teamLogos: logos }, null, 2) + "\n");
+  fs.renameSync(tmp, leagueFile);
+
+  const missing = teams.filter((t) => !logos[t]);
+  console.log(`\n${done.size} logos added. Teams with a logo: ${teams.length - missing.length} of ${teams.length}.`);
+  if (missing.length) console.log(`No logo found for: ${missing.join("، ")}\nUpload these in Admin > جدول و بازی‌ها > لوگوی تیم‌ها.`);
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((e) => {
+    console.error(`Failed: ${e.message}`);
+    process.exit(1);
+  });
+}
