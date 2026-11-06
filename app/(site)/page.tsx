@@ -72,7 +72,7 @@ export default function Home() {
           <SectionHeader title={<span id="daily-title">اخبار روزانه</span>} href="/category/news/" />
           <div className="daily-grid">
             {daily.map((p, i) => (
-              <NewsCard key={p.id} post={p} withImage={i === 0} featured={i === 0} />
+              <NewsCard key={p.id} post={p} withImage featured={i === 0} />
             ))}
           </div>
           {dailyMore.length > 0 && (
