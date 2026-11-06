@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdSlot } from "../../ad-slot";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SampleNotice, SectionHeader, StoryCard } from "../../components";
@@ -33,6 +34,7 @@ export default async function PlayerPage({ params }: Props) {
 
   return (
     <>
+      <AdSlot slot={1} className="ad-top" />
       {squad.isSample && <SampleNotice>اطلاعات این بازیکن نمونه است.</SampleNotice>}
       <nav className="breadcrumb" aria-label="مسیر">
         <Link href="/team/">تیم</Link>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdSlot } from "./ad-slot";
 import { FitToColumn, HeroSlider, MediaRail, type HeroSlide } from "./client";
 import {
   BreakingBar,
@@ -64,6 +65,7 @@ export default function Home() {
     <>
       <HeroSlider slides={slides} logo={logo} />
       <BreakingBar posts={breaking} />
+      <AdSlot slot={1} className="ad-top" />
 
       {isSample && <SampleNotice>پیش‌نمایش با محتوای نمونه؛ با وارد کردن خروجی وردپرس، خبرهای واقعی جایگزین می‌شوند.</SampleNotice>}
 
@@ -86,6 +88,7 @@ export default function Home() {
 
         <aside className="home-side">
           <NextMatchCard f={nextMatch} />
+          <AdSlot slot={2} />
           {lastRound.fixtures.length > 0 && (
             <div className="panel">
               <SectionHeader title={lastRound.round ? `نتایج هفته ${faNum(lastRound.round)}` : "نتایج اخیر"} href="/league/" />
@@ -96,8 +99,11 @@ export default function Home() {
             <SectionHeader title="جدول رده‌بندی لیگ" href="/league/" />
             <HomeStandings rows={league.standings} />
           </div>
+          <AdSlot slot={4} className="ad-sticky" />
         </aside>
       </div>
+
+      <AdSlot slot={3} className="ad-wide" />
 
       {videos.length > 0 && (
         <section className="block" aria-labelledby="media-title">

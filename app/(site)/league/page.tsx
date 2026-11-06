@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdSlot } from "../ad-slot";
 import { FixtureRow, MatchHero, SampleNotice, SectionHeader, StandingsTable } from "../components";
 import { faNum } from "@/lib/format";
 import { getClubMatch, getLeague } from "@/lib/league";
@@ -14,6 +15,7 @@ export default function LeaguePage() {
 
   return (
     <>
+      <AdSlot slot={1} className="ad-top" />
       {league.isSample && (
         <SampleNotice>نتایج و جدول این صفحه نمونه است. بعد از انتخاب سرویس نتایج زنده، این صفحه خودکار به‌روز می‌شود.</SampleNotice>
       )}

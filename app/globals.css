@@ -768,6 +768,22 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 .block-tight { margin-top: 22px; }
 .bio { margin: 0; color: var(--text-2); }
 
+/* ---------- Ads ---------- */
+.ad { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); line-height: 0; }
+.ad a { display: block; }
+.ad img { width: 100%; height: auto; display: block; }
+.ad-label {
+  position: absolute; top: 8px; right: 8px; line-height: 1.6; font-size: 0.66rem; font-weight: 700;
+  color: #e8e1d3; background: rgb(0 0 0 / 0.55); border-radius: 6px; padding: 0 7px; pointer-events: none;
+}
+.ad-top { margin-top: 24px; }
+.ad-wide { margin-top: 48px; }
+.ad-inline { margin: 26px 0; max-width: 720px; }
+.ad-slot-2 img { aspect-ratio: 300 / 250; object-fit: cover; }
+.ad-slot-4 img { aspect-ratio: 300 / 600; object-fit: cover; }
+/* The tall sidebar banner stays in view while the news column scrolls. */
+.ad-sticky { position: sticky; top: calc(var(--header-h) + 28px); }
+
 /* ---------- Footer & tab bar ---------- */
 .site-footer {
   margin-top: 40px; padding: 44px 0 28px; color: #b8b0a2;
@@ -855,6 +871,8 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .article-head h1 { font-size: 1.5rem; }
   .prose { font-size: 1.04rem; line-height: 2.1; }
   .standings .form-col { display: none; }
+  .ad-sticky { position: static; }
+  .ad-slot-4 img { aspect-ratio: 300 / 250; }
 
   .team-tabs { width: 100%; }
   .team-tabs a { flex: 1; text-align: center; }

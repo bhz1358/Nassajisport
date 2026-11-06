@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdSlot } from "../ad-slot";
 import { SampleNotice, SectionHeader } from "../components";
 import { BenchList, MatchPitch, PlayerCard } from "../squad-ui";
 import { faDate, faNum } from "@/lib/format";
@@ -12,6 +13,7 @@ export default function TeamPage() {
 
   return (
     <>
+      <AdSlot slot={1} className="ad-top" />
       {squad.isSample && (
         <SampleNotice>بازیکنان، آمار و ترکیب این صفحه نمونه است. اطلاعات واقعی تیم بعداً از پنل مدیریت وارد می‌شود.</SampleNotice>
       )}

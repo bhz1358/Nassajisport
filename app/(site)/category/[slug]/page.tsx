@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdSlot } from "../../ad-slot";
 import { notFound } from "next/navigation";
 import { LeadStory, StoryCard, VideoCard } from "../../components";
 import { getCategory, getPostsInCategory } from "@/lib/content";
@@ -22,6 +23,7 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <section>
+      <AdSlot slot={1} className="ad-top" />
       <h1 className="page-title">{cat.name}</h1>
       {!first ? (
         <p className="muted">هنوز مطلبی در این بخش نیست.</p>

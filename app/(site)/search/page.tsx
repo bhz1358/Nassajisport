@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdSlot } from "../ad-slot";
 import { SectionHeader, StoryRow } from "../components";
 import { getNews } from "@/lib/content";
 import { faNum } from "@/lib/format";
@@ -31,6 +32,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <section className="search-page">
+      <AdSlot slot={1} className="ad-top" />
       <h1 className="page-title">جست‌وجو</h1>
       <form role="search" className="search-form">
         <input name="q" defaultValue={q} placeholder="نام بازیکن، تیم یا موضوع خبر…" aria-label="عبارت جست‌وجو" autoFocus />
