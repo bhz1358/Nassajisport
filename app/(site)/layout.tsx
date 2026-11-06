@@ -75,7 +75,15 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
               </div>
             )}
           </div>
-          <p className="footer-copy">© {settings.title}. تمامی حقوق محفوظ است.</p>
+          <div className="footer-copy">
+            <p>© {settings.title}. تمامی حقوق محفوظ است.</p>
+            <p className="footer-credit">
+              تیم طراحی و پشتیبانی{" "}
+              <a href="https://behzadghodsi.ir" target="_blank" rel="noopener" dir="ltr">
+                BehzadGhodsi.ir
+              </a>
+            </p>
+          </div>
         </div>
       </footer>
       <TabBar ticketsUrl={ticketsUrl} />
