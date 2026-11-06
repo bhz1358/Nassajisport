@@ -76,17 +76,28 @@ fi
 # ---------------------------------------------------------------- user & folders
 say "Creating user and folders"
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --home /opt/nassaji --shell /usr/sbin/nologin "$APP_USER"
-mkdir -p "$APP_DIR" "$DATA_DIR/uploads" "$BACKUP_DIR"
+mkdir -p "$(dirname "$APP_DIR")" "$DATA_DIR/uploads" "$BACKUP_DIR"
 # Backups hold password hashes and the session key: root only.
 chmod 700 "$BACKUP_DIR"
 
 # ---------------------------------------------------------------- code
-say "Copying the site to $APP_DIR"
-if [[ "$SRC_DIR" != "$APP_DIR" ]]; then
-  rsync -a --delete \
-    --exclude node_modules --exclude .next --exclude data --exclude .git \
-    "$SRC_DIR/" "$APP_DIR/"
+# The new version is built in a separate folder next to the running site and only
+# swapped in once the build has succeeded, so a failed update never breaks the site.
+STAGE_DIR="${APP_DIR}.new"
+NEED_MB="${NEED_MB:-1500}"
+FREE_MB=$(df -Pm "$(dirname "$APP_DIR")" | awk 'NR==2 {print $4}')
+if (( FREE_MB < NEED_MB )); then
+  die "Not enough disk space: ${FREE_MB} MB free, about ${NEED_MB} MB needed to build. The site keeps running the current version.
+   See what uses the space:  du -sh /var/backups/nassaji /var/lib/nassaji/data/uploads /var/cache/apt /var/log/journal /tmp
+   Usually safe to free:     apt-get clean; journalctl --vacuum-size=100M"
 fi
+
+say "Copying the new version to $STAGE_DIR"
+rm -rf "$STAGE_DIR"
+mkdir -p "$STAGE_DIR"
+rsync -a --delete \
+  --exclude node_modules --exclude .next --exclude data --exclude .git \
+  "$SRC_DIR/" "$STAGE_DIR/"
 chown -R "$APP_USER:$APP_USER" /opt/nassaji "$DATA_DIR"
 chmod 750 "$DATA_DIR"
 
@@ -95,8 +106,20 @@ NPM_FLAGS=(--no-audit --no-fund)
 [[ -n "${NPM_REGISTRY:-}" ]] && NPM_FLAGS+=(--registry "$NPM_REGISTRY")
 # Keep proxy settings when switching user, for servers that reach the internet through a proxy.
 KEEP_ENV=HTTP_PROXY,HTTPS_PROXY,NO_PROXY,http_proxy,https_proxy,no_proxy,npm_config_proxy,npm_config_https_proxy,npm_config_noproxy,NODE_EXTRA_CA_CERTS
-sudo --preserve-env="$KEEP_ENV" -u "$APP_USER" -H bash -c "cd '$APP_DIR' && npm ci ${NPM_FLAGS[*]} && NEXT_TELEMETRY_DISABLED=1 DATA_DIR='$DATA_DIR' npm run build" \
-  || die "Build failed. If npm downloads failed, retry with NPM_REGISTRY set to a mirror."
+if ! sudo --preserve-env="$KEEP_ENV" -u "$APP_USER" -H bash -c "cd '$STAGE_DIR' && npm ci ${NPM_FLAGS[*]} && NEXT_TELEMETRY_DISABLED=1 DATA_DIR='$DATA_DIR' npm run build"; then
+  rm -rf "$STAGE_DIR"
+  die "Build failed; the site keeps running the current version. If npm downloads failed, retry with NPM_REGISTRY set to a mirror."
+fi
+# npm's download cache is not needed once the build is done.
+rm -rf /opt/nassaji/.npm/_cacache
+
+say "Switching to the new version"
+rm -rf "${APP_DIR}.old"
+if [[ -d "$APP_DIR" ]]; then mv "$APP_DIR" "${APP_DIR}.old"; fi
+mv "$STAGE_DIR" "$APP_DIR"
+# Restart straight away: the old process would otherwise look for files of the old build.
+if systemctl is-enabled nassaji >/dev/null 2>&1; then systemctl restart nassaji; fi
+rm -rf "${APP_DIR}.old"
 
 # ---------------------------------------------------------------- settings
 if [[ ! -f "$ENV_FILE" ]]; then
@@ -194,14 +217,27 @@ if [[ -n "$DOMAIN" && -n "$EMAIL" ]]; then
 fi
 
 # ---------------------------------------------------------------- backups
-say "Setting up daily backups to $BACKUP_DIR (last 14 kept)"
-cat > /etc/cron.daily/nassaji-backup <<EOF
+# Daily: the site's data files (posts, tables, settings, users: a few MB), 14 days kept.
+# Photos change rarely and take gigabytes, so they are kept as one mirror copy that is
+# refreshed each day instead of being copied into every backup.
+say "Setting up daily backups to $BACKUP_DIR"
+cat > /etc/cron.daily/nassaji-backup <<CRON
 #!/bin/sh
 umask 077
-tar -czf $BACKUP_DIR/data-\$(date +%F).tar.gz -C $(dirname "$DATA_DIR") $(basename "$DATA_DIR")
-find $BACKUP_DIR -name 'data-*.tar.gz' -mtime +14 -delete
-EOF
+tar -czf $BACKUP_DIR/data-\$(date +%F).tar.gz --exclude=data/uploads -C $(dirname "$DATA_DIR") $(basename "$DATA_DIR")
+find $BACKUP_DIR -maxdepth 1 -name 'data-*.tar.gz' -mtime +14 -delete
+rsync -a --delete $DATA_DIR/uploads/ $BACKUP_DIR/uploads-mirror/
+CRON
 chmod 755 /etc/cron.daily/nassaji-backup
+
+# Earlier versions put every photo into every backup and could fill the disk.
+# Keep the newest of those full backups and remove the rest.
+OLD_FULL=$(find "$BACKUP_DIR" -maxdepth 1 -name 'data-*.tar.gz' -size +50M -printf '%T@ %p\n' 2>/dev/null | sort -rn | tail -n +2 | cut -d' ' -f2-)
+if [[ -n "$OLD_FULL" ]]; then
+  echo "Removing old full backups that included every photo (the newest one is kept):"
+  echo "$OLD_FULL" | sed 's/^/  /'
+  echo "$OLD_FULL" | xargs -r rm -f
+fi
 
 # ---------------------------------------------------------------- check
 say "Checking the site"

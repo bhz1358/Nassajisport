@@ -9,6 +9,8 @@ set -euo pipefail
 # A backup before every update, in case the new version misbehaves.
 mkdir -p -m 700 /var/backups/nassaji
 umask 077
-tar -czf "/var/backups/nassaji/data-before-update-$(date +%F-%H%M).tar.gz" -C /var/lib/nassaji data
+# Data files only (photos are in the daily mirror); the 5 newest of these are kept.
+tar -czf "/var/backups/nassaji/data-before-update-$(date +%F-%H%M).tar.gz" --exclude=data/uploads -C /var/lib/nassaji data
+ls -t /var/backups/nassaji/data-before-update-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -f
 
 exec bash "$(dirname "${BASH_SOURCE[0]}")/install.sh"
