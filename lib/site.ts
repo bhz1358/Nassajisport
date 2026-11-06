@@ -20,6 +20,8 @@ export const FOOTER_NAV: { label: string; href: string }[] = [
 ];
 
 export const HOME_TEAM = "نساجی مازندران";
+/** Shown under the logo in the header. */
+export const FOUNDED = "۱۳۸۶";
 
 // Categories that get their own look on the home page.
 export const VIDEO_CATEGORY = "video";

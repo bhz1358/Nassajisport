@@ -4,7 +4,7 @@ import { NextMatchPill } from "./components";
 import { getClubMatch, getLeague } from "@/lib/league";
 import { maybeAutoSync } from "@/lib/league-sync";
 import { getSettings, logoUrl } from "@/lib/settings";
-import { FOOTER_NAV, NAV } from "@/lib/site";
+import { FOOTER_NAV, FOUNDED, NAV } from "@/lib/site";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   maybeAutoSync();
@@ -23,7 +23,10 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
           <div className="header-bar">
             <Link href="/" className="logo" aria-label={settings.title}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logo} alt="" className="logo-img" width={46} height={46} />
+              <span className="logo-mark">
+                <img src={logo} alt="" className="logo-img" width={60} height={60} />
+                <span className="logo-est">تأسیس {FOUNDED}</span>
+              </span>
               <span className="logo-text">
                 <strong>{settings.title}</strong>
                 <small>{settings.description}</small>

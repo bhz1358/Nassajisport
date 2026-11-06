@@ -39,7 +39,7 @@
   --radius: 16px;
   --radius-sm: 10px;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 10px 30px rgb(40 30 10 / 0.07);
-  --header-h: 76px;
+  --header-h: 96px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   color-scheme: light;
 }
@@ -185,9 +185,11 @@ button { font: inherit; }
 }
 .logo { display: flex; align-items: center; gap: 12px; flex: none; }
 .logo-img {
-  width: 46px; height: 46px; border-radius: 50%; flex: none; object-fit: contain;
+  width: 60px; height: 60px; border-radius: 50%; flex: none; object-fit: contain;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--acc-600) 70%, transparent), 0 4px 14px rgb(0 0 0 / 0.4);
 }
+.logo-mark { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: none; }
+.logo-est { font-size: 0.62rem; font-weight: 700; line-height: 1; color: var(--acc-500); letter-spacing: 0.02em; white-space: nowrap; }
 .logo-text { display: flex; flex-direction: column; line-height: 1.35; }
 .logo-text strong { font-size: 1.22rem; font-weight: 900; }
 .logo-text strong { background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -839,7 +841,8 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .hero-list li { scroll-snap-align: start; }
   .hero-item { background: var(--surface); border-color: var(--border); }
 
-  :root { --header-h: 64px; }
+  :root { --header-h: 88px; }
+  .logo-img { width: 54px; height: 54px; }
   .header-tickets, .next-pill { display: none; }
   .home-main, .split, .article-layout, .league-grid, .lineup-grid, .player-layout { grid-template-columns: minmax(0, 1fr); }
   .sticky-side { position: static; }
@@ -865,8 +868,10 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .container { padding: 0 16px; }
   .site-header { position: static; padding-top: 8px; }
   .header-bar { height: auto; flex-wrap: wrap; padding: 10px 12px 6px; row-gap: 4px; border-radius: 16px; }
-  .logo-img { width: 40px; height: 40px; }
+  .logo-img { width: 50px; height: 50px; }
+  .logo-est { font-size: 0.58rem; }
   .logo-text strong { font-size: 1.08rem; }
+  .logo-text small { display: block; font-size: 0.72rem; max-width: 170px; }
   .header-actions { margin-right: auto; }
   .icon-btn { width: 38px; height: 38px; }
   .nav { flex-basis: 100%; order: 3; margin: 0 -4px; }
