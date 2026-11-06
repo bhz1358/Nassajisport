@@ -69,3 +69,33 @@ test("Varzesh3 table as copied from the browser: names on their own lines, goals
   assert.equal(rows[17].goalsAgainst, 22);
   assert.equal(rows.filter((r) => r.deducted).length, 1);
 });
+
+test("form letters copied one per cell or space are not glued to the team name", () => {
+  const text = [
+    "#\tتیم\tبازی\tبرد\tمساوی\tباخت\tگل -/+\tتفاضل\tامتیاز\tبازی‌های اخیر",
+    "3",
+    "فولاد",
+    "11\t6\t4\t1\t11-5\t6\t22\tW\tW\tD\tW\tW",
+    "4",
+    "استقلال",
+    "10 5 5 0 12-3 9 20 D W D W D",
+    "5\tتراکتور W L D L W\t10\t6\t2\t2\t12-5\t7\t20",
+  ].join("\n");
+  const { rows, warnings } = parseStandings(text);
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(rows.map((r) => [r.team, r.points, r.form.join("")]), [["فولاد", 22, "WWDWW"], ["استقلال", 20, "DWDWD"], ["تراکتور", 20, "WLDLW"]]);
+});
+
+test("saved tables with form glued to names are repaired", async () => {
+  const { cleanTeamNames } = await import("../lib/team-names.ts");
+  const league = {
+    standings: [{ team: "فولاد W W D W W", played: 11, won: 6, drawn: 4, lost: 1, goalsFor: 11, goalsAgainst: 5, points: 22 }, { team: "نساجی", played: 11, won: 2, drawn: 5, lost: 4, goalsFor: 7, goalsAgainst: 10, points: 11 }],
+    fixtures: [{ date: "x", home: "فولاد", away: "ملوان D L W D L", status: "scheduled" }],
+  };
+  const fixed = cleanTeamNames(league);
+  assert.equal(fixed.standings[0].team, "فولاد");
+  assert.deepEqual(fixed.standings[0].form, ["W", "W", "D", "W", "W"]);
+  assert.equal(fixed.standings[1].team, "نساجی مازندران");
+  assert.equal(fixed.fixtures[0].away, "ملوان");
+  assert.equal(cleanTeamNames(fixed), fixed);
+});

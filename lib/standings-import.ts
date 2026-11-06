@@ -1,5 +1,6 @@
 import { toLatinDigits } from "./jalali.ts";
 import { HOME_TEAM } from "./site.ts";
+import { formFromLetters, isFormLetter, splitNameAndForm } from "./team-names.ts";
 import type { StandingRow } from "./types";
 
 // Reads a league table copied from a sports site (e.g. Varzesh3) — either the page's
@@ -87,7 +88,8 @@ function textToRows(text: string): string[][] {
   let pendingName: string[] = [];
   for (const cells of lines) {
     const numeric = cells.filter(isNumberish).length;
-    const hasWords = cells.some((c) => !isNumberish(c) && !FORM.test(c) && /\p{L}/u.test(c));
+    // Single W/D/L letters are the form guide split into cells, not words of a name.
+    const hasWords = cells.some((c) => !isNumberish(c) && !FORM.test(c) && !isFormLetter(c) && /\p{L}/u.test(c));
     if (hasWords && numeric < 2) {
       // A name on its own line (or a header): the numbers follow on the next line.
       pendingName = cells;
@@ -142,17 +144,17 @@ export function parseStandings(input: string): ParseResult {
   const out: StandingRow[] = [];
   for (const cells of raw) {
     // A team row: some words (the name) and enough numbers.
-    const formCell = cells.find((c) => FORM.test(c));
-    const words = cells.filter((c) => !isNumberish(c) && c !== formCell && /\p{L}/u.test(c));
+    const formCell = cells.find((c) => FORM.test(c.replace(/\s+/g, "")));
+    const letters = cells.filter(isFormLetter).join("");
+    const words = cells.filter((c) => !isNumberish(c) && c !== formCell && !isFormLetter(c) && /\p{L}/u.test(c));
     let nums = cells.filter(isNumberish).flatMap((c) => {
       const pair = c.match(GOAL_PAIR);
       return pair ? [Number(pair[1]), Number(pair[2])] : [toNum(c)];
     });
-    const form = formCell
-      ? ([...formCell.toUpperCase()].map((ch) => ({ W: "W", D: "D", L: "L", ب: "W", م: "D", ش: "L" })[ch]).filter(Boolean) as StandingRow["form"])
-      : undefined;
+    const split = splitNameAndForm(words.join(" "));
+    const form = formCell ? formFromLetters(formCell) : letters.length >= 2 ? formFromLetters(letters) : split.form;
     if (words.length === 0 || nums.length < 2) continue;
-    const name = teamName(words.join(" "));
+    const name = teamName(split.name);
     if (!name || /امتیاز|تیم/.test(name)) continue;
 
     // Drop a leading rank number when there is one more number than columns.

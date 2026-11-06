@@ -2,7 +2,7 @@
 // Downloads club logos from a web page (e.g. an article listing Iranian club logos)
 // and assigns them to the teams in the league table.
 //
-//   node scripts/fetch-logos.mjs DATA_DIR https://example.com/logos-article/ [--force]
+//   node scripts/fetch-logos.mjs DATA_DIR https://example.com/logos-article/ [--force] [--list]
 //
 // Each image on the page is matched to a team by its alt/title text, its file name,
 // and the heading above it. Logos are saved as WebP in DATA_DIR/uploads/teams/.
@@ -48,13 +48,26 @@ const attr = (tag, name) => tag.match(new RegExp(`\\b${name}\\s*=\\s*["']([^"']+
 export function findImages(html, base) {
   const out = [];
   let heading = "";
-  const re = /<(h[1-6])\b[^>]*>([\s\S]*?)<\/\1>|<img\b[^>]*>/gi;
+  // WordPress puts the caption after the image inside <figure>: copy it onto the image first.
+  html = html.replace(/<figure\b[\s\S]*?<\/figure>/gi, (fig) => {
+    const cap = fig.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i)?.[1]?.replace(/<[^>]+>/g, " ") ?? "";
+    return cap ? fig.replace(/<img\b/gi, `<img data-caption="${cap.replace(/"/g, " ")}"`) : fig;
+  });
+  // The nearest text before an image (heading, paragraph, list item) also names it.
+  const re = /<(h[1-6]|p|li|strong|b)\b[^>]*>([\s\S]*?)<\/\1>|<img\b[^>]*>/gi;
   for (const m of html.matchAll(re)) {
     if (m[1]) {
-      heading = m[2].replace(/<[^>]+>/g, " ");
+      const text = m[2].replace(/<img\b[^>]*>/gi, "").replace(/<[^>]+>/g, " ").trim();
+      if (text) heading = text;
+      // An image inside this block (e.g. <p><img></p>) is handled with the text before it.
+      for (const img of m[2].matchAll(/<img\b[^>]*>/gi)) pushImage(img[0]);
       continue;
     }
-    const tag = m[0];
+    pushImage(m[0]);
+  }
+  return out;
+
+  function pushImage(tag) {
     // Lazy-loading themes keep the real file in data-* attributes; srcset's largest wins.
     const srcset = attr(tag, "data-srcset") || attr(tag, "srcset");
     const largest = srcset
@@ -62,17 +75,20 @@ export function findImages(html, base) {
       .map((s) => s.trim().split(/\s+/))
       .sort((a, b) => parseInt(b[1] || "0") - parseInt(a[1] || "0"))[0]?.[0];
     const src = attr(tag, "data-lazy-src") || attr(tag, "data-src") || largest || attr(tag, "src");
-    if (!src || src.startsWith("data:")) continue;
+    if (!src || src.startsWith("data:")) return;
     let url;
     try {
       url = new URL(src, base).href;
     } catch {
-      continue;
+      return;
     }
     const file = decodeURIComponent(new URL(url).pathname.split("/").pop() ?? "");
-    out.push({ url, text: norm(`${attr(tag, "alt") ?? ""} ${attr(tag, "title") ?? ""} ${file}`), heading: norm(heading) });
+    out.push({
+      url,
+      text: norm(`${attr(tag, "alt") ?? ""} ${attr(tag, "title") ?? ""} ${attr(tag, "data-caption") ?? ""} ${file}`),
+      heading: norm(heading),
+    });
   }
-  return out;
 }
 
 /** Team name for an image, from its own text first, then from the heading above it. */
@@ -96,7 +112,12 @@ async function main() {
   }
   const leagueFile = path.join(dataDir, "league.json");
   const league = JSON.parse(fs.readFileSync(leagueFile, "utf8"));
-  const teams = [...new Set([...league.standings.map((r) => r.team), ...league.fixtures.flatMap((f) => [f.home, f.away])])];
+  // Same repair the site applies: "فولاد W W D W W" is the team "فولاد".
+  const clean = (t) => {
+    const name = t.replace(/\s+(?:[WDLبمش]\s*){2,10}$/i, "").trim();
+    return name.includes("نساجی") ? "نساجی مازندران" : name;
+  };
+  const teams = [...new Set([...league.standings.map((r) => clean(r.team)), ...league.fixtures.flatMap((f) => [clean(f.home), clean(f.away)])])];
   const logos = { ...(league.teamLogos ?? {}) };
 
   const UA = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36" };
@@ -105,6 +126,11 @@ async function main() {
   if (!res.ok) throw new Error(`The page answered HTTP ${res.status}`);
   const images = findImages(await res.text(), pageUrl);
   console.log(`${images.length} images on the page`);
+  if (args.includes("--list")) {
+    // Shows what each image was matched to, to see why a team was missed.
+    for (const img of images) console.log(`${matchTeam(img, teams) ?? "—"}  ⟵  ${img.text.slice(0, 60)} | ${img.heading.slice(0, 60)}`);
+    return;
+  }
 
   const sharp = (await import("sharp")).default;
   const dir = path.join(dataDir, "uploads", "teams");

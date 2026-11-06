@@ -1,11 +1,17 @@
 import { HOME_TEAM } from "./site";
+import { cleanTeamNames } from "./team-names";
 import { readStore, seedFromContent, writeStore } from "./store";
 import type { Fixture, LeagueData, StandingRow } from "./types";
 
 // Edited in the admin panel. A live provider (football API, polled server-side) can write here later.
 export function getLeague(): LeagueData {
-  return readStore<LeagueData>("league", () => seedFromContent("league/pro-league.json"));
+  const league = readStore<LeagueData>("league", () => seedFromContent("league/pro-league.json"));
+  const cleaned = cleanTeamNames(league);
+  if (cleaned !== league) saveLeague({ ...cleaned, updatedAt: league.updatedAt });
+  return cleaned;
 }
+
+
 
 export function saveLeague(league: LeagueData) {
   writeStore("league", { ...league, updatedAt: new Date().toISOString() });
