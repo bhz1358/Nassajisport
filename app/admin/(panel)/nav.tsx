@@ -24,6 +24,7 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
   {
     title: "سایت",
     items: [
+      { href: "/admin/menus/", label: "منوها" },
       { href: "/admin/ads/", label: "تبلیغات" },
       { href: "/admin/appearance/", label: "ظاهر و تم رنگی" },
       { href: "/admin/settings/", label: "تنظیمات" },

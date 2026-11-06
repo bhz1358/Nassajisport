@@ -268,3 +268,21 @@ a.a-stat:hover { border-color: var(--brand-600); }
 
 .a-fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px 6px; margin: 8px 0 16px; display: grid; gap: 4px; }
 .a-fieldset legend { padding: 0 6px; font-weight: 800; }
+
+/* Menus editor */
+.a-menu-rows { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.a-menu-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1.3fr) auto; gap: 8px; align-items: center; }
+.a-menu-num { color: var(--muted); font-size: 0.8rem; text-align: center; }
+.a-menu-tools { display: flex; gap: 4px; }
+.a-icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: inherit; cursor: pointer; font-size: 1rem; line-height: 1; }
+.a-icon-btn:hover:not(:disabled) { border-color: var(--brand-600); color: var(--brand); }
+.a-icon-btn:disabled { opacity: 0.35; cursor: default; }
+.a-icon-btn.is-danger:hover { border-color: var(--loss); color: var(--loss); }
+.a-menu-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.a-menu-add select { max-width: 320px; }
+.a-menu-actions { margin-top: 16px; }
+.a-menu-reset { margin-top: 10px; font-size: 0.85rem; }
+@media (max-width: 720px) {
+  .a-menu-row { grid-template-columns: 24px minmax(0, 1fr); padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .a-menu-row > input:nth-of-type(2), .a-menu-tools { grid-column: 2; }
+}

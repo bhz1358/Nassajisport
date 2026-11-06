@@ -61,7 +61,13 @@ export function MainNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const nav = useRef<HTMLElement>(null);
   const [glide, setGlide] = useState<{ x: number; w: number } | null>(null);
-  const activeIndex = items.findIndex((item) => (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)));
+  // The longest matching link wins (so /category/news/ beats /), external links never match.
+  const activeIndex = items.reduce((best, item, i) => {
+    if (/^https?:/i.test(item.href)) return best;
+    const path = item.href.split(/[?#]/)[0];
+    const hit = path === "/" ? pathname === "/" : pathname.startsWith(path);
+    return hit && (best < 0 || path.length > items[best].href.split(/[?#]/)[0].length) ? i : best;
+  }, -1);
 
   const moveTo = useCallback((el: HTMLElement | null | undefined) => {
     setGlide(el ? { x: el.offsetLeft, w: el.offsetWidth } : null);
@@ -84,17 +90,23 @@ export function MainNav({ items }: { items: NavItem[] }) {
   return (
     <nav ref={nav} className="nav has-glider" aria-label="منوی اصلی" onMouseLeave={toActive} onBlur={toActive}>
       <span className="nav-glider" aria-hidden="true" style={glide ? { width: glide.w, transform: `translateX(${glide.x}px)` } : { opacity: 0 }} />
-      {items.map((item, i) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          aria-current={i === activeIndex ? "page" : undefined}
-          onMouseEnter={(e) => moveTo(e.currentTarget)}
-          onFocus={(e) => moveTo(e.currentTarget)}
-        >
-          {item.label}
-        </Link>
-      ))}
+      {items.map((item, i) => {
+        const props = {
+          "aria-current": i === activeIndex ? ("page" as const) : undefined,
+          onMouseEnter: (e: React.MouseEvent<HTMLAnchorElement>) => moveTo(e.currentTarget),
+          onFocus: (e: React.FocusEvent<HTMLAnchorElement>) => moveTo(e.currentTarget),
+        };
+        // Links to other sites open in a new tab.
+        return /^https?:\/\//i.test(item.href) ? (
+          <a key={i} href={item.href} target="_blank" rel="noopener" {...props}>
+            {item.label}
+          </a>
+        ) : (
+          <Link key={i} href={item.href} {...props}>
+            {item.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

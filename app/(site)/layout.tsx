@@ -4,7 +4,8 @@ import { NextMatchPill } from "./components";
 import { getClubMatch, getLeague } from "@/lib/league";
 import { maybeAutoSync } from "@/lib/league-sync";
 import { getSettings, logoUrl } from "@/lib/settings";
-import { FOOTER_NAV, FOUNDED, NAV } from "@/lib/site";
+import { getMenus, isExternal } from "@/lib/menus";
+import { FOUNDED } from "@/lib/site";
 import { SocialIcons } from "./social";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   const settings = getSettings();
   const clubMatch = getClubMatch(getLeague());
   const { ticketsUrl, social } = settings;
+  const menus = getMenus();
   const logo = logoUrl(settings);
 
   return (
@@ -33,7 +35,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
                 <small>{settings.description}</small>
               </span>
             </Link>
-            <MainNav items={NAV} />
+            <MainNav items={menus.header} />
             <div className="header-actions">
               <NextMatchPill f={clubMatch} />
               {ticketsUrl && (
@@ -67,11 +69,17 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
               </div>
             </div>
             <nav className="footer-links" aria-label="بخش‌ها">
-              {FOOTER_NAV.map((n) => (
-                <Link key={n.href} href={n.href}>
-                  {n.label}
-                </Link>
-              ))}
+              {menus.footer.map((n, i) =>
+                isExternal(n.href) ? (
+                  <a key={i} href={n.href} target="_blank" rel="noopener">
+                    {n.label}
+                  </a>
+                ) : (
+                  <Link key={i} href={n.href}>
+                    {n.label}
+                  </Link>
+                ),
+              )}
             </nav>
             <SocialIcons links={social} className="footer-social" />
           </div>
