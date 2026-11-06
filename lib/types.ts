@@ -1,3 +1,4 @@
+import type { SocialLinks } from "./social";
 export type Category = {
   slug: string;
   name: string;
@@ -146,7 +147,8 @@ export type Settings = {
   /** Site logo URL; the bundled /logo.webp when not set. */
   logo?: string;
   ticketsUrl: string;
-  social: { instagram: string; telegram: string };
+  /** Links to the site's social pages (see lib/social.ts); empty ones are hidden. */
+  social: SocialLinks;
   theme: {
     preset: string;
     /** Used when preset is "custom". */

@@ -364,6 +364,59 @@ a:hover .play { transform: scale(1.08); }
 .hero-item:not(.is-active) .hero-bar { transform: scaleX(0) !important; }
 .hero + .breaking { margin-top: 22px; }
 
+/* ---------- Social icons ---------- */
+.social { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.social a {
+  width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #e6dfd2;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.03)); border: 1px solid rgb(255 255 255 / 0.12);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1); transition: transform 0.25s var(--ease), color 0.25s, border-color 0.25s, background 0.25s;
+}
+.social svg { width: 19px; height: 19px; }
+.social a:hover, .social a:focus-visible { transform: translateY(-2px); color: #1a1408; background: var(--gold-grad); border-color: transparent; }
+.header-social { flex-wrap: nowrap; gap: 6px; }
+.header-social a { width: 34px; height: 34px; border-radius: 10px; }
+.header-social svg { width: 17px; height: 17px; }
+.contact-social { justify-content: center; margin-top: 18px; }
+/* Laptops and tablets: the menu needs the room; the footer still has the icons. */
+@media (min-width: 721px) and (max-width: 1280px) { .header-social { display: none; } }
+@media (max-width: 720px) { .header-social a { width: 32px; height: 32px; } .header-social svg { width: 16px; height: 16px; } }
+.contact-social a { color: var(--heading); background: var(--surface-2); border-color: var(--border); box-shadow: none; }
+
+/* ---------- Contact ---------- */
+.contact { margin-top: 32px; }
+.contact-hero {
+  display: flex; align-items: center; gap: 24px; padding: 32px; border-radius: 22px; color: #fff; position: relative; overflow: hidden;
+  background:
+    radial-gradient(500px 260px at 15% 0%, color-mix(in srgb, var(--acc-600) 22%, transparent), transparent 70%),
+    linear-gradient(120deg, var(--brand-950), var(--brand-800) 55%, var(--brand-700));
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+.contact-logo { width: 96px; height: 96px; border-radius: 50%; flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc-600) 70%, transparent), 0 10px 30px rgb(0 0 0 / 0.4); }
+.contact-kicker { margin: 0; color: var(--acc-500); font-weight: 800; font-size: 0.85rem; }
+.contact-hero h1 { margin: 4px 0; font-size: clamp(1.6rem, 3.4vw, 2.4rem); font-weight: 900; line-height: 1.4; text-wrap: balance; }
+.contact-lead { margin: 0; color: #e6d9c4; }
+.contact-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; margin-top: 24px; align-items: start; }
+.contact-about, .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 28px; box-shadow: var(--shadow); }
+.contact-about h2, .contact-card h2 { margin: 0 0 12px; font-size: 1.2rem; font-weight: 900; color: var(--heading); }
+.contact-about p { margin: 0 0 14px; line-height: 2.1; color: var(--text-2); max-width: 68ch; }
+.contact-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 22px 0 0; }
+.contact-facts div { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; background: var(--surface-2); }
+.contact-facts dt { font-size: 0.78rem; color: var(--muted); }
+.contact-facts dd { margin: 2px 0 0; font-weight: 900; font-size: 1.15rem; color: var(--accent); }
+.contact-card { position: sticky; top: calc(var(--header-h) + 28px); }
+.contact-card p { margin: 0 0 14px; font-size: 0.9rem; }
+.contact-phone {
+  display: block; text-align: center; font-size: 1.7rem; font-weight: 900; letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+  padding: 12px; border-radius: 12px; background: var(--surface-2); border: 1px dashed var(--line-gold); color: var(--heading); user-select: all;
+}
+.contact-actions { display: grid; gap: 10px; margin-top: 14px; }
+.contact-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 12px; font-weight: 800;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--heading); transition: transform 0.2s var(--ease), filter 0.2s;
+}
+.contact-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.contact-btn.is-whatsapp { background: #1fa855; border-color: #1fa855; color: #fff; box-shadow: 0 8px 22px rgb(31 168 85 / 0.3); }
+
 /* ---------- Breaking bar ---------- */
 .breaking {
   color: #fff; overflow: hidden; border-radius: var(--radius); border: 1px solid rgb(255 255 255 / 0.08);
@@ -838,7 +891,7 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 .footer-brand img { width: 64px; height: 64px; border-radius: 50%; box-shadow: 0 0 0 2px color-mix(in srgb, var(--acc-600) 60%, transparent); }
 .footer-brand strong { font-size: 1.15rem; background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .footer-brand p { margin: 4px 0 0; font-size: 0.85rem; }
-.footer-links, .footer-social { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 0.88rem; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 0.88rem; }
 .site-footer a:hover { color: var(--acc-500); }
 .footer-copy {
   margin: 28px 0 0; padding-top: 18px; border-top: 1px solid rgb(255 255 255 / 0.06); font-size: 0.78rem; color: #7d776c;
@@ -860,6 +913,9 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 }
 
 @media (max-width: 960px) {
+  .contact-grid { grid-template-columns: minmax(0, 1fr); }
+  .contact-card { position: static; }
+
   .hero { grid-template-columns: minmax(0, 1fr); height: auto; }
   .hero-main { aspect-ratio: 16 / 9; }
   .hero-list {
@@ -883,6 +939,11 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 }
 
 @media (max-width: 720px) {
+  .contact-hero { flex-direction: column; text-align: center; padding: 26px 18px; gap: 14px; }
+  .contact-logo { width: 80px; height: 80px; }
+  .contact-about, .contact-card { padding: 20px 18px; }
+  .contact-facts dd { font-size: 1rem; }
+
   .hero { margin-top: 12px; gap: 10px; }
   .hero + .breaking { margin-top: 16px; }
   .hero-main { aspect-ratio: 4 / 3.4; }

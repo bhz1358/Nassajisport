@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { file, str, withError } from "@/lib/form";
 import { saveUploadAsWebp } from "@/lib/media";
 import { DEFAULT_LOGO, getSettings, logoUrl, saveSettings } from "@/lib/settings";
+import { SOCIAL_NETWORKS, type SocialLinks } from "@/lib/social";
 
 export const metadata: Metadata = { title: "تنظیمات" };
 
@@ -14,8 +15,14 @@ const okUrl = (u: string) => !u || /^https?:\/\/\S+$/i.test(u);
 async function save(fd: FormData) {
   "use server";
   await requireAdmin();
-  const urls = { ticketsUrl: str(fd, "ticketsUrl"), instagram: str(fd, "instagram"), telegram: str(fd, "telegram") };
-  if (!Object.values(urls).every(okUrl)) redirect(withError("/admin/settings/", "آدرس‌ها باید با https:// شروع شوند."));
+  const ticketsUrl = str(fd, "ticketsUrl");
+  const social: SocialLinks = {};
+  for (const n of SOCIAL_NETWORKS) {
+    const v = str(fd, `social_${n.key}`);
+    if (v) social[n.key] = v;
+  }
+  const bad = [ticketsUrl, ...Object.values(social)].find((u) => !okUrl(u ?? ""));
+  if (bad !== undefined) redirect(withError("/admin/settings/", `آدرس «${bad}» درست نیست؛ آدرس‌ها باید با https:// شروع شوند.`));
   const s = getSettings();
   // New logos are converted to WebP; clearing the field brings back the default logo.
   let logo = str(fd, "logo") || undefined;
@@ -32,8 +39,8 @@ async function save(fd: FormData) {
     logo: logo === DEFAULT_LOGO ? undefined : logo,
     title: str(fd, "title") || s.title,
     description: str(fd, "description"),
-    ticketsUrl: urls.ticketsUrl,
-    social: { instagram: urls.instagram, telegram: urls.telegram },
+    ticketsUrl,
+    social,
   });
   redirect("/admin/settings/?ok=saved");
 }
@@ -56,12 +63,15 @@ export default function SettingsPage({ searchParams }: { searchParams: Promise<R
         <Field label="لینک خرید بلیت" hint="خالی بماند، دکمه‌ی خرید بلیت نمایش داده نمی‌شود">
           <input name="ticketsUrl" defaultValue={s.ticketsUrl} dir="ltr" placeholder="https://" />
         </Field>
-        <Field label="اینستاگرام">
-          <input name="instagram" defaultValue={s.social.instagram} dir="ltr" placeholder="https://instagram.com/..." />
-        </Field>
-        <Field label="تلگرام">
-          <input name="telegram" defaultValue={s.social.telegram} dir="ltr" placeholder="https://t.me/..." />
-        </Field>
+        <fieldset className="a-fieldset">
+          <legend>شبکه‌های اجتماعی</legend>
+          <p className="a-hint">آیکون هر شبکه‌ای که لینک داشته باشد در بالای سایت، پایین سایت و صفحه‌ی «ارتباط با ما» نمایش داده می‌شود. برای حذف، لینک را پاک کنید.</p>
+          {SOCIAL_NETWORKS.map((n) => (
+            <Field key={n.key} label={n.label}>
+              <input name={`social_${n.key}`} defaultValue={s.social[n.key] ?? ""} dir="ltr" placeholder={n.placeholder} />
+            </Field>
+          ))}
+        </fieldset>
         <SubmitButton>ذخیره</SubmitButton>
       </form>
     </>

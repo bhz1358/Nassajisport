@@ -5,6 +5,7 @@ import { getClubMatch, getLeague } from "@/lib/league";
 import { maybeAutoSync } from "@/lib/league-sync";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { FOOTER_NAV, FOUNDED, NAV } from "@/lib/site";
+import { SocialIcons } from "./social";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   maybeAutoSync();
@@ -40,6 +41,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
                   خرید بلیت
                 </a>
               )}
+              <SocialIcons links={social} className="header-social" max={4} />
               <Link href="/search/" className="icon-btn" aria-label="جست‌وجو">
                 <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                   <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
@@ -71,12 +73,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
                 </Link>
               ))}
             </nav>
-            {(social.instagram || social.telegram) && (
-              <div className="footer-social">
-                {social.instagram && <a href={social.instagram}>اینستاگرام</a>}
-                {social.telegram && <a href={social.telegram}>تلگرام</a>}
-              </div>
-            )}
+            <SocialIcons links={social} className="footer-social" />
           </div>
           <div className="footer-copy">
             <p>© {settings.title}. تمامی حقوق محفوظ است.</p>

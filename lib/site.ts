@@ -8,6 +8,7 @@ export const NAV: { label: string; href: string }[] = [
   { label: "چندرسانه‌ای", href: "/category/video/" },
   { label: "تحلیل", href: "/category/review/" },
   { label: "نشست خبری", href: "/category/press-conference/" },
+  { label: "ارتباط با ما", href: "/contact/" },
 ];
 
 /** Footer: every section, including the ones that don't fit in the header. */
@@ -22,6 +23,8 @@ export const FOOTER_NAV: { label: string; href: string }[] = [
 export const HOME_TEAM = "نساجی مازندران";
 /** Shown under the logo in the header. */
 export const FOUNDED = "۱۳۸۶";
+/** Contact page: phone and WhatsApp. */
+export const CONTACT_PHONE = "09391241001";
 
 // Categories that get their own look on the home page.
 export const VIDEO_CATEGORY = "video";

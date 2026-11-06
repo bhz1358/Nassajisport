@@ -265,3 +265,6 @@ a.a-stat:hover { border-color: var(--brand-600); }
 .a-ad-images .image-field-box { aspect-ratio: 4 / 1; }
 .a-ad-actions { margin-top: 10px; }
 @media (max-width: 860px) { .a-ad-images { grid-template-columns: 1fr; } }
+
+.a-fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px 6px; margin: 8px 0 16px; display: grid; gap: 4px; }
+.a-fieldset legend { padding: 0 6px; font-weight: 800; }
