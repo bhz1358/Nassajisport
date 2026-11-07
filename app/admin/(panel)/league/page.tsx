@@ -108,7 +108,7 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
             <h3 className="a-subtitle">روش ۱: خودکار از روی آدرس صفحه</h3>
             <p className="a-hint">صفحه‌ی جدول لیگ برتر را در ورزش سه باز کنید و آدرسش را از نوار مرورگر کپی کنید.</p>
             <Field label="آدرس صفحه‌ی جدول">
-              <input name="url" defaultValue={league.standingsSource?.url} dir="ltr" placeholder="https://www.varzesh3.com/..." required />
+              <input name="url" defaultValue={league.standingsSource?.url} dir="ltr" placeholder="https://www.iranleague.ir/fa/League-Full-Table" required />
             </Field>
             <label className="a-check">
               <input type="checkbox" name="auto" defaultChecked={league.standingsSource?.auto ?? true} /> هر ۳۰ دقیقه خودکار به‌روز شود

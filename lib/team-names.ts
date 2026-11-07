@@ -41,3 +41,34 @@ export function cleanTeamNames(league: LeagueData): LeagueData {
   });
   return changed ? { ...league, standings, fixtures } : league;
 }
+
+const cmpNorm = (s: string) => s.replace(/ي/g, "ی").replace(/ك/g, "ک").replace(/[‌‏‎]/g, " ").replace(/\s+/g, " ").trim();
+
+/**
+ * Maps a team name as another site writes it to the name already used on this site:
+ * "استقلال خ" → "استقلال خوزستان", "ملوان بندر انزلی" → "ملوان", "آلومینیوم" → "آلومینیوم اراک".
+ * A short form that is the start of a known name wins over a known name that is the start
+ * of it, so "استقلال خ" is not taken for "استقلال". Unclear or unknown names are kept.
+ */
+export function canonicalTeam(raw: string, known: string[]): string {
+  const n = cmpNorm(raw);
+  if (n.includes("نساجی")) return HOME_TEAM;
+  const names = [...new Set(known)];
+  const lastWord = n.split(" ").pop() ?? "";
+  // "استقلال خ" is short for a longer name even if an older table saved it as-is.
+  const abbreviated = n.includes(" ") && lastWord.length <= 2;
+  const exact = names.find((k) => cmpNorm(k) === n);
+  if (exact && !abbreviated) return exact;
+  // n is an abbreviation of k: "استقلال خ" of "استقلال خوزستان", "صنعت نفت" of "صنعت نفت آبادان".
+  const longer = names.filter((k) => {
+    const kn = cmpNorm(k);
+    if (kn === n) return false;
+    return kn.startsWith(`${n} `) || (lastWord.length <= 2 && n.includes(" ") && kn.startsWith(n));
+  });
+  if (longer.length === 1) return longer[0];
+  if (longer.length > 1) return exact ?? raw;
+  if (exact) return exact;
+  // k is the short name used here: "ملوان" for "ملوان بندر انزلی", "فجر سپاسی" for "فجر سپاسی ش".
+  const shorter = names.filter((k) => n.startsWith(`${cmpNorm(k)} `)).sort((a, b) => b.length - a.length);
+  return shorter[0] ?? raw;
+}

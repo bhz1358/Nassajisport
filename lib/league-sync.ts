@@ -1,17 +1,35 @@
 import { getLeague, saveLeague, sortStandings } from "./league";
 import { parseStandings } from "./standings-import.ts";
+import { canonicalTeam } from "./team-names.ts";
 import type { StandingRow } from "./types";
 
 const AUTO_EVERY_MS = 30 * 60_000;
 const MIN_TEAMS = 8;
 
 /** Replaces the table with imported rows, keeping each team's form guide and the old table for undo. */
-export function applyStandings(rows: StandingRow[]) {
+export function applyStandings(rows: StandingRow[]): string[] {
   const league = getLeague();
+  // Other sites shorten names ("استقلال خ", "نساجی م"): use the names this site already
+  // has, so logos, fixtures and the club's highlighted row keep matching.
+  // Names in the fixtures and logos come first: a short name that slipped into an older
+  // table must not keep itself alive by matching exactly.
+  const primary = [...league.fixtures.flatMap((f) => [f.home, f.away]), ...Object.keys(league.teamLogos ?? {})];
+  const all = [...primary, ...league.standings.map((r) => r.team), ...(league.previousStandings ?? []).map((r) => r.team)];
+  const renamed: string[] = [];
+  const used = new Set<string>();
+  rows = rows.map((r) => {
+    let team = primary.length ? canonicalTeam(r.team, primary) : r.team;
+    if (team === r.team) team = canonicalTeam(r.team, all);
+    if (used.has(team)) return r; // two rows can't become one team; keep the source's name
+    used.add(team);
+    if (team !== r.team) renamed.push(`${r.team} ← ${team}`);
+    return team === r.team ? r : { ...r, team };
+  });
   const formByTeam = new Map(league.standings.map((r) => [r.team, r.form]));
   // The source's own form guide wins; otherwise the one already on the site is kept.
   const merged = rows.map((r) => (r.form?.length || !formByTeam.get(r.team) ? r : { ...r, form: formByTeam.get(r.team) }));
   saveLeague({ ...league, previousStandings: league.standings, standings: sortStandings(merged), isSample: false });
+  return renamed;
 }
 
 export async function syncFromUrl(url: string): Promise<{ ok: true; count: number; warnings: string[] } | { ok: false; error: string }> {
