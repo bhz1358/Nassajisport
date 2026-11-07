@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Crest } from "./components";
-import { ActiveChip } from "./client";
+import { WeekSelect } from "./client";
 import { faNum, faTime, faWeekday } from "@/lib/format";
 import { HOME_TEAM } from "@/lib/site";
 import type { Fixture } from "@/lib/types";
@@ -37,21 +37,14 @@ export function WeekSchedule({ fixtures, week, totalWeeks, basePath }: { fixture
         ) : (
           <span className="weeks-arrow is-off" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
         )}
-        <div className="weeks-strip">
-          {Array.from({ length: maxWeek }, (_, i) => i + 1).map((w) => (
-            <Link
-              key={w}
-              href={href(w)}
-              scroll={false}
-              className={`week-chip ${w === shown ? "is-active" : ""} ${known.has(w) ? "" : "is-empty"} ${w === current ? "is-current" : ""}`}
-              aria-current={w === shown ? "true" : undefined}
-              title={w === current ? "هفته‌ی جاری" : undefined}
-            >
-              {faNum(w)}
-            </Link>
-          ))}
-          <ActiveChip selector=".week-chip.is-active" />
-        </div>
+        <WeekSelect
+          basePath={basePath}
+          value={shown ?? 1}
+          options={Array.from({ length: maxWeek }, (_, i) => i + 1).map((w) => ({
+            week: w,
+            label: `هفته‌ی ${faNum(w)}${w === current ? " (هفته‌ی جاری)" : known.has(w) ? "" : " — برنامه ثبت نشده"}`,
+          }))}
+        />
         {shown && shown < maxWeek ? (
           <Link href={href(shown + 1)} scroll={false} className="weeks-arrow" aria-label="هفته‌ی بعد">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>

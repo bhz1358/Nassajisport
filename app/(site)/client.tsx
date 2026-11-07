@@ -415,16 +415,33 @@ export function LiveRefresher({ every = 60 }: { every?: number }) {
   return null;
 }
 
-/** Scrolls a horizontal strip so its active item is in view (e.g. the selected week). */
-export function ActiveChip({ selector }: { selector: string }) {
-  useEffect(() => {
-    // Scroll only the strip itself; scrollIntoView would also move the whole page sideways.
-    const el = document.querySelector<HTMLElement>(selector);
-    const strip = el?.parentElement;
-    if (!el || !strip) return;
-    const s = strip.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    strip.scrollLeft += r.left + r.width / 2 - (s.left + s.width / 2);
-  });
-  return null;
+/**
+ * Week dropdown for the league schedule. Picking a week opens it right away; without
+ * JavaScript the form's «نمایش» button does the same.
+ */
+export function WeekSelect({ basePath, value, options }: { basePath: string; value: number; options: { week: number; label: string }[] }) {
+  const router = useRouter();
+  const [js, setJs] = useState(false);
+  useEffect(() => setJs(true), []);
+  return (
+    <form action={basePath} method="get" className="week-select">
+      <label className="sr-only" htmlFor="week-select">
+        انتخاب هفته
+      </label>
+      <select
+        id="week-select"
+        name="week"
+        defaultValue={value}
+        key={value}
+        onChange={(e) => router.push(`${basePath}?week=${e.target.value}#schedule`, { scroll: false })}
+      >
+        {options.map((o) => (
+          <option key={o.week} value={o.week}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      {!js && <button type="submit">نمایش</button>}
+    </form>
+  );
 }
