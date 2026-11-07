@@ -6,6 +6,7 @@ import { ReadingProgress, ShareBar } from "../client";
 import { CategoryBadge, LatestTimeline, SectionHeader, StoryCard, Thumb } from "../components";
 import { getByPath, getNews, getPostsInCategory } from "@/lib/content";
 import { faDate, faNum, faTime, readingMinutes } from "@/lib/format";
+import { fixInlineColors } from "@/lib/content-colors";
 import { postImage, withImageFallbacks } from "@/lib/images";
 import { seoFor } from "@/lib/seo-auto";
 import { getSettings, logoUrl } from "@/lib/settings";
@@ -74,7 +75,7 @@ export default async function PostPage({ params }: Props) {
     return (
       <article className="article article-page">
         <h1>{post.title}</h1>
-        <div className="prose" dangerouslySetInnerHTML={{ __html: withImageFallbacks(post.content) }} />
+        <div className="prose" dangerouslySetInnerHTML={{ __html: fixInlineColors(withImageFallbacks(post.content)) }} />
       </article>
     );
   }
@@ -84,7 +85,7 @@ export default async function PostPage({ params }: Props) {
         .filter((p) => p.id !== post.id)
         .slice(0, 3)
     : [];
-  const [bodyStart, bodyEnd] = splitAfterParagraph(withImageFallbacks(post.content), 2);
+  const [bodyStart, bodyEnd] = splitAfterParagraph(fixInlineColors(withImageFallbacks(post.content)), 2);
   const latest = getNews()
     .filter((p) => p.id !== post.id)
     .slice(0, 6);

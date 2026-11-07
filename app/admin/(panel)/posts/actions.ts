@@ -9,6 +9,7 @@ import { jalaliPartsToIso } from "@/lib/jalali";
 import { saveUpload } from "@/lib/media";
 import { writeStore } from "@/lib/store";
 import { getLeague } from "@/lib/league";
+import { fixInlineColors } from "@/lib/content-colors";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { autoExcerpt, fillImageAlts, findTags, firstImage, plainText } from "@/lib/seo-auto";
 import { HOME_TEAM } from "@/lib/site";
@@ -76,7 +77,8 @@ export async function savePost(fd: FormData) {
   }
 
   // Cleaned of anything that could run code; every picture gets a description.
-  const content = fillImageAlts(sanitizeHtml(String(fd.get("content") ?? "")), title);
+  // Old editors' black/grey text colours are dropped so the text reads in both themes.
+  const content = fillImageAlts(fixInlineColors(sanitizeHtml(String(fd.get("content") ?? ""))), title);
   const excerpt = str(fd, "excerpt") || autoExcerpt(content);
   const seoTitle = str(fd, "seoTitle");
   const seoDescription = str(fd, "seoDescription");
