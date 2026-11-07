@@ -65,3 +65,4 @@ export function tableAroundClub(rows: StandingRow[], span = 2): { rows: Standing
   const start = Math.max(0, Math.min(i - span, rows.length - (span * 2 + 1)));
   return { rows: rows.slice(start, start + span * 2 + 1), offset: start };
 }
+

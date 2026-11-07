@@ -2,14 +2,9 @@ import Link from "next/link";
 import { Crest } from "./components";
 import { WeekSelect } from "./client";
 import { faNum, faTime, faWeekday } from "@/lib/format";
+import { currentWeek } from "@/lib/weeks";
 import { HOME_TEAM } from "@/lib/site";
 import type { Fixture } from "@/lib/types";
-
-/** The week to open: the first with a match still to play (or on now), else the last one. */
-export function currentWeek(fixtures: Fixture[]): number | undefined {
-  const weeks = fixtures.filter((f) => f.round).sort((a, b) => a.round! - b.round!);
-  return (weeks.find((f) => f.status !== "finished") ?? weeks.at(-1))?.round;
-}
 
 /** Tehran calendar day of a match, for grouping a week's matches by date. */
 const dayKey = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Tehran" });
