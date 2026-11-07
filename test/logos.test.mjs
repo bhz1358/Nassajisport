@@ -34,3 +34,15 @@ test("a news photo is not marked as a logo file", () => {
   assert.equal(img.logoish, false);
   assert.equal(matchTeam(img, teams), "پرسپولیس");
 });
+
+test("league table short names: «استقلال خ» is Esteghlal Khuzestan, not Esteghlal", () => {
+  const html = `<table><tr><td><img src="/u/09201.png"></td><td>استقلال خ</td><td>11</td></tr><tr><td><img src="/u/1.png"></td><td>استقلال</td></tr><tr><td><img src="/u/2.png"></td><td>نساجی م</td></tr></table>`;
+  const imgs = findImages(html, "https://example.com/");
+  assert.deepEqual(imgs.map((i) => matchTeam(i, teams)), ["استقلال خوزستان", "استقلال", "نساجی مازندران"]);
+});
+
+test("news thumbnails are marked as photos", () => {
+  const [img] = findImages(`<p><img src="/thumbnailhandler.ashx?id=5" alt="نساجی"></p>`, "https://www.iranleague.ir/fa/لیگ-برتر-ایران");
+  assert.equal(img.photoish, true);
+  assert.ok(/^[\x20-\x7e]+$/.test(new URL("https://www.iranleague.ir/fa/لیگ-برتر-ایران").href), "page address becomes ASCII for the Referer header");
+});

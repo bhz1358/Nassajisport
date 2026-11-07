@@ -18,7 +18,8 @@ export const TEAM_ALIASES = [
   // Foolad's full name is "فولاد خوزستان": checked before Esteghlal Khuzestan, and
   // "khuzestan" alone is not used, because it appears in both clubs' names.
   ["فولاد", ["فولاد خوزستان", "khuzestan-steel", "foolad", "fulad", "فولاد"]],
-  ["استقلال خوزستان", ["استقلال خوزستان", "esteghlal-khuzestan", "esteghlal_khuzestan", "esteghlalkhuzestan"]],
+  // League tables shorten it to "استقلال خ".
+  ["استقلال خوزستان", ["استقلال خوزستان", "استقلال خ", "esteghlal-khuzestan", "esteghlal_khuzestan", "esteghlalkhuzestan"]],
   ["صنعت نفت آبادان", ["صنعت نفت", "sanat-naft", "sanat_naft", "sanatnaft", "naft-abadan"]],
   ["مس شهر بابک", ["مس شهر بابک", "مس شهربابک", "shahr-babak", "shahrbabak", "mes-shahr"]],
   ["شمس آذر قزوین", ["شمس آذر", "shams-azar", "shams_azar", "shamsazar"]],
@@ -104,6 +105,8 @@ export function findImages(html, base) {
       heading: norm(heading),
       // Files named like logos are tried before other pictures that mention a team.
       logoish: /logo|team|club|badge|crest|emblem|لوگو|آرم/i.test(decodeURIComponent(url)),
+      // News thumbnails and photo galleries are tried last.
+      photoish: /thumb|\.ashx|news|photo|gallery|slider|banner/i.test(decodeURIComponent(url)),
     });
   }
 }
@@ -143,7 +146,7 @@ async function main() {
 
   const UA = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36" };
   console.log(`Reading ${pageUrl} ...`);
-  const res = await fetch(pageUrl, { headers: UA, signal: AbortSignal.timeout(30_000) });
+  const res = await fetch(new URL(pageUrl).href, { headers: UA, signal: AbortSignal.timeout(30_000) });
   if (!res.ok) throw new Error(`The page answered HTTP ${res.status}`);
   const images = findImages(await res.text(), pageUrl);
   console.log(`${images.length} images on the page`);
@@ -158,12 +161,15 @@ async function main() {
   fs.mkdirSync(dir, { recursive: true });
   const done = new Set();
   // Logo-named files first; a news photo that mentions a team is only a fallback.
-  const ordered = [...images.filter((i) => i.logoish), ...images.filter((i) => !i.logoish)];
+  const rank = (i) => (i.logoish ? 0 : i.photoish ? 2 : 1);
+  const ordered = images.map((img, n) => ({ img, n })).sort((a, b) => rank(a.img) - rank(b.img) || a.n - b.n).map((x) => x.img);
+  // Header values must be plain ASCII: a Persian page address is sent percent-encoded.
+  const referer = new URL(pageUrl).href;
   for (const img of ordered) {
     const team = matchTeam(img, teams);
     if (!team || done.has(team) || (logos[team] && !force)) continue;
     try {
-      const r = await fetch(img.url, { headers: { ...UA, Referer: pageUrl }, signal: AbortSignal.timeout(30_000) });
+      const r = await fetch(img.url, { headers: { ...UA, Referer: referer }, signal: AbortSignal.timeout(30_000) });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const buf = Buffer.from(await r.arrayBuffer());
       // Logos are roughly square; a wide or tall picture is a photo, so keep looking.
