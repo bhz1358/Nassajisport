@@ -414,3 +414,17 @@ export function LiveRefresher({ every = 60 }: { every?: number }) {
   }, [router, every]);
   return null;
 }
+
+/** Scrolls a horizontal strip so its active item is in view (e.g. the selected week). */
+export function ActiveChip({ selector }: { selector: string }) {
+  useEffect(() => {
+    // Scroll only the strip itself; scrollIntoView would also move the whole page sideways.
+    const el = document.querySelector<HTMLElement>(selector);
+    const strip = el?.parentElement;
+    if (!el || !strip) return;
+    const s = strip.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    strip.scrollLeft += r.left + r.width / 2 - (s.left + s.width / 2);
+  });
+  return null;
+}

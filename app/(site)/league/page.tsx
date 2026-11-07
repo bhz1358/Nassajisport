@@ -2,16 +2,18 @@ import type { Metadata } from "next";
 import { AdSlot } from "../ad-slot";
 import { FixtureRow, MatchHero, SampleNotice, SectionHeader, StandingsTable } from "../components";
 import { faNum } from "@/lib/format";
+import { WeekSchedule } from "../week-schedule";
 import { getClubMatch, getLeague } from "@/lib/league";
 
 export const metadata: Metadata = { title: "مرکز لیگ" };
 
-export default function LeaguePage() {
+export default async function LeaguePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const league = getLeague();
+  const week = Number((await searchParams).week) || undefined;
+  // A double round-robin: every team meets every other twice.
+  const totalWeeks = Math.max(0, (league.standings.length - 1) * 2);
   const clubMatch = getClubMatch(league);
   const live = league.fixtures.filter((f) => f.status === "live");
-  const upcoming = league.fixtures.filter((f) => f.status === "scheduled");
-  const finished = league.fixtures.filter((f) => f.status === "finished");
 
   return (
     <>
@@ -62,21 +64,9 @@ export default function LeaguePage() {
               </ul>
             </section>
           )}
-          <section className="panel">
-            <SectionHeader title="بازی‌های پیش رو" />
-            <ul className="fixtures">
-              {upcoming.map((f, i) => (
-                <FixtureRow key={i} f={f} />
-              ))}
-            </ul>
-          </section>
-          <section className="panel">
-            <SectionHeader title="نتایج اخیر" />
-            <ul className="fixtures">
-              {finished.map((f, i) => (
-                <FixtureRow key={i} f={f} />
-              ))}
-            </ul>
+          <section className="panel" id="schedule">
+            <SectionHeader title="برنامه و نتایج هفته‌ها" />
+            <WeekSchedule fixtures={league.fixtures} week={week} totalWeeks={totalWeeks} basePath="/league/" />
           </section>
         </div>
       </div>

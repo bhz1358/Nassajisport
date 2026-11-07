@@ -1,0 +1,127 @@
+import Link from "next/link";
+import { Crest } from "./components";
+import { ActiveChip } from "./client";
+import { faNum, faTime, faWeekday } from "@/lib/format";
+import { HOME_TEAM } from "@/lib/site";
+import type { Fixture } from "@/lib/types";
+
+/** The week to open: the first with a match still to play (or on now), else the last one. */
+export function currentWeek(fixtures: Fixture[]): number | undefined {
+  const weeks = fixtures.filter((f) => f.round).sort((a, b) => a.round! - b.round!);
+  return (weeks.find((f) => f.status !== "finished") ?? weeks.at(-1))?.round;
+}
+
+/** Tehran calendar day of a match, for grouping a week's matches by date. */
+const dayKey = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Tehran" });
+
+/**
+ * League schedule, week by week: a strip of week numbers, then that week's matches
+ * grouped by day, each with the score (or kick-off time) and its status.
+ */
+export function WeekSchedule({ fixtures, week, totalWeeks, basePath }: { fixtures: Fixture[]; week?: number; totalWeeks: number; basePath: string }) {
+  const known = new Set(fixtures.map((f) => f.round).filter(Boolean));
+  const current = currentWeek(fixtures);
+  const shown = week ?? current;
+  const maxWeek = Math.max(totalWeeks, ...[...known].map((w) => w!));
+  const matches = fixtures.filter((f) => f.round === shown).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+  const days = [...new Set(matches.map((m) => dayKey(m.date)))];
+  const href = (w: number) => `${basePath}?week=${w}#schedule`;
+
+  return (
+    <div className="weeks">
+      <nav className="weeks-nav" aria-label="انتخاب هفته">
+        {shown && shown > 1 ? (
+          <Link href={href(shown - 1)} scroll={false} className="weeks-arrow" aria-label="هفته‌ی قبل">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </Link>
+        ) : (
+          <span className="weeks-arrow is-off" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+        )}
+        <div className="weeks-strip">
+          {Array.from({ length: maxWeek }, (_, i) => i + 1).map((w) => (
+            <Link
+              key={w}
+              href={href(w)}
+              scroll={false}
+              className={`week-chip ${w === shown ? "is-active" : ""} ${known.has(w) ? "" : "is-empty"} ${w === current ? "is-current" : ""}`}
+              aria-current={w === shown ? "true" : undefined}
+              title={w === current ? "هفته‌ی جاری" : undefined}
+            >
+              {faNum(w)}
+            </Link>
+          ))}
+          <ActiveChip selector=".week-chip.is-active" />
+        </div>
+        {shown && shown < maxWeek ? (
+          <Link href={href(shown + 1)} scroll={false} className="weeks-arrow" aria-label="هفته‌ی بعد">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </Link>
+        ) : (
+          <span className="weeks-arrow is-off" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+        )}
+      </nav>
+
+      <h3 className="weeks-title">
+        هفته‌ی {faNum(shown ?? 0)}
+        {shown === current && <span className="weeks-badge">هفته‌ی جاری</span>}
+      </h3>
+
+      {matches.length === 0 ? (
+        <p className="weeks-empty">برنامه‌ی این هفته هنوز ثبت نشده است.</p>
+      ) : (
+        days.map((d) => {
+          const dayMatches = matches.filter((m) => dayKey(m.date) === d);
+          return (
+            <section key={d} className="weeks-day">
+              <h4>
+                {faWeekday(dayMatches[0].date)}
+              </h4>
+              <ul>
+                {dayMatches.map((m, i) => {
+                  const club = m.home === HOME_TEAM || m.away === HOME_TEAM;
+                  const played = m.status !== "scheduled";
+                  const winner = m.status === "finished" && m.homeScore !== m.awayScore ? ((m.homeScore ?? 0) > (m.awayScore ?? 0) ? "home" : "away") : undefined;
+                  return (
+                    <li key={i} className={`wk-match ${club ? "is-club" : ""} ${m.status === "live" ? "is-live" : ""}`}>
+                      <span className={`wk-team wk-home ${winner === "home" ? "is-win" : ""}`}>
+                        <span className="wk-name">{m.home}</span>
+                        <Crest team={m.home} size={26} />
+                      </span>
+                      <span className="wk-mid">
+                        {played ? (
+                          <span className="wk-score">
+                            {/* In RTL the home score sits on the home team's side. */}
+                            <b>{faNum(m.homeScore ?? 0)}</b>
+                            <i>-</i>
+                            <b>{faNum(m.awayScore ?? 0)}</b>
+                          </span>
+                        ) : (
+                          <span className="wk-time">{faTime(m.date)}</span>
+                        )}
+                        <span className="wk-status">
+                          {m.status === "live" ? (
+                            <>
+                              <span className="live-dot" /> {m.minute ? `دقیقه ${faNum(m.minute)}` : m.liveLabel || "زنده"}
+                            </>
+                          ) : m.status === "finished" ? (
+                            "پایان"
+                          ) : (
+                            m.venue || ""
+                          )}
+                        </span>
+                      </span>
+                      <span className={`wk-team wk-away ${winner === "away" ? "is-win" : ""}`}>
+                        <Crest team={m.away} size={26} />
+                        <span className="wk-name">{m.away}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })
+      )}
+    </div>
+  );
+}
