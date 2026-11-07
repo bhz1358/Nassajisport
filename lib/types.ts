@@ -64,6 +64,8 @@ export type Fixture = {
   awayScore?: number;
   status: "scheduled" | "live" | "finished";
   minute?: number;
+  /** Live status without a minute, e.g. "بین دو نیمه" (from the live-score feed). */
+  liveLabel?: string;
   venue?: string;
   /** League matchweek (هفته), e.g. 12. */
   round?: number;
@@ -136,6 +138,8 @@ export type LeagueData = {
   fixtures: Fixture[];
   /** Page the standings are read from (e.g. Varzesh3), and whether to refresh it automatically. */
   standingsSource?: { url: string; auto: boolean; lastSync?: string; lastError?: string };
+  /** Live scores from Footballi (lib/live-scores.ts). */
+  live?: import("./live-scores.ts").LiveSettings;
   /** Team name → logo URL (uploaded in the admin panel). */
   teamLogos?: Record<string, string>;
   /** The table as it was before the last import, so a bad import can be undone. */

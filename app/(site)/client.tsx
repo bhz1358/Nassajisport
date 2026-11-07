@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { splitTitle } from "@/lib/title";
 
@@ -398,4 +398,19 @@ export function FitToColumn({
       {children}
     </div>
   );
+}
+
+/**
+ * While a match of the league is being played, reloads the page's data every minute
+ * (scores, minute, table) without a full page reload. Paused while the tab is hidden.
+ */
+export function LiveRefresher({ every = 60 }: { every?: number }) {
+  const router = useRouter();
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") router.refresh();
+    }, every * 1000);
+    return () => clearInterval(t);
+  }, [router, every]);
+  return null;
 }

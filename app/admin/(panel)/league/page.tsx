@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { requireAccess } from "@/lib/auth";
-import { deleteFixture, pasteFixtures, pasteStandings, saveFixture, saveLeagueInfo, saveStandings, saveTeamLogo, syncStandings, undoStandings } from "./actions";
+import { deleteFixture, pasteFixtures, pasteStandings, saveFixture, saveLeagueInfo, saveStandings, saveTeamLogo, syncStandings, undoStandings, saveLiveSettings, checkLiveNow } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
 import { ImageField, SubmitButton } from "../../ui-client";
 import { faDate } from "@/lib/format";
 import { isoToJalaliParts } from "@/lib/jalali";
 import { getLeague, teamLogo } from "@/lib/league";
+import { liveSettings } from "@/lib/live-sync";
 import type { Fixture } from "@/lib/types";
 
 export const metadata: Metadata = { title: "جدول و بازی‌ها" };
@@ -100,6 +101,52 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
         </Field>
         <SubmitButton className="a-btn">ذخیره</SubmitButton>
       </form>
+
+      {(() => {
+        const live = liveSettings();
+        return (
+          <section id="live" className="a-card">
+            <h2>نتایج زنده (از فوتبالی)</h2>
+            <p className="a-hint">
+              نتیجه، دقیقه و پایان بازی‌های لیگ برتر از سایت فوتبالی خوانده و در صفحه‌ی اول، کارت «دیدار بعدی» و نتایج هفته نشان داده می‌شود. فقط بازی‌هایی
+              به‌روز می‌شوند که در بخش «بازی‌ها»ی همین صفحه ثبت شده‌اند. صفحه‌ی بازدیدکننده‌ها هم در زمان بازی هر دقیقه خودش تازه می‌شود.
+            </p>
+            <form action={saveLiveSettings} className="a-grid-fields">
+              <label className="a-check">
+                <input type="checkbox" name="enabled" defaultChecked={live.enabled} /> نتایج زنده فعال باشد
+              </label>
+              <Field label="زمان بررسی" hint="«زمان بازی‌ها»: از ۱۵ دقیقه قبل از هر بازی ثبت‌شده تا پایانش">
+                <select name="mode" defaultValue={live.mode}>
+                  <option value="matches">فقط زمان بازی‌ها</option>
+                  <option value="always">همیشه</option>
+                </select>
+              </Field>
+              <Field label="هر چند وقت یک بار">
+                <select name="every" defaultValue={String(live.every)}>
+                  <option value="60">هر ۱ دقیقه</option>
+                  <option value="120">هر ۲ دقیقه</option>
+                  <option value="300">هر ۵ دقیقه</option>
+                </select>
+              </Field>
+              <div>
+                <SubmitButton>ذخیره</SubmitButton>
+              </div>
+            </form>
+            <form action={checkLiveNow} className="a-section-gap">
+              <SubmitButton className="a-btn" pendingText="در حال خواندن…">
+                بررسی همین الان
+              </SubmitButton>
+            </form>
+            {live.lastSync && (
+              <p className="a-hint">
+                آخرین بررسی: {faDate(live.lastSync)} ساعت {isoToJalaliParts(live.lastSync).time}
+                {live.lastError ? ` — خطا: ${live.lastError}` : " — موفق"}
+                {live.lastChanges?.length ? ` · آخرین تغییرها: ${live.lastChanges.join("؛ ")}` : ""}
+              </p>
+            )}
+          </section>
+        );
+      })()}
 
       <section id="sync" className="a-card">
         <h2>به‌روزرسانی جدول از سایت سازمان لیگ یا ورزش سه</h2>

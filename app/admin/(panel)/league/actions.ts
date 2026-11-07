@@ -7,6 +7,7 @@ import { saveUploadAsWebp } from "@/lib/media";
 import { jalaliPartsToIso, toLatinDigits } from "@/lib/jalali";
 import { getLeague, saveLeague, sortStandings } from "@/lib/league";
 import { applyStandings, syncFromUrl } from "@/lib/league-sync";
+import { liveSettings, syncLive } from "@/lib/live-sync";
 import { mergeFixtures, parseFixtures } from "@/lib/fixtures-import";
 import { parseStandings } from "@/lib/standings-import";
 import type { Fixture, StandingRow } from "@/lib/types";
@@ -184,4 +185,25 @@ export async function pasteFixtures(fd: FormData) {
   const what = rounds.length ? `هفته ${rounds.join("، ")}` : "بدون شماره‌ی هفته";
   const note = warnings.length ? ` — خوانده نشد: ${warnings.join(" ")}` : "";
   redirect(`${BACK}?ok=${encodeURIComponent(`${fixtures.length} بازی (${what}) ذخیره شد${note}`)}#fixtures`);
+}
+
+/** Live-score settings (Footballi). */
+export async function saveLiveSettings(fd: FormData) {
+  await requireAccess("league");
+  const every = Math.min(600, Math.max(30, Number(str(fd, "every")) || 60));
+  const mode = str(fd, "mode") === "always" ? "always" : "matches";
+  saveLeague({ ...getLeague(), live: { ...liveSettings(), enabled: fd.get("enabled") === "on", mode, every } });
+  redirect(`${BACK}?ok=saved#live`);
+}
+
+/** Asks Footballi right away, whatever the schedule. */
+export async function checkLiveNow() {
+  await requireAccess("league");
+  const r = await syncLive();
+  if (!r.ok) {
+    saveLeague({ ...getLeague(), live: { ...liveSettings(), lastSync: new Date().toISOString(), lastError: r.error } });
+    redirect(withError(BACK, r.error) + "#live");
+  }
+  const msg = r.changes.length ? `${r.changes.length} بازی به‌روز شد: ${r.changes.join("؛ ")}` : `فوتبالی خوانده شد (${r.matches} بازی)؛ تغییری برای بازی‌های لیگ ما نبود.`;
+  redirect(`${BACK}?ok=${encodeURIComponent(msg)}#live`);
 }

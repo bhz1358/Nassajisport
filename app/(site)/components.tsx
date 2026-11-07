@@ -247,11 +247,14 @@ function Score({ f }: { f: Fixture }) {
   );
 }
 
+/** "دقیقه ۶۷", or the live feed's words when there is no minute ("بین دو نیمه"). */
+const liveText = (f: Fixture) => (f.minute ? `دقیقه ${faNum(f.minute)}` : f.liveLabel || "در جریان");
+
 function StatusLabel({ f }: { f: Fixture }) {
   if (f.status === "live")
     return (
       <span className="status is-live">
-        <span className="live-dot" /> زنده · دقیقه {faNum(f.minute ?? 0)}
+        <span className="live-dot" /> زنده · {liveText(f)}
       </span>
     );
   if (f.status === "finished") return <span className="status">پایان بازی</span>;
@@ -288,7 +291,7 @@ export function NextMatchCard({ f }: { f?: Fixture }) {
           ) : (
             <span className="nm-time">{faTime(f.date)}</span>
           )}
-          <span className="nm-date">{live ? `دقیقه ${faNum(f.minute ?? 0)}` : faWeekday(f.date)}</span>
+          <span className="nm-date">{live ? liveText(f) : faWeekday(f.date)}</span>
         </div>
         <div className="nm-team">
           <Crest team={f.away} size={60} />

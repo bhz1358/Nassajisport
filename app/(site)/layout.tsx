@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { MainNav, TabBar } from "./client";
+import { LiveRefresher, MainNav, TabBar } from "./client";
 import { NextMatchPill } from "./components";
 import { getClubMatch, getLeague } from "@/lib/league";
 import { maybeAutoSync } from "@/lib/league-sync";
+import { liveSettings, maybeLiveSync } from "@/lib/live-sync";
+import { liveWindowOpen } from "@/lib/live-scores";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { getMenus, isExternal } from "@/lib/menus";
 import { FOUNDED } from "@/lib/site";
@@ -10,6 +12,10 @@ import { SocialIcons } from "./social";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   maybeAutoSync();
+  maybeLiveSync();
+  // Match time: visitors' pages pick up new scores on their own.
+  const liveSet = liveSettings();
+  const matchTime = liveSet.enabled && liveWindowOpen(getLeague(), { ...liveSet, lastSync: undefined });
   const settings = getSettings();
   const clubMatch = getClubMatch(getLeague());
   const { ticketsUrl, social } = settings;
@@ -95,6 +101,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         </div>
       </footer>
       <TabBar ticketsUrl={ticketsUrl} />
+      {matchTime && <LiveRefresher every={Math.max(30, liveSet.every)} />}
     </>
   );
 }
