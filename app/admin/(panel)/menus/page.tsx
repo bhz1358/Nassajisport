@@ -5,12 +5,12 @@ import { SubmitButton } from "../../ui-client";
 import { resetMenuAction, saveMenuAction } from "./actions";
 import { MenuEditor } from "./editor";
 import { getCategories } from "@/lib/content";
-import { getMenus, type MenuItem, type MenuKey } from "@/lib/menus";
+import { getMenus, toRows, type MenuItem, type MenuKey } from "@/lib/menus";
 
 export const metadata: Metadata = { title: "منوها" };
 
 const MENUS: { key: MenuKey; title: string; hint: string }[] = [
-  { key: "header", title: "منوی بالای سایت", hint: "در نوار بالای همه‌ی صفحه‌ها. ۶ تا ۹ گزینه بهترین است؛ در موبایل این منو با انگشت ورق می‌خورد." },
+  { key: "header", title: "منوی بالای سایت", hint: "در نوار بالای همه‌ی صفحه‌ها. ۶ تا ۹ گزینه بهترین است؛ در موبایل این منو با انگشت ورق می‌خورد. با دکمه‌ی «زیرمنو» یک گزینه زیر گزینه‌ی بالایی‌اش می‌رود و در سایت با بردن ماوس (یا زدن روی فلش کنارش در موبایل) باز می‌شود. گزینه‌ی دارای زیرمنو می‌تواند آدرس نداشته باشد." },
   { key: "footer", title: "منوی پایین سایت", hint: "در پایین همه‌ی صفحه‌ها؛ جای بخش‌هایی که در منوی بالا جا نمی‌شوند." },
 ];
 
@@ -39,7 +39,7 @@ export default async function MenusPage({ searchParams }: { searchParams: Promis
           <p className="a-hint">{m.hint}</p>
           <form action={saveMenuAction}>
             <input type="hidden" name="menu" value={m.key} />
-            <MenuEditor items={menus[m.key]} suggestions={suggestions} listId={`pages-${m.key}`} />
+            <MenuEditor rows={toRows(menus[m.key])} suggestions={suggestions} listId={`pages-${m.key}`} nested={m.key === "header"} />
             <div className="a-menu-actions">
               <SubmitButton>ذخیره {m.title}</SubmitButton>
             </div>

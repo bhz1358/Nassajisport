@@ -51,30 +51,55 @@ export function ShareBar({ title }: { title: string }) {
   );
 }
 
-type NavItem = { label: string; href: string };
+type NavItem = { label: string; href: string; children?: NavItem[] };
+
+const isExternal = (href: string) => /^https?:\/\//i.test(href);
+const pathOf = (href: string) => href.split(/[?#]/)[0];
+
+/** One menu link: other sites open in a new tab. */
+function NavLink({ item, className, ...rest }: { item: NavItem; className?: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
+  return isExternal(item.href) ? (
+    <a href={item.href} target="_blank" rel="noopener" className={className} {...rest}>
+      {item.label}
+    </a>
+  ) : (
+    <Link href={item.href} className={className} {...rest}>
+      {item.label}
+    </Link>
+  );
+}
 
 /**
  * Main menu as a glass track: a frosted "glider" sits under the current page and
- * slides to whatever link the pointer or keyboard is on.
+ * slides to whatever item the pointer or keyboard is on. Items with a submenu open a
+ * glass panel on hover (desktop) or with the arrow beside them (touch, keyboard).
  */
 export function MainNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const nav = useRef<HTMLElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const [glide, setGlide] = useState<{ x: number; w: number } | null>(null);
-  // The longest matching link wins (so /category/news/ beats /), external links never match.
-  const activeIndex = items.reduce((best, item, i) => {
-    if (/^https?:/i.test(item.href)) return best;
-    const path = item.href.split(/[?#]/)[0];
-    const hit = path === "/" ? pathname === "/" : pathname.startsWith(path);
-    return hit && (best < 0 || path.length > items[best].href.split(/[?#]/)[0].length) ? i : best;
-  }, -1);
+  const [open, setOpen] = useState<number | null>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // The longest matching address wins (so /category/news/ beats /); a parent is
+  // current when one of its submenu items is. External links never match.
+  const activeIndex = items.reduce(
+    (best, item, i) => {
+      const paths = [item.href, ...(item.children ?? []).map((c) => c.href)].filter((h) => h && !isExternal(h)).map(pathOf);
+      const hit = paths.filter((p) => (p === "/" ? pathname === "/" : pathname.startsWith(p))).sort((x, y) => y.length - x.length)[0];
+      return hit !== undefined && (best.len < 0 || hit.length > best.len) ? { i, len: hit.length } : best;
+    },
+    { i: -1, len: -1 },
+  ).i;
+
+  const itemEl = (i: number) => nav.current?.querySelectorAll<HTMLElement>(":scope > .nav-item")[i];
   const moveTo = useCallback((el: HTMLElement | null | undefined) => {
     setGlide(el ? { x: el.offsetLeft, w: el.offsetWidth } : null);
   }, []);
   const toActive = useCallback(() => {
-    const links = nav.current?.querySelectorAll<HTMLElement>("a");
-    moveTo(activeIndex >= 0 ? links?.[activeIndex] : null);
+    moveTo(activeIndex >= 0 ? nav.current?.querySelectorAll<HTMLElement>(":scope > .nav-item")[activeIndex] : null);
   }, [activeIndex, moveTo]);
 
   useEffect(() => {
@@ -87,26 +112,130 @@ export function MainNav({ items }: { items: NavItem[] }) {
     return () => ro.disconnect();
   }, [toActive]);
 
+  // Close on navigation.
+  useEffect(() => setOpen(null), [pathname]);
+
+  // Place the panel under its item. The panel is position: fixed so the menu's
+  // horizontal scrolling can't clip it; its containing block may be the header
+  // (backdrop-filter), so the offset is measured rather than assumed.
+  useEffect(() => {
+    if (open === null) return;
+    const place = () => {
+      const trigger = itemEl(open);
+      const el = panel.current;
+      if (!trigger || !el) return;
+      el.style.left = "0px";
+      el.style.top = "0px";
+      const origin = el.getBoundingClientRect();
+      const r = trigger.getBoundingClientRect();
+      const w = el.offsetWidth;
+      // RTL: line the panel up with the item's right edge, kept on screen.
+      const right = Math.min(window.innerWidth - 8, r.right);
+      const left = Math.max(8, right - w);
+      setPos({ left: left - origin.left, top: r.bottom + 6 - origin.top });
+    };
+    place();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!panel.current?.contains(t) && !itemEl(open)?.contains(t)) setOpen(null);
+    };
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, { passive: true });
+    nav.current?.addEventListener("scroll", place, { passive: true });
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    const navEl = nav.current;
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place);
+      navEl?.removeEventListener("scroll", place);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [open]);
+
+  const hoverOpen = (i: number) => {
+    clearTimeout(closeTimer.current);
+    setOpen(i);
+  };
+  const hoverClose = () => {
+    clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(null), 180);
+  };
+  const isMouse = (e: React.PointerEvent) => e.pointerType === "mouse";
+  const openItem = open !== null ? items[open] : undefined;
+
   return (
-    <nav ref={nav} className="nav has-glider" aria-label="منوی اصلی" onMouseLeave={toActive} onBlur={toActive}>
+    <nav
+      ref={nav}
+      className="nav has-glider"
+      aria-label="منوی اصلی"
+      onMouseLeave={toActive}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) toActive();
+      }}
+    >
       <span className="nav-glider" aria-hidden="true" style={glide ? { width: glide.w, transform: `translateX(${glide.x}px)` } : { opacity: 0 }} />
       {items.map((item, i) => {
-        const props = {
-          "aria-current": i === activeIndex ? ("page" as const) : undefined,
-          onMouseEnter: (e: React.MouseEvent<HTMLAnchorElement>) => moveTo(e.currentTarget),
-          onFocus: (e: React.FocusEvent<HTMLAnchorElement>) => moveTo(e.currentTarget),
-        };
-        // Links to other sites open in a new tab.
-        return /^https?:\/\//i.test(item.href) ? (
-          <a key={i} href={item.href} target="_blank" rel="noopener" {...props}>
-            {item.label}
-          </a>
-        ) : (
-          <Link key={i} href={item.href} {...props}>
-            {item.label}
-          </Link>
+        const sub = item.children?.length ? item.children : undefined;
+        const current = i === activeIndex ? ("page" as const) : undefined;
+        return (
+          <span
+            key={i}
+            className={`nav-item ${sub ? "has-sub" : ""} ${open === i ? "is-open" : ""}`}
+            onMouseEnter={(e) => moveTo(e.currentTarget)}
+            onPointerEnter={(e) => sub && isMouse(e) && hoverOpen(i)}
+            onPointerLeave={(e) => sub && isMouse(e) && hoverClose()}
+            onFocus={(e) => moveTo(e.currentTarget)}
+          >
+            {item.href ? (
+              <NavLink item={item} aria-current={current} />
+            ) : (
+              // A parent without an address of its own just opens its submenu.
+              <button type="button" className="nav-parent" aria-current={current} aria-expanded={open === i} onClick={() => setOpen(open === i ? null : i)}>
+                {item.label}
+              </button>
+            )}
+            {sub && (
+              <button
+                type="button"
+                className="nav-caret"
+                aria-label={`زیرمنوی ${item.label}`}
+                aria-expanded={open === i}
+                aria-controls="nav-sub-panel"
+                onClick={() => setOpen(open === i ? null : i)}
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+          </span>
         );
       })}
+      {openItem?.children?.length ? (
+        <div
+          ref={panel}
+          id="nav-sub-panel"
+          className="nav-sub"
+          role="menu"
+          aria-label={`زیرمنوی ${openItem.label}`}
+          style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }}
+          onPointerEnter={(e) => isMouse(e) && clearTimeout(closeTimer.current)}
+          onPointerLeave={(e) => isMouse(e) && hoverClose()}
+        >
+          {openItem.children.map((c, j) => (
+            <NavLink
+              key={j}
+              item={c}
+              role="menuitem"
+              className={!isExternal(c.href) && (pathOf(c.href) === "/" ? pathname === "/" : pathname.startsWith(pathOf(c.href))) ? "is-current" : ""}
+              onClick={() => setOpen(null)}
+            />
+          ))}
+        </div>
+      ) : null}
     </nav>
   );
 }

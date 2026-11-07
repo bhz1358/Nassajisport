@@ -13,7 +13,7 @@ export async function saveMenuAction(fd: FormData) {
   const k = key(fd);
   let items;
   try {
-    items = parseMenu(str(fd, "items"));
+    items = parseMenu(str(fd, "items"), { nested: k === "header" });
   } catch (e) {
     redirect(withError(BACK, (e as Error).message) + `#${k}`);
   }
