@@ -299,3 +299,13 @@ a.a-stat:hover { border-color: var(--brand-600); }
 .a-menu-row.is-sub .a-menu-num { color: var(--accent); }
 .a-sub-btn { width: auto !important; padding: 0 10px; font-size: 0.75rem !important; font-weight: 700; }
 .a-sub-btn.is-on { background: var(--acc-soft); border-color: var(--line-gold); color: var(--accent); }
+
+.editor-media { font-weight: 800; padding-inline: 12px !important; width: auto !important; background: var(--acc-soft) !important; color: var(--accent) !important; }
+.editor-status { margin: 0; padding: 6px 12px; font-size: 0.82rem; color: var(--accent); background: var(--acc-soft); border-bottom: 1px solid var(--border); }
+.editor-status.is-error { color: var(--loss); background: color-mix(in srgb, var(--loss) 10%, transparent); }
+.editor-area video, .editor-area img { max-width: 100%; height: auto; border-radius: 10px; display: block; }
+
+.a-serp { display: grid; gap: 3px; padding: 12px 14px; border-radius: 10px; background: #fff; color: #202124; font-family: Vazirmatn, Arial, sans-serif; }
+.a-serp-url { font-size: 0.78rem; color: #188038; text-align: right; }
+.a-serp-title { font-size: 1.1rem; font-weight: 600; color: #1a0dab; line-height: 1.5; }
+.a-serp-desc { font-size: 0.86rem; color: #4d5156; line-height: 1.8; }

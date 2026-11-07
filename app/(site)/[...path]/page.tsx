@@ -7,17 +7,34 @@ import { CategoryBadge, LatestTimeline, SectionHeader, StoryCard, Thumb } from "
 import { getByPath, getNews, getPostsInCategory } from "@/lib/content";
 import { faDate, faNum, faTime, readingMinutes } from "@/lib/format";
 import { postImage, withImageFallbacks } from "@/lib/images";
+import { seoFor } from "@/lib/seo-auto";
+import { getSettings, logoUrl } from "@/lib/settings";
 
 type Props = { params: Promise<{ path: string[] }> };
 
-/** Splits post HTML after the n-th closing </p>; the whole post comes first when it is shorter. */
+/**
+ * Splits post HTML after the n-th closing </p> that is not inside another block
+ * (a <div>, quote, list, table…), so neither half is left with an unclosed tag that
+ * the browser would repair differently from the server. The whole post comes first
+ * when there is no such place.
+ */
 function splitAfterParagraph(html: string, n: number): [string, string] {
-  let at = -1;
-  for (let i = 0; i < n; i++) {
-    at = html.indexOf("</p>", at + 1);
-    if (at < 0) return [html, ""];
+  const BLOCK = /<(\/?)(div|blockquote|figure|ul|ol|table|section|article|aside|details|p)\b[^>]*>/gi;
+  let depth = 0;
+  let count = 0;
+  for (const m of html.matchAll(BLOCK)) {
+    const closing = m[1] === "/";
+    const tag = m[2].toLowerCase();
+    if (tag === "p") {
+      if (closing && depth === 0 && ++count === n) {
+        const at = m.index! + m[0].length;
+        return [html.slice(0, at), html.slice(at)];
+      }
+      continue;
+    }
+    depth = Math.max(0, depth + (closing ? -1 : 1));
   }
-  return [html.slice(0, at + 4), html.slice(at + 4)];
+  return [html, ""];
 }
 
 // Every post and page keeps the exact URL it had on WordPress (looked up by path).
@@ -30,10 +47,22 @@ async function load(params: Props["params"]) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await load(params);
   if (!post) return {};
+  // Title and description come from the post unless the editor wrote their own.
+  const { title, description } = seoFor(post);
+  const image = postImage(post);
   return {
-    title: post.seo?.title || post.title,
-    description: post.seo?.description || post.excerpt,
-    openGraph: postImage(post) ? { images: [postImage(post)!] } : undefined,
+    title,
+    description,
+    keywords: post.tags.length ? post.tags : undefined,
+    alternates: { canonical: post.path },
+    openGraph: {
+      type: post.type === "post" ? "article" : "website",
+      title,
+      description,
+      ...(image ? { images: [{ url: image, alt: post.title }] } : {}),
+      ...(post.type === "post" ? { publishedTime: post.date, modifiedTime: post.modified ?? post.date, authors: post.author ? [post.author] : undefined, tags: post.tags } : {}),
+    },
+    twitter: { card: image ? "summary_large_image" : "summary", title, description, ...(image ? { images: [image] } : {}) },
   };
 }
 
@@ -63,6 +92,7 @@ export default async function PostPage({ params }: Props) {
   return (
     <>
       <ReadingProgress />
+      <NewsJsonLd post={post} />
       <AdSlot slot={1} className="pbox-top" />
       <div className="article-layout">
         <article className="article">
@@ -129,4 +159,26 @@ export default async function PostPage({ params }: Props) {
       )}
     </>
   );
+}
+
+/** Google's news structured data (NewsArticle), filled from the post. */
+function NewsJsonLd({ post }: { post: NonNullable<Awaited<ReturnType<typeof load>>> }) {
+  const settings = getSettings();
+  const image = postImage(post);
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: seoFor(post).title,
+    description: seoFor(post).description,
+    datePublished: post.date,
+    dateModified: post.modified ?? post.date,
+    ...(image ? { image: [image] } : {}),
+    author: { "@type": post.author ? "Person" : "Organization", name: post.author || settings.title },
+    publisher: { "@type": "NewsMediaOrganization", name: settings.title, logo: { "@type": "ImageObject", url: logoUrl(settings) } },
+    mainEntityOfPage: post.path,
+    ...(post.tags.length ? { keywords: post.tags.join(", ") } : {}),
+    inLanguage: "fa-IR",
+  };
+  // "<" is escaped so text in the post can't close the script tag.
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 }

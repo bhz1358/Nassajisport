@@ -3,11 +3,16 @@
 import { redirect } from "next/navigation";
 import { requireAccess } from "@/lib/auth";
 import { can, canEditPost } from "@/lib/roles";
-import { getAllPosts, getComments, nextPostId, normalizePath, savePosts } from "@/lib/content";
+import { getAllPosts, getCategories, getComments, nextPostId, normalizePath, savePosts } from "@/lib/content";
 import { bool, file, num, str, withError } from "@/lib/form";
 import { jalaliPartsToIso } from "@/lib/jalali";
 import { saveUpload } from "@/lib/media";
 import { writeStore } from "@/lib/store";
+import { getLeague } from "@/lib/league";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { autoExcerpt, fillImageAlts, findTags, firstImage, plainText } from "@/lib/seo-auto";
+import { HOME_TEAM } from "@/lib/site";
+import { getSquad } from "@/lib/squad";
 import type { Post } from "@/lib/types";
 
 const slugify = (s: string) =>
@@ -18,6 +23,20 @@ const slugify = (s: string) =>
     .replace(/[^\p{L}\p{N}-]+/gu, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+
+/** Teams of the league (for automatic tags). */
+const teamNames = () => [...new Set([HOME_TEAM, ...getLeague().standings.map((r) => r.team)])];
+/** Players and staff of the club (for automatic tags). */
+const playerNames = () => {
+  const squad = getSquad();
+  return [...squad.players.map((p) => p.name), ...squad.staff.map((s) => s.name)];
+};
+/** A news post saved without a category goes to «اخبار» (or the first category). */
+const defaultCategory = () => {
+  const cats = getCategories();
+  const news = cats.find((c) => c.slug === "news") ?? cats[0];
+  return news ? [news.slug] : [];
+};
 
 export async function savePost(fd: FormData) {
   const me = await requireAccess("posts");
@@ -56,10 +75,17 @@ export async function savePost(fd: FormData) {
     }
   }
 
-  const content = String(fd.get("content") ?? "");
-  const excerpt = str(fd, "excerpt") || content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 220);
+  // Cleaned of anything that could run code; every picture gets a description.
+  const content = fillImageAlts(sanitizeHtml(String(fd.get("content") ?? "")), title);
+  const excerpt = str(fd, "excerpt") || autoExcerpt(content);
   const seoTitle = str(fd, "seoTitle");
   const seoDescription = str(fd, "seoDescription");
+
+  const chosenCategories = fd.getAll("categories").map(String);
+  const ownTags = str(fd, "tags")
+    .split(/[,،]/)
+    .map((t) => t.trim())
+    .filter(Boolean);
 
   const post: Post = {
     ...(existing ?? {}),
@@ -73,12 +99,10 @@ export async function savePost(fd: FormData) {
     author: str(fd, "author") || existing?.author || user,
     excerpt,
     content,
-    categories: fd.getAll("categories").map(String),
-    tags: str(fd, "tags")
-      .split(/[,،]/)
-      .map((t) => t.trim())
-      .filter(Boolean),
-    featuredImage,
+    categories: chosenCategories.length || type === "page" ? chosenCategories : defaultCategory(),
+    tags: [...new Set([...ownTags, ...findTags(`${title} ${plainText(content)}`, teamNames(), playerNames())])],
+    // Without a featured image, the first picture in the text is used.
+    featuredImage: featuredImage ?? firstImage(content),
     sticky: (canPublish ? bool(fd, "sticky") : existing?.sticky) || undefined,
     status: canPublish && str(fd, "status") !== "draft" ? "publish" : "draft",
     createdBy: existing ? existing.createdBy : me.username,
