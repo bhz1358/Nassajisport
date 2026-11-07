@@ -33,3 +33,8 @@ test("a short name saved by an older import is corrected", () => {
   assert.equal(canonicalTeam("استقلال خ", ["استقلال خ", "استقلال خوزستان", "استقلال"]), "استقلال خوزستان");
   assert.equal(canonicalTeam("استقلال خ", ["استقلال خ", "استقلال"]), "استقلال خ");
 });
+
+test("spaces don't matter", () => {
+  assert.equal(canonicalTeam("مس شهربابک", known), "مس شهر بابک");
+  assert.equal(canonicalTeam("گلگهر", known), "گل گهر");
+});

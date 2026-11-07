@@ -20,7 +20,16 @@ export type FeedMatch = {
   /** Footballi's own status text: "پایان", "45'", "بین دو نیمه"... */
   statusText?: string;
   minute?: number;
+  /** League week, from "هفته 12" or the round's name. */
+  round?: number;
 };
+
+/** "هفته 12" → 12; otherwise the round's name ("12"). */
+function roundOf(o: Record<string, unknown>): number | undefined {
+  const text = typeof o.week === "string" ? o.week : typeof (o.round as { name?: unknown })?.name === "string" ? String((o.round as { name: string }).name) : "";
+  const n = Number(toLatinDigits(text).match(/\d+/)?.[0]);
+  return n > 0 && n < 100 ? n : undefined;
+}
 
 /** Every match object in the feed, wherever it sits (competitions, calendars, boxes). */
 export function readFeed(json: unknown): FeedMatch[] {
@@ -49,6 +58,7 @@ export function readFeed(json: unknown): FeedMatch[] {
         ...(hs >= 0 && as >= 0 ? { homeScore: hs, awayScore: as } : {}),
         ...(status ? { statusText: status } : {}),
         ...(min !== undefined && min >= 0 && min <= 130 ? { minute: min } : {}),
+        ...(roundOf(o) ? { round: roundOf(o) } : {}),
       };
       // The same match can appear twice (list and a box); keep the more detailed copy.
       if (!prev || Object.keys(m).length > Object.keys(prev).length) out.set(o.match_id, m);

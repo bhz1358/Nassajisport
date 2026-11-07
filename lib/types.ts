@@ -140,6 +140,8 @@ export type LeagueData = {
   standingsSource?: { url: string; auto: boolean; lastSync?: string; lastError?: string };
   /** Live scores from Footballi (lib/live-scores.ts). */
   live?: import("./live-scores.ts").LiveSettings;
+  /** Whole-season schedule from Footballi (lib/season-sync.ts). */
+  seasonSource?: { competition: number; auto: boolean; lastSync?: string; lastError?: string; lastResult?: string };
   /** Team name → logo URL (uploaded in the admin panel). */
   teamLogos?: Record<string, string>;
   /** The table as it was before the last import, so a bad import can be undone. */

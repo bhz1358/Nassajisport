@@ -8,6 +8,8 @@ import { jalaliPartsToIso, toLatinDigits } from "@/lib/jalali";
 import { getLeague, saveLeague, sortStandings } from "@/lib/league";
 import { applyStandings, syncFromUrl } from "@/lib/league-sync";
 import { liveSettings, syncLive } from "@/lib/live-sync";
+import { competitionId } from "@/lib/season-import";
+import { seasonSource, syncSeason } from "@/lib/season-sync";
 import { mergeFixtures, parseFixtures } from "@/lib/fixtures-import";
 import { parseStandings } from "@/lib/standings-import";
 import type { Fixture, StandingRow } from "@/lib/types";
@@ -206,4 +208,18 @@ export async function checkLiveNow() {
   }
   const msg = r.changes.length ? `${r.changes.length} بازی به‌روز شد: ${r.changes.join("؛ ")}` : `فوتبالی خوانده شد (${r.matches} بازی)؛ تغییری برای بازی‌های لیگ ما نبود.`;
   redirect(`${BACK}?ok=${encodeURIComponent(msg)}#live`);
+}
+
+/** Whole season from Footballi: saves the settings and reads it right away. */
+export async function importSeason(fd: FormData) {
+  await requireAccess("league");
+  const competition = competitionId(str(fd, "competition"));
+  if (!competition) redirect(withError(BACK, "آدرس صفحه‌ی لیگ در فوتبالی یا شماره‌ی رقابت را وارد کنید (لیگ برتر: 14).") + "#season");
+  saveLeague({ ...getLeague(), seasonSource: { ...seasonSource(), competition, auto: fd.get("auto") === "on" } });
+  const r = await syncSeason(competition);
+  if (!r.ok) {
+    saveLeague({ ...getLeague(), seasonSource: { ...seasonSource(), lastSync: new Date().toISOString(), lastError: r.error } });
+    redirect(withError(BACK, r.error) + "#season");
+  }
+  redirect(`${BACK}?ok=${encodeURIComponent(r.message)}#season`);
 }

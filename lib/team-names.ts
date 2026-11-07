@@ -57,7 +57,9 @@ export function canonicalTeam(raw: string, known: string[]): string {
   const lastWord = n.split(" ").pop() ?? "";
   // "استقلال خ" is short for a longer name even if an older table saved it as-is.
   const abbreviated = n.includes(" ") && lastWord.length <= 2;
-  const exact = names.find((k) => cmpNorm(k) === n);
+  // Spaces don't tell names apart: "مس شهربابک" is "مس شهر بابک", "گلگهر" is "گل گهر".
+  const solid = (x: string) => cmpNorm(x).replace(/ /g, "");
+  const exact = names.find((k) => cmpNorm(k) === n) ?? names.find((k) => solid(k) === solid(raw));
   if (exact && !abbreviated) return exact;
   // n is an abbreviation of k: "استقلال خ" of "استقلال خوزستان", "صنعت نفت" of "صنعت نفت آبادان".
   const longer = names.filter((k) => {

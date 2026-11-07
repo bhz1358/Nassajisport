@@ -4,6 +4,7 @@ import { LiveButton } from "./components";
 import { getLeague } from "@/lib/league";
 import { maybeAutoSync } from "@/lib/league-sync";
 import { liveSettings, maybeLiveSync } from "@/lib/live-sync";
+import { maybeSeasonSync } from "@/lib/season-sync";
 import { liveWindowOpen } from "@/lib/live-scores";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { getMenus, isExternal } from "@/lib/menus";
@@ -13,6 +14,7 @@ import { SocialIcons } from "./social";
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   maybeAutoSync();
   maybeLiveSync();
+  maybeSeasonSync();
   // Match time: visitors' pages pick up new scores on their own.
   const liveSet = liveSettings();
   const matchTime = liveSet.enabled && liveWindowOpen(getLeague(), { ...liveSet, lastSync: undefined });

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { requireAccess } from "@/lib/auth";
-import { deleteFixture, pasteFixtures, pasteStandings, saveFixture, saveLeagueInfo, saveStandings, saveTeamLogo, syncStandings, undoStandings, saveLiveSettings, checkLiveNow } from "./actions";
+import { deleteFixture, pasteFixtures, pasteStandings, saveFixture, saveLeagueInfo, saveStandings, saveTeamLogo, syncStandings, undoStandings, saveLiveSettings, checkLiveNow, importSeason } from "./actions";
 import { Field, Flash, PageHead } from "../../ui";
 import { ImageField, SubmitButton } from "../../ui-client";
 import { faDate } from "@/lib/format";
 import { isoToJalaliParts } from "@/lib/jalali";
 import { getLeague, teamLogo } from "@/lib/league";
 import { liveSettings } from "@/lib/live-sync";
+import { seasonSource } from "@/lib/season-sync";
 import type { Fixture } from "@/lib/types";
 
 export const metadata: Metadata = { title: "جدول و بازی‌ها" };
@@ -101,6 +102,36 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
         </Field>
         <SubmitButton className="a-btn">ذخیره</SubmitButton>
       </form>
+
+      {(() => {
+        const src = seasonSource();
+        return (
+          <section id="season" className="a-card">
+            <h2>برنامه‌ی کامل فصل (از فوتبالی)</h2>
+            <p className="a-hint">
+              همه‌ی بازی‌های فصل، از هفته‌ی اول تا آخرین هفته‌ای که فوتبالی برنامه‌اش را دارد، با تاریخ، ساعت و نتیجه به بخش «بازی‌ها» اضافه یا به‌روز می‌شوند و در
+              صفحه‌ی جدول و نتایج هفته به هفته دیده می‌شوند. بازی‌هایی که قبلاً ثبت شده‌اند تکراری نمی‌شوند.
+            </p>
+            <form action={importSeason} className="a-grid-fields">
+              <Field label="صفحه‌ی لیگ در فوتبالی یا شماره‌ی رقابت" hint="لیگ برتر خلیج فارس: 14">
+                <input name="competition" defaultValue={`https://footballi.net/competition/${src.competition}/`} dir="ltr" required />
+              </Field>
+              <label className="a-check">
+                <input type="checkbox" name="auto" defaultChecked={src.auto} /> روزی یک بار خودکار به‌روز شود
+              </label>
+              <div>
+                <SubmitButton pendingText="در حال خواندن کل فصل…">دریافت برنامه‌ی کامل فصل</SubmitButton>
+              </div>
+            </form>
+            {src.lastSync && (
+              <p className="a-hint">
+                آخرین دریافت: {faDate(src.lastSync)} ساعت {isoToJalaliParts(src.lastSync).time}
+                {src.lastError ? ` — خطا: ${src.lastError}` : src.lastResult ? ` — ${src.lastResult}` : ""}
+              </p>
+            )}
+          </section>
+        );
+      })()}
 
       {(() => {
         const live = liveSettings();
