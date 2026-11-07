@@ -324,23 +324,16 @@ export function ResultList({ fixtures }: { fixtures: Fixture[] }) {
   );
 }
 
-/** Compact pill in the header: the club's live or next match. */
-export function NextMatchPill({ f }: { f?: Fixture }) {
-  if (!f) return null;
-  const label = f.status === "live" ? "زنده" : f.status === "scheduled" ? "بازی بعدی" : "آخرین بازی";
+/**
+ * «نتایج زنده» in the header: a blinking red dot and bold label, linking to the
+ * results and table. Solid red and stronger while a league match is being played.
+ */
+export function LiveButton({ live }: { live: number }) {
   return (
-    <Link href="/league/" className={`next-pill ${f.status === "live" ? "is-live" : ""}`} title={`${f.home} - ${f.away}`}>
-      {f.status === "live" && <span className="live-dot" />}
-      <span className="next-pill-label">{label}</span>
-      <Crest team={f.home} size={22} />
-      {f.status === "scheduled" ? (
-        <span className="next-pill-score">{faTime(f.date)}</span>
-      ) : (
-        <span className="next-pill-score">
-          {faNum(f.homeScore ?? 0)}-{faNum(f.awayScore ?? 0)}
-        </span>
-      )}
-      <Crest team={f.away} size={22} />
+    <Link href="/league/" className={`live-btn ${live ? "is-on" : ""}`} title={live ? `${faNum(live)} بازی در جریان است` : "نتایج و جدول لیگ"}>
+      <span className="live-dot" aria-hidden="true" />
+      <span className="live-btn-text">نتایج زنده</span>
+      {live > 0 && <span className="live-btn-count">{faNum(live)}</span>}
     </Link>
   );
 }

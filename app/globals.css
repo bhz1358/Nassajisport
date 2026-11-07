@@ -237,14 +237,22 @@ button { font: inherit; }
   background: var(--gold-grad); box-shadow: 0 0 10px color-mix(in srgb, var(--acc-500) 60%, transparent);
 }
 .header-actions { display: flex; align-items: center; gap: 10px; flex: none; margin-inline-start: auto; }
-.next-pill {
-  display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 8px; border-radius: 12px;
-  background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.1); font-size: 0.8rem; white-space: nowrap;
+/* «نتایج زنده»: always visible, blinking; solid red while a match is on. */
+.live-btn {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 11px; white-space: nowrap;
+  font-weight: 900; font-size: 0.86rem; color: #fff; letter-spacing: 0;
+  background: linear-gradient(180deg, rgb(239 68 68 / 0.24), rgb(239 68 68 / 0.1)); border: 1px solid rgb(239 68 68 / 0.6);
+  box-shadow: 0 0 16px rgb(239 68 68 / 0.22), inset 0 1px 0 rgb(255 255 255 / 0.12);
+  transition: background 0.2s, transform 0.2s var(--ease);
 }
-.next-pill:hover { border-color: var(--line-gold); }
-.next-pill.is-live { border-color: rgb(239 68 68 / 0.6); }
-.next-pill-label { color: #bdb5a6; font-weight: 600; }
-.next-pill-score { font-weight: 900; color: #fff; direction: ltr; }
+.live-btn:hover { background: rgb(239 68 68 / 0.35); transform: translateY(-1px); }
+.live-btn .live-dot { width: 9px; height: 9px; background: #ff3b3b; }
+.live-btn-text { animation: live-blink 1.3s ease-in-out infinite; }
+.live-btn-count { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #fff; color: #b91c1c; font-size: 0.75rem; display: inline-grid; place-items: center; }
+.live-btn.is-on { background: linear-gradient(180deg, #ef4444, #b91c1c); border-color: #fca5a5; animation: live-glow 1.3s ease-in-out infinite; }
+.live-btn.is-on .live-dot { background: #fff; }
+@keyframes live-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes live-glow { 0%, 100% { box-shadow: 0 0 8px rgb(239 68 68 / 0.45); } 50% { box-shadow: 0 0 22px rgb(239 68 68 / 0.9); } }
 .header-tickets { color: var(--acc-500); }
 
 /* ---------- Section headers & panels ---------- */
@@ -378,7 +386,7 @@ a:hover .play { transform: scale(1.08); }
 .header-social svg { width: 17px; height: 17px; }
 .contact-social { justify-content: center; margin-top: 18px; }
 /* Smaller laptops: a tighter header so the menu and the social icons both fit. */
-@media (min-width: 900px) and (max-width: 1279px) {
+@media (min-width: 961px) and (max-width: 1279px) {
   .header-bar { gap: 12px; padding: 0 12px; }
   .nav a { padding: 7px 9px; font-size: 0.84rem; }
   .header-actions { gap: 6px; }
@@ -387,7 +395,7 @@ a:hover .play { transform: scale(1.08); }
   .logo-text strong { font-size: 1.05rem; }
 }
 /* Tablets: the menu gets its own row, as on phones. */
-@media (min-width: 721px) and (max-width: 899px) {
+@media (min-width: 721px) and (max-width: 960px) {
   :root:root { --header-h: 150px; }
   .header-bar { height: auto; flex-wrap: wrap; padding: 10px 14px 8px; row-gap: 6px; }
   .nav { flex-basis: 100%; order: 3; }
@@ -920,7 +928,6 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 @media (max-width: 1180px) {
   .header-bar { gap: 14px; }
   .logo-text small { display: none; }
-  .next-pill-label { display: none; }
   .home-main, .split, .article-layout, .player-layout { grid-template-columns: minmax(0, 1fr) 300px; }
   .media-rail-track { grid-auto-columns: calc((100% - 2 * 18px) / 3); }
 }
@@ -940,8 +947,8 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .hero-item { background: var(--surface); border-color: var(--border); }
 
   :root { --header-h: 88px; }
+  .header-tickets { display: none; }
   .logo-img { width: 54px; height: 54px; }
-  .header-tickets, .next-pill { display: none; }
   .home-main, .split, .article-layout, .league-grid, .lineup-grid, .player-layout { grid-template-columns: minmax(0, 1fr); }
   .sticky-side { position: static; }
   .pitch-full { max-width: 560px; margin: 0 auto; }

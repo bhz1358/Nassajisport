@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LiveRefresher, MainNav, TabBar } from "./client";
-import { NextMatchPill } from "./components";
-import { getClubMatch, getLeague } from "@/lib/league";
+import { LiveButton } from "./components";
+import { getLeague } from "@/lib/league";
 import { maybeAutoSync } from "@/lib/league-sync";
 import { liveSettings, maybeLiveSync } from "@/lib/live-sync";
 import { liveWindowOpen } from "@/lib/live-scores";
@@ -17,7 +17,6 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   const liveSet = liveSettings();
   const matchTime = liveSet.enabled && liveWindowOpen(getLeague(), { ...liveSet, lastSync: undefined });
   const settings = getSettings();
-  const clubMatch = getClubMatch(getLeague());
   const { ticketsUrl, social } = settings;
   const menus = getMenus();
   const logo = logoUrl(settings);
@@ -43,7 +42,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <MainNav items={menus.header} />
             <div className="header-actions">
-              <NextMatchPill f={clubMatch} />
+              <LiveButton live={getLeague().fixtures.filter((f) => f.status === "live").length} />
               {ticketsUrl && (
                 <a className="btn-outline btn-sm header-tickets" href={ticketsUrl} target="_blank" rel="noopener">
                   خرید بلیت
