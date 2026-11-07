@@ -13,6 +13,16 @@ export function getLeague(): LeagueData {
 
 
 
+/**
+ * Logos shipped with the site for teams whose logo the usual sources lack
+ * (iranleague.ir's Chadormalu file is missing). A logo set in the admin wins.
+ */
+export const BUNDLED_LOGOS: Record<string, string> = {
+  "چادرملو اردکان": "/teams/chadormalu.webp",
+};
+
+export const teamLogo = (league: LeagueData, team: string): string | undefined => league.teamLogos?.[team] || BUNDLED_LOGOS[team];
+
 export function saveLeague(league: LeagueData) {
   writeStore("league", { ...league, updatedAt: new Date().toISOString() });
 }

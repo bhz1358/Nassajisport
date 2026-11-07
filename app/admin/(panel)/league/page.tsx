@@ -5,7 +5,7 @@ import { Field, Flash, PageHead } from "../../ui";
 import { ImageField, SubmitButton } from "../../ui-client";
 import { faDate } from "@/lib/format";
 import { isoToJalaliParts } from "@/lib/jalali";
-import { getLeague } from "@/lib/league";
+import { getLeague, teamLogo } from "@/lib/league";
 import type { Fixture } from "@/lib/types";
 
 export const metadata: Metadata = { title: "جدول و بازی‌ها" };
@@ -195,7 +195,7 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
             <form key={team} action={saveTeamLogo} className="a-logo-card">
               <input type="hidden" name="team" value={team} />
               <strong>{team}</strong>
-              <ImageField name="logo" defaultValue={league.teamLogos?.[team]} label="" />
+              <ImageField name="logo" defaultValue={teamLogo(league, team)} label="" />
               <SubmitButton className="a-btn a-btn-small a-btn-primary">ذخیره</SubmitButton>
             </form>
           ))}

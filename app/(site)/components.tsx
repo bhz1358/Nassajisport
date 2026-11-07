@@ -2,7 +2,7 @@ import Link from "next/link";
 import { categoryName } from "@/lib/content";
 import { faNum, faShortDate, faTime, faWeekday, readingMinutes } from "@/lib/format";
 import { postImage } from "@/lib/images";
-import { getLeague } from "@/lib/league";
+import { getLeague, teamLogo } from "@/lib/league";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { HOME_TEAM, VIDEO_CATEGORY } from "@/lib/site";
 import { splitTitle } from "@/lib/title";
@@ -221,7 +221,7 @@ export function BreakingBar({ posts }: { posts: Post[] }) {
 const CREST_COLORS = ["#6d28d9", "#b91c1c", "#0f766e", "#1d4ed8", "#b45309", "#0369a1", "#be185d", "#4d7c0f"];
 
 export function Crest({ team, size = 28 }: { team: string; size?: number }) {
-  const logo = getLeague().teamLogos?.[team];
+  const logo = teamLogo(getLeague(), team);
   if (logo) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={logo} alt="" className="crest crest-img" width={size} height={size} style={{ width: size, height: size }} loading="lazy" />;
