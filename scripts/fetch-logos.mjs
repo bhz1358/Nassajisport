@@ -56,21 +56,32 @@ export function findImages(html, base) {
     const cap = fig.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i)?.[1]?.replace(/<[^>]+>/g, " ") ?? "";
     return cap ? fig.replace(/<img\b/gi, `<img data-caption="${cap.replace(/"/g, " ")}"`) : fig;
   });
+  // Logos set as CSS backgrounds (common in league tables) become ordinary images.
+  html = html.replace(/<([a-z][a-z0-9]*)\b([^>]*?\bstyle\s*=\s*["'][^"']*?background(?:-image)?\s*:[^"']*?url\(\s*(?:&quot;|['"])?([^'")&]+)(?:&quot;|['"])?\s*\)[^>]*)>/gi,
+    (m, _tag, _attrs, url) => `${m}<img src="${url}">`);
   // The nearest text before an image (heading, paragraph, list item) also names it.
   const re = /<(h[1-6]|p|li|strong|b)\b[^>]*>([\s\S]*?)<\/\1>|<img\b[^>]*>/gi;
   for (const m of html.matchAll(re)) {
     if (m[1]) {
       const text = m[2].replace(/<img\b[^>]*>/gi, "").replace(/<[^>]+>/g, " ").trim();
-      if (text) heading = text;
       // An image inside this block (e.g. <p><img></p>) is handled with the text before it.
-      for (const img of m[2].matchAll(/<img\b[^>]*>/gi)) pushImage(img[0]);
+      const inner = m[0].indexOf(m[2]);
+      for (const img of m[2].matchAll(/<img\b[^>]*>/gi)) pushImage(img[0], m.index + inner + img.index);
+      if (text) heading = text;
       continue;
     }
-    pushImage(m[0]);
+    pushImage(m[0], m.index);
   }
   return out;
 
-  function pushImage(tag) {
+  /** Text right after the image in the same table row / list item / box, e.g. the team name in a league table. */
+  function textAfter(at, tag) {
+    const rest = html.slice(at + tag.length, at + tag.length + 1500);
+    const stop = rest.search(/<img\b|<\/tr>|<\/li>|<\/figure>|<\/a>\s*<\/(?:td|div)>\s*<(?:td|div)\b[^>]*>\s*<a\b/i);
+    return (stop >= 0 ? rest.slice(0, stop) : rest).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
+  }
+
+  function pushImage(tag, at) {
     // Lazy-loading themes keep the real file in data-* attributes; srcset's largest wins.
     const srcset = attr(tag, "data-srcset") || attr(tag, "srcset");
     const largest = srcset
@@ -89,14 +100,17 @@ export function findImages(html, base) {
     out.push({
       url,
       text: norm(`${attr(tag, "alt") ?? ""} ${attr(tag, "title") ?? ""} ${attr(tag, "data-caption") ?? ""} ${file}`),
+      after: norm(textAfter(at, tag)),
       heading: norm(heading),
+      // Files named like logos are tried before other pictures that mention a team.
+      logoish: /logo|team|club|badge|crest|emblem|لوگو|آرم/i.test(decodeURIComponent(url)),
     });
   }
 }
 
-/** Team name for an image, from its own text first, then from the heading above it. */
+/** Team name for an image: its own text, then the text next to it, then the heading above it. */
 export function matchTeam(img, teams) {
-  for (const source of [img.text, img.heading]) {
+  for (const source of [img.text, img.after ?? "", img.heading]) {
     for (const [team, aliases] of TEAM_ALIASES) {
       if (!teams.includes(team)) continue;
       if (aliases.some((a) => source.includes(norm(a)))) return team;
@@ -135,7 +149,7 @@ async function main() {
   console.log(`${images.length} images on the page`);
   if (args.includes("--list")) {
     // Shows what each image was matched to, to see why a team was missed.
-    for (const img of images) console.log(`${matchTeam(img, teams) ?? "—"}  ⟵  ${img.text.slice(0, 60)} | ${img.heading.slice(0, 60)}`);
+    for (const img of images) console.log(`${matchTeam(img, teams) ?? "—"}  ⟵  ${img.text.slice(0, 50)} | ${img.after.slice(0, 40)} | ${img.heading.slice(0, 40)}`);
     return;
   }
 
@@ -143,13 +157,21 @@ async function main() {
   const dir = path.join(dataDir, "uploads", "teams");
   fs.mkdirSync(dir, { recursive: true });
   const done = new Set();
-  for (const img of images) {
+  // Logo-named files first; a news photo that mentions a team is only a fallback.
+  const ordered = [...images.filter((i) => i.logoish), ...images.filter((i) => !i.logoish)];
+  for (const img of ordered) {
     const team = matchTeam(img, teams);
     if (!team || done.has(team) || (logos[team] && !force)) continue;
     try {
       const r = await fetch(img.url, { headers: { ...UA, Referer: pageUrl }, signal: AbortSignal.timeout(30_000) });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const buf = Buffer.from(await r.arrayBuffer());
+      // Logos are roughly square; a wide or tall picture is a photo, so keep looking.
+      const { width = 0, height = 0 } = await sharp(buf).metadata();
+      if (!width || !height || width / height > 1.6 || height / width > 1.6) {
+        console.log(`  · ${team}: skipped a ${width}×${height} picture (not a logo)`);
+        continue;
+      }
       const webp = await sharp(buf).resize(256, 256, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 90 }).toBuffer();
       const slug = TEAM_ALIASES.find(([t]) => t === team)[1].find((a) => /^[a-z]/.test(a)) ?? `team-${done.size}`;
       fs.writeFileSync(path.join(dir, `${slug}.webp`), webp);

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Downloads team logos from a web page and assigns them to the league's teams.
-#   sudo bash deploy/fetch-logos.sh "https://metaparsic.com/the-most-beautiful-logos-of-iranian-football-clubs/" [--force]
+#   sudo bash deploy/fetch-logos.sh "https://www.iranleague.ir/fa/لیگ-برتر-ایران" [--force] [--list]
 # --force replaces logos that were already set.
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "Run with sudo: sudo bash deploy/fetch-logos.sh URL" >&2; exit 1; }
