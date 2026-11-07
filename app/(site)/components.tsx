@@ -304,26 +304,6 @@ export function NextMatchCard({ f }: { f?: Fixture }) {
 }
 
 /** Compact result rows for the sidebar. */
-export function ResultList({ fixtures }: { fixtures: Fixture[] }) {
-  return (
-    <ul className="result-list">
-      {fixtures.map((f, i) => (
-        <li key={i} className={f.home === HOME_TEAM || f.away === HOME_TEAM ? "is-club" : ""}>
-          <span className="rl-team rl-home">
-            <span className="rl-name">{f.home}</span>
-            <Crest team={f.home} size={22} />
-          </span>
-          <Score f={f} />
-          <span className="rl-team rl-away">
-            <Crest team={f.away} size={22} />
-            <span className="rl-name">{f.away}</span>
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 /**
  * «نتایج زنده» in the header: a blinking red dot and bold label, linking to the
  * results and table. Solid red and stronger while a league match is being played.

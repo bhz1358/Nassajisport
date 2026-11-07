@@ -419,21 +419,21 @@ export function LiveRefresher({ every = 60 }: { every?: number }) {
  * Week dropdown for the league schedule. Picking a week opens it right away; without
  * JavaScript the form's «نمایش» button does the same.
  */
-export function WeekSelect({ basePath, value, options }: { basePath: string; value: number; options: { week: number; label: string }[] }) {
+export function WeekSelect({ basePath, anchor = "schedule", value, options }: { basePath: string; anchor?: string; value: number; options: { week: number; label: string }[] }) {
   const router = useRouter();
   const [js, setJs] = useState(false);
   useEffect(() => setJs(true), []);
   return (
     <form action={basePath} method="get" className="week-select">
-      <label className="sr-only" htmlFor="week-select">
+      <label className="sr-only" htmlFor={`week-select-${anchor}`}>
         انتخاب هفته
       </label>
       <select
-        id="week-select"
+        id={`week-select-${anchor}`}
         name="week"
         defaultValue={value}
         key={value}
-        onChange={(e) => router.push(`${basePath}?week=${e.target.value}#schedule`, { scroll: false })}
+        onChange={(e) => router.push(`${basePath}?week=${e.target.value}#${anchor}`, { scroll: false })}
       >
         {options.map((o) => (
           <option key={o.week} value={o.week}>

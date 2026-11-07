@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { AdSlot } from "./ad-slot";
 import { FitToColumn, HeroSlider, MediaRail, type HeroSlide } from "./client";
+import { WeekSchedule } from "./week-schedule";
 import {
   BreakingBar,
   NewsCard,
   NextMatchCard,
   OpinionCard,
   QuoteCard,
-  ResultList,
   SampleNotice,
   SectionHeader,
   HomeStandings,
@@ -15,14 +15,14 @@ import {
   VideoCard,
 } from "./components";
 import { categoryName, getNews, isSampleContent } from "@/lib/content";
-import { faNum } from "@/lib/format";
-import { getLeague, getNextClubMatch, previousRoundResults } from "@/lib/league";
+import { getLeague, getNextClubMatch } from "@/lib/league";
 import { postImage } from "@/lib/images";
 import { getSettings, logoUrl } from "@/lib/settings";
 import { OPINION_CATEGORIES, PRESS_CATEGORY, VIDEO_CATEGORY } from "@/lib/site";
 import type { Post } from "@/lib/types";
 
-export default function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const week = Number((await searchParams).week) || undefined;
   const isSample = isSampleContent();
   const news = getNews();
   const league = getLeague();
@@ -64,7 +64,6 @@ export default function Home() {
   const more = take(news, 6);
 
   const nextMatch = getNextClubMatch(league);
-  const lastRound = previousRoundResults(league, nextMatch);
 
   return (
     <>
@@ -94,10 +93,17 @@ export default function Home() {
         <aside className="home-side">
           <NextMatchCard f={nextMatch} />
           <AdSlot slot={2} />
-          {lastRound.fixtures.length > 0 && (
-            <div className="panel">
-              <SectionHeader title={lastRound.round ? `نتایج هفته ${faNum(lastRound.round)}` : "نتایج اخیر"} href="/league/" />
-              <ResultList fixtures={lastRound.fixtures} />
+          {league.fixtures.some((f) => f.round) && (
+            <div className="panel" id="home-weeks">
+              <SectionHeader title="دیدارهای هفته" href="/league/#schedule" />
+              <WeekSchedule
+                fixtures={league.fixtures}
+                week={week}
+                totalWeeks={Math.max(0, (league.standings.length - 1) * 2)}
+                basePath="/"
+                anchor="home-weeks"
+                compact
+              />
             </div>
           )}
           <div className="panel">

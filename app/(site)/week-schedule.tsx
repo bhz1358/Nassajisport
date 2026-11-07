@@ -18,17 +18,33 @@ const dayKey = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { time
  * League schedule, week by week: a strip of week numbers, then that week's matches
  * grouped by day, each with the score (or kick-off time) and its status.
  */
-export function WeekSchedule({ fixtures, week, totalWeeks, basePath }: { fixtures: Fixture[]; week?: number; totalWeeks: number; basePath: string }) {
+export function WeekSchedule({
+  fixtures,
+  week,
+  totalWeeks,
+  basePath,
+  anchor = "schedule",
+  compact = false,
+}: {
+  fixtures: Fixture[];
+  week?: number;
+  totalWeeks: number;
+  basePath: string;
+  /** Element id the page returns to after choosing a week. */
+  anchor?: string;
+  /** Narrow sidebar version (home page). */
+  compact?: boolean;
+}) {
   const known = new Set(fixtures.map((f) => f.round).filter(Boolean));
   const current = currentWeek(fixtures);
   const shown = week ?? current;
   const maxWeek = Math.max(totalWeeks, ...[...known].map((w) => w!));
   const matches = fixtures.filter((f) => f.round === shown).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
   const days = [...new Set(matches.map((m) => dayKey(m.date)))];
-  const href = (w: number) => `${basePath}?week=${w}#schedule`;
+  const href = (w: number) => `${basePath}?week=${w}#${anchor}`;
 
   return (
-    <div className="weeks">
+    <div className={`weeks ${compact ? "is-compact" : ""}`}>
       <nav className="weeks-nav" aria-label="انتخاب هفته">
         {shown && shown > 1 ? (
           <Link href={href(shown - 1)} scroll={false} className="weeks-arrow" aria-label="هفته‌ی قبل">
@@ -39,6 +55,7 @@ export function WeekSchedule({ fixtures, week, totalWeeks, basePath }: { fixture
         )}
         <WeekSelect
           basePath={basePath}
+          anchor={anchor}
           value={shown ?? 1}
           options={Array.from({ length: maxWeek }, (_, i) => i + 1).map((w) => ({
             week: w,
@@ -54,7 +71,8 @@ export function WeekSchedule({ fixtures, week, totalWeeks, basePath }: { fixture
         )}
       </nav>
 
-      <h3 className="weeks-title">
+      {/* The dropdown already names the week in the sidebar; the badge still marks the current one. */}
+      <h3 className={`weeks-title ${compact ? "sr-only" : ""}`}>
         هفته‌ی {faNum(shown ?? 0)}
         {shown === current && <span className="weeks-badge">هفته‌ی جاری</span>}
       </h3>
@@ -78,7 +96,7 @@ export function WeekSchedule({ fixtures, week, totalWeeks, basePath }: { fixture
                     <li key={i} className={`wk-match ${club ? "is-club" : ""} ${m.status === "live" ? "is-live" : ""}`}>
                       <span className={`wk-team wk-home ${winner === "home" ? "is-win" : ""}`}>
                         <span className="wk-name">{m.home}</span>
-                        <Crest team={m.home} size={26} />
+                        <Crest team={m.home} size={compact ? 22 : 26} />
                       </span>
                       <span className="wk-mid">
                         {played ? (
@@ -104,7 +122,7 @@ export function WeekSchedule({ fixtures, week, totalWeeks, basePath }: { fixture
                         </span>
                       </span>
                       <span className={`wk-team wk-away ${winner === "away" ? "is-win" : ""}`}>
-                        <Crest team={m.away} size={26} />
+                        <Crest team={m.away} size={compact ? 22 : 26} />
                         <span className="wk-name">{m.away}</span>
                       </span>
                     </li>

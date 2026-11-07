@@ -58,23 +58,6 @@ export function getNextClubMatch(league: LeagueData): Fixture | undefined {
   );
 }
 
-/**
- * Results of the matchweek before `next`: by round number when fixtures have one,
- * otherwise the last finished matches played before it.
- */
-export function previousRoundResults(league: LeagueData, next?: Fixture): { round?: number; fixtures: Fixture[] } {
-  const finished = league.fixtures.filter((f) => f.status === "finished");
-  const lastRound = next?.round
-    ? next.round - 1
-    : Math.max(0, ...finished.map((f) => f.round ?? 0)) || undefined;
-  if (lastRound) {
-    const inRound = finished.filter((f) => f.round === lastRound);
-    if (inRound.length) return { round: lastRound, fixtures: inRound.sort((a, b) => a.date.localeCompare(b.date)) };
-  }
-  const before = next ? finished.filter((f) => f.date < next.date) : finished;
-  return { fixtures: before.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 9) };
-}
-
 /** A slice of the table around the club, so the sidebar shows where it actually stands. */
 export function tableAroundClub(rows: StandingRow[], span = 2): { rows: StandingRow[]; offset: number } {
   const i = rows.findIndex((r) => r.team === HOME_TEAM);

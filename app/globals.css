@@ -480,6 +480,13 @@ a:hover .play { transform: scale(1.08); }
 .wk-time { font-weight: 900; font-size: 0.95rem; color: var(--accent); font-variant-numeric: tabular-nums; }
 .wk-status { font-size: 0.68rem; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .wk-match.is-live .wk-status { color: #ef4444; font-weight: 800; }
+/* Narrow version for the home page sidebar. */
+.weeks.is-compact { gap: 10px; }
+.weeks.is-compact .weeks-title { font-size: 0.92rem; }
+.weeks.is-compact .wk-match { grid-template-columns: minmax(0, 1fr) 62px minmax(0, 1fr); padding: 7px 8px; gap: 6px; }
+.weeks.is-compact .wk-team { font-size: 0.8rem; gap: 6px; }
+.weeks.is-compact .wk-score { font-size: 0.92rem; gap: 4px; }
+.weeks.is-compact .wk-time { font-size: 0.85rem; }
 @media (max-width: 720px) {
   .wk-match { grid-template-columns: minmax(0, 1fr) 70px minmax(0, 1fr); padding: 8px; gap: 6px; }
   .wk-team { font-size: 0.8rem; gap: 6px; }
@@ -535,19 +542,6 @@ a:hover .play { transform: scale(1.08); }
 .nm-date { font-size: 0.76rem; color: #c9c1b2; white-space: nowrap; }
 .next-match-foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgb(255 255 255 / 0.1); text-align: center; font-size: 0.78rem; color: #b8b0a2; }
 
-/* Last round results (home sidebar) */
-.result-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.result-list li {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px;
-  padding: 8px; border-radius: 10px; font-size: 0.82rem; font-weight: 600;
-}
-.result-list li:nth-child(odd) { background: var(--surface-2); }
-.result-list li.is-club { background: var(--club-row); color: #fff; border: 1px solid var(--line-gold); }
-:root[data-mode="light"] .result-list li.is-club { color: var(--heading); }
-.rl-team { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.rl-home { justify-content: flex-end; }
-.rl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.result-list .score { min-width: 54px; padding: 1px 8px; font-size: 0.85rem; }
 .crest-img { border-radius: 0; object-fit: contain; box-shadow: none; background: transparent; }
 .daily-more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; margin-top: 8px; }
 .daily-more > [hidden] { display: none; }
