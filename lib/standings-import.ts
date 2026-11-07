@@ -126,9 +126,45 @@ function consistent(r: Partial<Record<Col, number>>, allowDeduction = false): bo
 
 export type ParseResult = { rows: StandingRow[]; warnings: string[] };
 
+/**
+ * A page as the browser would copy it: cells separated by tabs, rows and boxes by
+ * new lines. Used when the table isn't one plain <table> (nested tables, a header
+ * built from <div>s, one <table> per row), e.g. iranleague.ir.
+ */
+export function htmlToText(html: string): string {
+  const text = html
+    .replace(/<(head|script|style|noscript|svg)\b[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<\/(td|th)>/gi, "\t")
+    .replace(/<(br|hr)\b[^>]*>|<\/(tr|p|div|li|ul|ol|h[1-6]|table|thead|tbody|section|header|footer|nav|article)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/[ \u00a0]*\t[ \u00a0]*/g, "\t")
+    .replace(/\t{2,}/g, "\t")
+    .replace(/^\t+|\t+$/gm, "");
+  // Start at the table's header so menus and news above it are not read.
+  const lines = text.split(/\n/);
+  const start = lines.findIndex((l) => /امتیاز/.test(l));
+  return (start > 0 ? lines.slice(start) : lines).join("\n");
+}
+
+/** Team rows found; one per team, the first wins (a page can list a team twice). */
+function uniqueRows(result: ParseResult): ParseResult {
+  const seen = new Set<string>();
+  return { ...result, rows: result.rows.filter((r) => !seen.has(r.team) && seen.add(r.team)) };
+}
+
 export function parseStandings(input: string): ParseResult {
-  const isHtml = /<table\b/i.test(input);
-  const raw = isHtml ? htmlToRows(input) : textToRows(input);
+  const isHtml = /<table\b|<div\b|<span\b/i.test(input) && /<\/?[a-z][^>]*>/i.test(input);
+  if (!isHtml) return parseRows(textToRows(input));
+  const fromTable = parseRows(htmlToRows(input));
+  if (fromTable.rows.length >= 8) return fromTable;
+  const fromText = uniqueRows(parseRows(textToRows(htmlToText(input))));
+  return fromText.rows.length > fromTable.rows.length ? fromText : fromTable;
+}
+
+function parseRows(raw: string[][]): ParseResult {
   const warnings: string[] = [];
 
   // Header row, if present, tells us the column order for certain.

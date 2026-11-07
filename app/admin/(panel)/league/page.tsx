@@ -102,11 +102,11 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
       </form>
 
       <section id="sync" className="a-card">
-        <h2>به‌روزرسانی جدول از ورزش سه</h2>
+        <h2>به‌روزرسانی جدول از سایت سازمان لیگ یا ورزش سه</h2>
         <div className="a-grid-2">
           <form action={syncStandings}>
             <h3 className="a-subtitle">روش ۱: خودکار از روی آدرس صفحه</h3>
-            <p className="a-hint">صفحه‌ی جدول لیگ برتر را در ورزش سه باز کنید و آدرسش را از نوار مرورگر کپی کنید.</p>
+            <p className="a-hint">آدرس صفحه‌ی جدول را بدهید؛ مثلاً جدول کامل سایت سازمان لیگ (iranleague.ir/fa/League-Full-Table) یا صفحه‌ی جدول ورزش سه.</p>
             <Field label="آدرس صفحه‌ی جدول">
               <input name="url" defaultValue={league.standingsSource?.url} dir="ltr" placeholder="https://www.iranleague.ir/fa/League-Full-Table" required />
             </Field>
@@ -123,7 +123,7 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
           </form>
           <form action={pasteStandings}>
             <h3 className="a-subtitle">روش ۲: کپی و چسباندن</h3>
-            <p className="a-hint">در ورزش سه، کل جدول را از ردیف عنوان تا آخرین تیم با موس انتخاب کنید، Ctrl+C بزنید و اینجا بچسبانید.</p>
+            <p className="a-hint">در سایت مرجع، کل جدول را از ردیف عنوان تا آخرین تیم با موس انتخاب کنید، Ctrl+C بزنید و اینجا بچسبانید.</p>
             <Field label="جدول کپی‌شده">
               <textarea name="table" rows={7} required placeholder={"رتبه  تیم  بازی  برد  مساوی  باخت  زده  خورده  تفاضل  امتیاز\n۱  استقلال  ۱۰  ۷  ۲  ۱  ۱۸  ۶  ۱۲  ۲۳"} />
             </Field>
@@ -138,7 +138,7 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
           </form>
         ) : null}
         <p className="a-hint a-section-gap">
-          «۵ بازی اخیر» هر تیم از جدول فعلی حفظ می‌شود. نام تیم‌ها همان‌طور که در ورزش سه نوشته شده ذخیره می‌شود؛ هر نامی که «نساجی» داشته باشد، ردیف نساجی حساب می‌شود.
+          «۵ بازی اخیر» هر تیم از جدول فعلی حفظ می‌شود. نام‌های کوتاه یا متفاوت (مثل «استقلال خ» یا «ملوان بندر انزلی») خودکار به نام تیم در همین سایت برگردانده می‌شوند تا لوگو و بازی‌ها درست بمانند.
         </p>
       </section>
 
