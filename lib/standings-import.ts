@@ -85,27 +85,37 @@ function textToRows(text: string): string[][] {
     .filter(Boolean)
     .map((line) => (line.includes("\t") ? line.split("\t").map((c) => c.trim()).filter(Boolean) : line.split(" ")));
   const rows: string[][] = [];
-  let pendingName: string[] = [];
+  // The team being read: its name, then numbers (and form letters) that may follow
+  // on later lines, one per line on some sites (iranleague.ir), until the next name.
+  let current: string[] = [];
+  const flush = () => {
+    if (current.filter(isNumberish).length >= 2) rows.push(current);
+    current = [];
+  };
   for (const cells of lines) {
     const numeric = cells.filter(isNumberish).length;
     // Single W/D/L letters are the form guide split into cells, not words of a name.
     const hasWords = cells.some((c) => !isNumberish(c) && !FORM.test(c) && !isFormLetter(c) && /\p{L}/u.test(c));
-    if (hasWords && numeric < 2) {
-      // A name on its own line (or a header): the numbers follow on the next line.
-      pendingName = cells;
-      if (cells.some((c) => /امتیاز/.test(c))) {
-        rows.push(cells);
-        pendingName = [];
-      }
-    } else if (!hasWords && numeric >= 4 && pendingName.length) {
-      rows.push([...pendingName, ...cells]);
-      pendingName = [];
-    } else if (hasWords) {
+    if (hasWords && cells.some((c) => /امتیاز/.test(c))) {
+      flush();
       rows.push(cells);
-      pendingName = [];
+    } else if (hasWords && numeric < 2) {
+      // A name on its own line (perhaps after its rank): the numbers follow.
+      flush();
+      current = cells;
+    } else if (hasWords) {
+      // A whole row on one line.
+      flush();
+      rows.push(cells);
+    } else if (current.length) {
+      current.push(...cells);
+      // Numbers given together on one line complete the row (Varzesh3); one number
+      // per line (iranleague) keeps collecting until the next name.
+      if (numeric >= 2) flush();
     }
-    // Lines holding only a rank number are skipped.
+    // Numbers before the first name (a rank, a header count) are skipped.
   }
+  flush();
   return rows;
 }
 
@@ -201,7 +211,14 @@ function parseRows(raw: string[][]): ParseResult {
     for (const allowDeduction of [false, true]) {
       for (const layout of layouts) {
         if (allowDeduction && !(layout.includes("played") && layout.includes("diff") && layout.includes("points"))) continue;
-        for (const candidate of [nums, nums.slice(1), nums.slice(0, -1)]) {
+        // Extra numbers around the row: a leading rank, a trailing "کسر شده" column or the next team's rank.
+        const windows = [nums, nums.slice(1), nums.slice(0, -1)];
+        // Only for full layouts: played, goal difference and points must all check out, so a
+        // short layout can't fit by chance (11 3 3 5 12 read as 12 points).
+        if (layout.includes("played") && layout.includes("diff") && layout.includes("goalsFor") && layout.includes("points")) {
+          for (let start = 0; start <= Math.min(2, nums.length - layout.length); start++) windows.push(nums.slice(start, start + layout.length));
+        }
+        for (const candidate of windows) {
           if (candidate.length !== layout.length) continue;
           const r = Object.fromEntries(layout.map((c, i) => [c, candidate[i]])) as Partial<Record<Col, number>>;
           if (consistent(r, allowDeduction)) {

@@ -49,3 +49,16 @@ test("text copied from the browser still works", () => {
   const text = "رتبه\tتیم\tبازی\tبرد\tمساوی\tباخت\tزده\tخورده\tتفاضل\tامتیاز\n" + DATA.map((r, i) => `${i + 1}\t${r[0]}\t${r.slice(1, 6).join("\t")}\t${r[6]}\t${r[5] - r[6]}\t${r[7]}`).join("\n");
   check(text);
 });
+
+test("iranleague.ir: every number on its own line, with a «کسر شده» column", async () => {
+  const fs = await import("node:fs");
+  const text = fs.readFileSync(new URL("./fixtures/iranleague-text.txt", import.meta.url), "utf8");
+  const { rows, warnings } = parseStandings(text);
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(rows.map((r) => [r.team, r.played, r.won, r.drawn, r.lost, r.goalsFor, r.goalsAgainst, r.points, r.deducted ?? 0]), [
+    ["سپاهان اصفهان", 12, 8, 2, 2, 23, 7, 26, 0],
+    ["پرسپولیس تهران", 12, 8, 3, 1, 20, 8, 27, 0],
+    ["ملوان بندرانزلی", 12, 3, 3, 6, 9, 15, 10, 2],
+    ["نساجی مازندران", 11, 2, 5, 4, 8, 11, 11, 0],
+  ]);
+});
