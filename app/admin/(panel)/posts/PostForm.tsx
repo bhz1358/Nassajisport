@@ -131,7 +131,10 @@ export function PostForm({ post, canPublish = true }: { post?: Post; canPublish?
 
           <div className="a-card">
             <ImageField name="featuredImage" defaultValue={post?.featuredImage} label="تصویر شاخص" />
-            <p className="a-hint">اگر خالی بماند، اولین عکس داخل متن تصویر شاخص می‌شود.</p>
+            <p className="a-hint">
+              عکس خودکار در کادر استاندارد سایت (۱۶:۹) قرار می‌گیرد: عکس افقی هوشمند بریده می‌شود و عکس عمودی یا مربعی کامل، روی زمینه‌ی محوِ خودش. اگر خالی بماند،
+              اولین عکس داخل متن تصویر شاخص می‌شود.
+            </p>
           </div>
         </aside>
       </form>

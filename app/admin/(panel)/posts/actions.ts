@@ -6,7 +6,7 @@ import { can, canEditPost } from "@/lib/roles";
 import { getAllPosts, getCategories, getComments, nextPostId, normalizePath, savePosts } from "@/lib/content";
 import { bool, file, num, str, withError } from "@/lib/form";
 import { jalaliPartsToIso } from "@/lib/jalali";
-import { saveUpload } from "@/lib/media";
+import { saveNewsPhoto } from "@/lib/media";
 import { writeStore } from "@/lib/store";
 import { getLeague } from "@/lib/league";
 import { fixInlineColors } from "@/lib/content-colors";
@@ -70,7 +70,8 @@ export async function savePost(fd: FormData) {
   const upload = file(fd, "featuredImageFile");
   if (upload) {
     try {
-      featuredImage = await saveUpload(upload);
+      // Fitted to the site's 16:9 frame, like every news photo.
+      featuredImage = await saveNewsPhoto(upload);
     } catch (e) {
       redirect(withError(back, (e as Error).message));
     }

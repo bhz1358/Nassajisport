@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { fitToFrame } from "./photo-frame.ts";
 import { UPLOADS_DIR } from "./store";
 
 // SVG is left out on purpose: served from our own origin it could run scripts.
@@ -88,6 +89,25 @@ export async function saveUploadAsWebp(file: File, size = 512): Promise<string> 
   const webp = await sharp(input).rotate().resize(size, size, { fit: "inside", withoutEnlargement: true }).webp({ quality: 88 }).toBuffer();
   const base = path.basename(file.name, ext);
   return saveUpload(new File([new Uint8Array(webp)], `${base}.webp`, { type: "image/webp" }));
+}
+
+/**
+ * A news photo, fitted to the site's 16:9 frame (lib/photo-frame.ts) and saved as WebP.
+ * GIFs are kept as they are (animation); without the image library the original is kept.
+ */
+export async function saveNewsPhoto(file: File): Promise<string> {
+  const ext = path.extname(file.name).toLowerCase();
+  if (ext === ".gif" || ![".jpg", ".jpeg", ".png", ".webp", ".avif"].includes(ext)) return saveUpload(file);
+  if (file.size > MAX_UPLOAD_BYTES) throw new Error("حجم فایل بیشتر از ۲۵ مگابایت است.");
+  const input = Buffer.from(await file.arrayBuffer());
+  if (!looksLike(input, ext)) throw new Error("محتوای فایل با پسوندش جور نیست.");
+  let framed: Buffer;
+  try {
+    framed = (await fitToFrame(input)).buffer;
+  } catch {
+    return saveUpload(file);
+  }
+  return saveUpload(new File([new Uint8Array(framed)], `${path.basename(file.name, ext)}.webp`, { type: "image/webp" }));
 }
 
 export type MediaItem = { url: string; size: number; mtime: string; isVideo: boolean };
