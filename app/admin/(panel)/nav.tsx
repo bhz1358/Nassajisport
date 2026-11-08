@@ -12,6 +12,7 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/posts/", label: "خبرها و برگه‌ها" },
       { href: "/admin/categories/", label: "دسته‌ها" },
       { href: "/admin/media/", label: "رسانه" },
+      { href: "/admin/telegram/", label: "تلگرام" },
     ],
   },
   {

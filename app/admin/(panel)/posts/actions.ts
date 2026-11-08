@@ -11,19 +11,11 @@ import { writeStore } from "@/lib/store";
 import { getLeague } from "@/lib/league";
 import { fixInlineColors } from "@/lib/content-colors";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { slugify } from "@/lib/slug";
 import { autoExcerpt, fillImageAlts, findTags, firstImage, plainText } from "@/lib/seo-auto";
 import { HOME_TEAM } from "@/lib/site";
 import { getSquad } from "@/lib/squad";
 import type { Post } from "@/lib/types";
-
-const slugify = (s: string) =>
-  s
-    .trim()
-    .toLowerCase()
-    .replace(/[\s_]+/g, "-")
-    .replace(/[^\p{L}\p{N}-]+/gu, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
 
 /** Teams of the league (for automatic tags). */
 const teamNames = () => [...new Set([HOME_TEAM, ...getLeague().standings.map((r) => r.team)])];

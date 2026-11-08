@@ -44,7 +44,10 @@ const norm = (s: string) => s.replace(/ي/g, "ی").replace(/ك/g, "ک").replace(
  * the player's page). A team counts by its full name or its first word when that is
  * distinctive ("پرسپولیس", "نساجی"); short or shared first words don't count alone.
  */
-export function findTags(text: string, teams: string[], players: string[]): string[] {
+export function findTags(text: string, teamList: string[], playerList: string[]): string[] {
+  // The same name twice in a list must not look like two clubs sharing a first word.
+  const teams = [...new Set(teamList)];
+  const players = [...new Set(playerList)];
   let t = ` ${norm(text)} `;
   const pattern = (name: string) => new RegExp(`(^|[\\s«»"'()،,.:؛!؟?-])${norm(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=$|[\\s«»"'()،,.:؛!؟?-]|ی\\b|ها)`, "gu");
   const has = (name: string) => norm(name).length >= 3 && pattern(name).test(t);

@@ -42,3 +42,7 @@ test("featured image and alt text from the content", () => {
   assert.equal(firstImage(html), "/a.webp");
   assert.equal(fillImageAlts(html, 'برد "نساجی"'), `<p>متن</p><img src="/a.webp" alt="برد &quot;نساجی&quot;"><img src="/b.webp" alt="برد &quot;نساجی&quot;"><img src="/c.webp" alt="عکس خودم">`);
 });
+
+test("a team listed twice still counts by its first word", () => {
+  assert.deepEqual(findTags("اعلام ساعت بازی نساجی و ملوان", ["نساجی مازندران", "نساجی مازندران", "ملوان"], []), ["نساجی مازندران", "ملوان"]);
+});
