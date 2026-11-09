@@ -33,6 +33,8 @@ export type TelegramState = {
   processed: Record<string, number>;
   lastSync?: string;
   lastError?: string;
+  /** What the last check saw, so the admin can tell the bot is reading the channel. */
+  lastSeen?: { posts: number; withoutMark: number; otherChats: string[] };
   log: { at: string; postId: number; title: string; action: "created" | "updated" }[];
 };
 
@@ -173,18 +175,31 @@ async function buildPost(messages: TgMessage[], existing: Post | undefined, stat
 }
 
 /** Reads new channel posts and makes or updates news posts. */
-export async function syncTelegram(): Promise<{ ok: true; created: number; updated: number } | { ok: false; error: string }> {
+export type SyncResult = { ok: true; created: number; updated: number; seen: number; withoutMark: number; otherChats: string[] } | { ok: false; error: string };
+
+export async function syncTelegram(): Promise<SyncResult> {
   if (!hasToken()) return { ok: false, error: "توکن ربات تنظیم نشده (TELEGRAM_BOT_TOKEN در فایل /etc/nassaji.env)." };
   const state = telegramState();
   let created = 0;
   let updated = 0;
+  let seen = 0;
+  let withoutMark = 0;
+  const otherChats = new Set<string>();
   try {
     const updates = await call<TgUpdate[]>("getUpdates", { offset: state.offset, timeout: 0, limit: 100, allowed_updates: ["channel_post", "edited_channel_post"] });
     // An album arrives as several messages with the same media_group_id: handled together.
     const groups = new Map<string, { messages: TgMessage[]; edited: boolean; lastUpdate: number }>();
     for (const u of updates) {
       const m = u.channel_post ?? u.edited_channel_post;
-      if (!m || !fromChannel(m, state.channel)) continue;
+      if (!m) continue;
+      if (!fromChannel(m, state.channel)) {
+        otherChats.add(m.chat.username ? `@${m.chat.username}` : m.chat.title ?? String(m.chat.id));
+        continue;
+      }
+      if (u.channel_post && (m.caption || m.text)) {
+        seen++;
+        if (!isForSite(m.caption ?? m.text ?? "")) withoutMark++;
+      }
       const key = m.media_group_id ? `g${m.chat.id}:${m.media_group_id}` : `${m.chat.id}:${m.message_id}`;
       const g = groups.get(key) ?? { messages: [], edited: false, lastUpdate: u.update_id };
       g.messages.push(m);
@@ -223,8 +238,9 @@ export async function syncTelegram(): Promise<{ ok: true; created: number; updat
       offset = u.update_id + 1;
       saveState({ offset, processed, log: log.slice(0, 30) });
     }
-    saveState({ lastSync: new Date().toISOString(), lastError: undefined });
-    return { ok: true, created, updated };
+    const lastSeen = { posts: seen, withoutMark, otherChats: [...otherChats] };
+    saveState({ lastSync: new Date().toISOString(), lastError: undefined, lastSeen });
+    return { ok: true, created, updated, seen, withoutMark, otherChats: lastSeen.otherChats };
   } catch (e) {
     const error = hide((e as Error).message);
     saveState({ lastSync: new Date().toISOString(), lastError: error });

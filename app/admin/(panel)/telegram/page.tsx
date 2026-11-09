@@ -14,6 +14,17 @@ export const metadata: Metadata = { title: "تلگرام" };
 
 const BACK = "/admin/telegram/";
 
+/** What the bot saw in plain words: posts read, posts skipped for lacking 🌍, other chats. */
+function seenText(seen: number, withoutMark: number, otherChats: string[], created = 0, updated = 0) {
+  const parts = [
+    seen ? `ربات ${seen} پست تازه از کانال دید` : "ربات از آخرین بررسی پست تازه‌ای در کانال ندیده",
+    withoutMark ? `${withoutMark} پست 🌍 نداشت و خبر نشد` : "",
+    created || updated ? `${created} خبر تازه ساخته شد${updated ? ` و ${updated} خبر به‌روز شد` : ""}` : "",
+    otherChats.length ? `پست‌هایی هم از ${otherChats.join("، ")} آمد که چون کانال تنظیم‌شده نیست نادیده گرفته شد` : "",
+  ];
+  return parts.filter(Boolean).join("؛ ") + ".";
+}
+
 async function saveSettings(fd: FormData) {
   "use server";
   await requireAccess("publish");
@@ -41,7 +52,7 @@ async function checkNow() {
   await requireAccess("publish");
   const r = await syncTelegram();
   if (!r.ok) redirect(withError(BACK, r.error));
-  redirect(`${BACK}?ok=${encodeURIComponent(r.created || r.updated ? `${r.created} خبر تازه، ${r.updated} خبر به‌روز شد.` : "پست تازه‌ای با 🌍 در کانال نبود.")}`);
+  redirect(`${BACK}?ok=${encodeURIComponent(seenText(r.seen, r.withoutMark, r.otherChats, r.created, r.updated))}`);
 }
 
 export default async function TelegramPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
@@ -101,6 +112,8 @@ export default async function TelegramPage({ searchParams }: { searchParams: Pro
               {s.lastError ? ` — خطا: ${s.lastError}` : " — موفق"}
             </p>
           )}
+          {s.lastSeen && !s.lastError && <p className="a-hint">{seenText(s.lastSeen.posts, s.lastSeen.withoutMark, s.lastSeen.otherChats)}</p>}
+          <p className="a-hint">ربات فقط پست‌هایی را می‌بیند که بعد از ادمین شدنش در کانال منتشر شده‌اند.</p>
           <div className="a-row">
             <form action={testConnection}>
               <SubmitButton className="a-btn" pendingText="در حال اتصال…">
