@@ -8,6 +8,7 @@ import { fixtureKey } from "./predict-score.ts";
 import { bestPlayer, cleanScores, results, type Candidate, type RatingVote } from "./ratings-calc.ts";
 import { HOME_TEAM } from "./site";
 import { getSquad } from "./squad";
+import { fixtureOf, getReports } from "./match-reports";
 import { readStore, writeStore } from "./store";
 import type { Fixture } from "./types";
 
@@ -57,10 +58,18 @@ export function candidatesFor(f: Fixture): Candidate[] {
     seen.add(id);
     list.push({ id, name: p?.name ?? name, number: number || p?.number, slug: p?.slug, photo: p?.photo, role: "player" });
   };
-  if (side && side.starters.length) for (const p of [...side.starters, ...side.substitutes]) add(p.name, p.number, p.slug);
+  // The official match sheet (گزارش بازی) comes first, then the lineup editor, then the squad.
+  const key = fixtureKey(f);
+  const report = getReports().find((r) => {
+    const rf = fixtureOf(r);
+    return rf && fixtureKey(rf) === key;
+  });
+  const sheet = report && [report.home, report.away].find((t) => isClub(t.team));
+  if (sheet && sheet.starters.length) for (const p of [...sheet.starters, ...sheet.subs]) add(p.name, p.number);
+  else if (side && side.starters.length) for (const p of [...side.starters, ...side.substitutes]) add(p.name, p.number, p.slug);
   else for (const p of [...squad.players].sort((a, b) => a.number - b.number)) add(p.name, p.number, p.slug);
   const staff = squad.staff.find((s) => /سرمربی/.test(s.role));
-  const coachName = side?.coach || staff?.name;
+  const coachName = sheet?.staff.find((s) => /سرمربی/.test(s.role))?.name || side?.coach || staff?.name;
   if (coachName) {
     const photo = staff && norm(staff.name) === norm(coachName) ? staff.photo : undefined;
     list.push({ id: "coach", name: coachName, photo, role: "coach" });

@@ -65,6 +65,7 @@ const PATHS: [string, Section][] = [
   ["/admin/telegram/", "publish"],
   ["/admin/predict/", "users"],
   ["/admin/ratings/", "squad"],
+  ["/admin/match-reports/", "squad"],
 ];
 
 export const sectionOfPath = (href: string): Section | undefined =>

@@ -21,6 +21,7 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/league/", label: "جدول و بازی‌ها" },
       { href: "/admin/squad/", label: "بازیکنان و کادر" },
       { href: "/admin/squad/lineup/", label: "ترکیب بازی" },
+      { href: "/admin/match-reports/", label: "گزارش بازی‌ها" },
       { href: "/admin/ratings/", label: "نمرهٔ هواداران" },
       { href: "/admin/predict/", label: "مسابقهٔ پیش‌بینی" },
     ],
