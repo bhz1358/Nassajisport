@@ -6,6 +6,9 @@ import { requireAccess } from "@/lib/auth";
 import { baleBotInfo, baleState, hasBaleToken } from "@/lib/bale-login";
 import { getFans, saveFans } from "@/lib/fans";
 import { removeAvatar } from "@/lib/fan-avatar";
+import { reminderState, runReminders } from "@/lib/reminders";
+import { writeStore } from "@/lib/store";
+import { fanChat } from "@/lib/fans";
 import { str, withError } from "@/lib/form";
 import { faDate, faNum } from "@/lib/format";
 import { getLeague } from "@/lib/league";
@@ -35,6 +38,20 @@ async function toggleBlock(fd: FormData) {
   redirect(`${BACK}?ok=saved#fans`);
 }
 
+async function setReminders(fd: FormData) {
+  "use server";
+  await requireAccess("users");
+  writeStore("reminders", { ...reminderState(), enabled: fd.get("enabled") === "on" });
+  redirect(`${BACK}?ok=saved#reminders`);
+}
+
+async function runNow() {
+  "use server";
+  await requireAccess("users");
+  const n = await runReminders();
+  redirect(`${BACK}?ok=${encodeURIComponent(n ? `${n} پیام فرستاده شد.` : "الان پیامی برای فرستادن نبود (یادآوری‌ها خودکار هر ۵ دقیقه بررسی می‌شوند).")}#reminders`);
+}
+
 async function clearAvatar(fd: FormData) {
   "use server";
   await requireAccess("users");
@@ -53,6 +70,8 @@ export default async function PredictAdmin({ searchParams }: { searchParams: Pro
   const week = Number(sp.week) || contestWeek(getLeague().fixtures);
   const bale = baleState();
   const token = hasBaleToken();
+  const rem = reminderState();
+  const reachable = fans.filter((f) => fanChat(f) && f.remind !== false && !f.blocked).length;
   const table = (rows: ReturnType<typeof seasonTable>) =>
     rows.length ? (
       <div className="a-table-wrap">
@@ -109,6 +128,32 @@ export default async function PredictAdmin({ searchParams }: { searchParams: Pro
           <p className="a-hint">شماره‌ها فقط در همین صفحه و فقط برای مدیر کل نمایش داده می‌شود (برای تماس با برندگان).</p>
         </div>
       </div>
+
+      <section className="a-card" id="reminders">
+        <h2>یادآوری‌های بله</h2>
+        <p className="a-hint">
+          بازو خودکار به هوادارها پیام می‌دهد: <b>۲ ساعت پیش از</b> اولین بازی روز که پیش‌بینی نکرده‌اند (روزی یک پیام)، و <b>بعد از پایان هر هفته</b> امتیاز و رتبه‌شان را.
+          هر هوادار با فرستادن «توقف» به بازو، یا از صفحهٔ پروفایلش، یادآوری‌ها را خاموش می‌کند.
+        </p>
+        <form action={setReminders} className="a-row" style={{ alignItems: "center", gap: 12 }}>
+          <label className="a-check">
+            <input type="checkbox" name="enabled" defaultChecked={rem.enabled} /> یادآوری‌ها روشن باشد
+          </label>
+          <SubmitButton className="a-btn a-btn-small">ذخیره</SubmitButton>
+        </form>
+        <p>هوادارانی که یادآوری می‌گیرند: <b>{faNum(reachable)}</b> از {faNum(fans.length)}</p>
+        {rem.lastRun && <p className="a-hint">آخرین بررسی: {faDate(rem.lastRun)}</p>}
+        {rem.log.length > 0 && (
+          <ul className="a-hint">
+            {rem.log.slice(0, 8).map((l, i) => (
+              <li key={i}>{faDate(l.at)} — {l.text}</li>
+            ))}
+          </ul>
+        )}
+        <form action={runNow}>
+          <SubmitButton className="a-btn" pendingText="در حال بررسی…">بررسی و ارسال همین الان</SubmitButton>
+        </form>
+      </section>
 
       <section className="a-card">
         <h2>برترین‌های هفتهٔ {week ? faNum(week) : "—"}</h2>

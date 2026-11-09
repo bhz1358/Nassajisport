@@ -61,3 +61,11 @@ export async function deleteAvatar() {
   removeAvatar(fan.id);
   redirect(`/predict/me/?ok=${encodeURIComponent("عکس پروفایل حذف شد.")}`);
 }
+
+export async function toggleRemind(fd: FormData) {
+  const fan = await currentFan();
+  if (!fan) redirect("/predict/login/");
+  const on = fd.get("remind") === "on";
+  saveFans(getFans().map((f) => (f.id === fan.id ? { ...f, remind: on } : f)));
+  redirect(`/predict/me/?ok=${encodeURIComponent(on ? "یادآوری‌های بله روشن شد." : "یادآوری‌های بله خاموش شد.")}`);
+}

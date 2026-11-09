@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentFan } from "@/lib/fans";
-import { deleteAvatar, logoutFan, saveName, uploadAvatar } from "../actions";
+import { deleteAvatar, logoutFan, saveName, toggleRemind, uploadAvatar } from "../actions";
 import { FanAvatar, Notice } from "../ui";
 import { PhotoPicker } from "../PhotoPicker";
 
@@ -37,6 +37,16 @@ export default async function PredictMe({ searchParams }: { searchParams: Promis
         <label htmlFor="name">نام نمایشی</label>
         <input id="name" name="name" defaultValue={fan.named ? fan.name : ""} placeholder="مثلاً علی قائمشهری" maxLength={20} minLength={2} required autoFocus />
         <button type="submit" className="btn btn-primary">ذخیره</button>
+      </form>
+      <form action={toggleRemind} className="predict-remind">
+        <label>
+          <input type="checkbox" name="remind" defaultChecked={fan.remind !== false} />
+          <span>
+            <b>یادآوری در بله</b>
+            <small>۲ ساعت پیش از بازی‌هایی که پیش‌بینی نکرده‌اید، و امتیاز و رتبه‌تان بعد از هر هفته.</small>
+          </span>
+        </label>
+        <button type="submit" className="btn btn-sm btn-outline">ذخیره</button>
       </form>
       <div className="predict-me-links">
         <Link href="/predict/">بازگشت به مسابقه</Link>

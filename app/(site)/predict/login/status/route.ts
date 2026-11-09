@@ -1,6 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { loginStatus, startLogin, hasBaleToken } from "@/lib/bale-login";
+import { loginStatus, rememberSiteUrl, startLogin, hasBaleToken } from "@/lib/bale-login";
 import { fanForPhone, signInFan } from "@/lib/fans";
 import { secureCookies } from "@/lib/auth";
 
@@ -13,7 +13,10 @@ const starts = new Map<string, { n: number; until: number }>();
 /** Starts a sign-in: returns the code and the bot link; the secret id goes in a cookie. */
 export async function POST() {
   if (!hasBaleToken()) return NextResponse.json({ error: "ورود با بله هنوز راه‌اندازی نشده است." }, { status: 503 });
-  const ip = ((await headers()).get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  if (host) rememberSiteUrl(`${(h.get("x-forwarded-proto") ?? "http").split(",")[0]}://${host}`);
   const s = starts.get(ip);
   const fresh = !s || Date.now() > s.until;
   if (!fresh && s.n >= 10) return NextResponse.json({ error: "تعداد درخواست‌ها زیاد بود؛ چند دقیقهٔ دیگر دوباره امتحان کنید." }, { status: 429 });
@@ -30,7 +33,7 @@ export async function GET() {
   if (!id) return NextResponse.json({ status: "expired" });
   const r = await loginStatus(id);
   if (r.status === "done" && r.phone) {
-    const fan = fanForPhone(r.phone, r.baleId);
+    const fan = fanForPhone(r.phone, r.baleId, r.chatId);
     if (fan.blocked) return NextResponse.json({ status: "blocked" });
     await signInFan(fan);
     jar.delete(COOKIE);

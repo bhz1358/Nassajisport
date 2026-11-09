@@ -10,6 +10,10 @@ export type Fan = {
   /** 09xxxxxxxxx, verified by Bale; never shown on the site. */
   phone: string;
   baleId?: number;
+  /** The fan's private chat with the bot (reminders go there). */
+  baleChat?: number;
+  /** Reminders in Bale; on unless the fan turned them off. */
+  remind?: boolean;
   name: string;
   createdAt: string;
   /** Has chosen a display name (asked once after the first sign-in). */
@@ -26,14 +30,16 @@ export const getFans = () => readStore<Fan[]>("fans", () => []);
 export const saveFans = (fans: Fan[]) => writeStore("fans", fans);
 
 /** The fan with this phone, created on first sign-in with a placeholder name. */
-export function fanForPhone(phone: string, baleId?: number): Fan {
+export function fanForPhone(phone: string, baleId?: number, baleChat?: number): Fan {
   const fans = getFans();
   const found = fans.find((f) => f.phone === phone);
   if (found) {
-    if (baleId && found.baleId !== baleId) saveFans(fans.map((f) => (f.id === found.id ? { ...f, baleId } : f)));
+    if ((baleId && found.baleId !== baleId) || (baleChat && found.baleChat !== baleChat)) {
+      saveFans(fans.map((f) => (f.id === found.id ? { ...f, baleId: baleId ?? f.baleId, baleChat: baleChat ?? f.baleChat } : f)));
+    }
     return found;
   }
-  const fan: Fan = { id: crypto.randomBytes(8).toString("hex"), phone, baleId, name: `هوادار ${phone.slice(-4)}`, createdAt: new Date().toISOString() };
+  const fan: Fan = { id: crypto.randomBytes(8).toString("hex"), phone, baleId, baleChat, name: `هوادار ${phone.slice(-4)}`, createdAt: new Date().toISOString() };
   saveFans([...fans, fan]);
   return fan;
 }
@@ -68,3 +74,6 @@ export function nameProblem(name: string, fanId: string): string | undefined {
   const key = (s: string) => s.replace(/[\s‌_]+/g, "").replace(/ي/g, "ی").replace(/ك/g, "ک").toLowerCase();
   if (getFans().some((f) => f.id !== fanId && key(f.name) === key(name))) return "این نام را هوادار دیگری انتخاب کرده؛ نام دیگری بنویسید.";
 }
+
+/** Where the bot can reach the fan (in Bale a private chat's id is the user's id). */
+export const fanChat = (f: Fan) => f.baleChat ?? f.baleId;

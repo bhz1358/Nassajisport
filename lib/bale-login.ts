@@ -10,6 +10,7 @@ import crypto from "node:crypto";
 import { fetchRetry, networkReason } from "./net-tuning";
 import { normalizePhone } from "./predict-score.ts";
 import { readStore, writeStore } from "./store";
+import { getFans, saveFans } from "./fans";
 
 const token = () => (process.env.BALE_BOT_TOKEN || "").trim();
 const api = () => (process.env.BALE_API || "https://tapi.bale.ai").replace(/\/$/, "");
@@ -20,7 +21,7 @@ const LOGIN_MS = 10 * 60_000;
 
 export type LoginStatus = "pending" | "bale" | "done" | "expired";
 type Login = { id: string; code: string; created: number; status: LoginStatus; chatId?: number; phone?: string; baleId?: number };
-type BaleState = { offset?: number; botUsername?: string; logins: Login[]; lastError?: string; lastPoll?: string };
+type BaleState = { offset?: number; botUsername?: string; logins: Login[]; lastError?: string; lastPoll?: string; siteUrl?: string };
 
 const state = () => readStore<BaleState>("bale", () => ({ logins: [] }));
 const save = (patch: Partial<BaleState>) => writeStore("bale", { ...state(), ...patch });
@@ -91,7 +92,19 @@ type Msg = {
 };
 
 const CONTACT_KEYBOARD = { keyboard: [[{ text: "📱 ارسال شمارهٔ من", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true };
-const HOW = "برای ورود، در سایت نساجی اسپرت دکمهٔ «ورود با بله» را بزنید؛ یا کد ۶ رقمی‌ای را که صفحهٔ ورود سایت نشان می‌دهد همین‌جا بفرستید.";
+const HOW =
+  "برای ورود، در سایت نساجی اسپرت دکمهٔ «ورود با بله» را بزنید؛ یا کد ۶ رقمی‌ای را که صفحهٔ ورود سایت نشان می‌دهد همین‌جا بفرستید.\n\nیادآوری‌های مسابقهٔ پیش‌بینی: برای خاموش کردن «توقف» و برای روشن کردن «یادآوری» را بفرستید.";
+const STOP_WORDS = new Set(["توقف", "/stop", "stop", "خاموش", "لغو"]);
+const ON_WORDS = new Set(["یادآوری", "/remind", "روشن"]);
+
+/** Turns a fan's reminders on or off from the bot; false when this chat isn't a fan's. */
+function setRemindByChat(chatId: number, fromId: number | undefined, on: boolean): boolean {
+  const fans = getFans();
+  const fan = fans.find((f) => f.baleChat === chatId || (fromId !== undefined && f.baleId === fromId));
+  if (!fan) return false;
+  saveFans(fans.map((f) => (f.id === fan.id ? { ...f, remind: on, baleChat: chatId } : f)));
+  return true;
+}
 
 // Wrong codes typed in the bot: 5 per chat per 10 minutes.
 const wrong = new Map<number, { n: number; until: number }>();
@@ -102,8 +115,18 @@ async function reply(chatId: number, text: string, markup?: object) {
 
 async function handle(m: Msg, logins: Login[]): Promise<void> {
   if (m.chat.type && m.chat.type !== "private") return;
-  if (Date.now() / 1000 - m.date > LOGIN_MS / 1000) return; // old message: the sign-in it was for is over
+  if (Date.now() / 1000 - m.date > 30 * 60) return; // old message: whatever it was for is over
   const chatId = m.chat.id;
+  const word = (m.text ?? "").trim().toLowerCase();
+  if (STOP_WORDS.has(word) || ON_WORDS.has(word)) {
+    const on = ON_WORDS.has(word);
+    if (!setRemindByChat(chatId, m.from?.id, on)) return reply(chatId, "اول با «ورود با بله» در سایت نساجی اسپرت وارد مسابقهٔ پیش‌بینی شوید.");
+    return reply(
+      chatId,
+      on ? "🔔 یادآوری‌ها روشن شد: پیش از بازی‌هایی که پیش‌بینی نکرده‌اید و بعد از پایان هر هفته پیام می‌گیرید." : "🔕 یادآوری‌ها خاموش شد. هر وقت خواستید «یادآوری» را بفرستید.",
+      { remove_keyboard: true },
+    );
+  }
 
   if (m.contact) {
     const login = logins.find((l) => l.chatId === chatId && l.status === "bale");
@@ -116,6 +139,7 @@ async function handle(m: Msg, logins: Login[]): Promise<void> {
     login.status = "done";
     login.phone = phone;
     login.baleId = m.from?.id;
+    login.chatId = chatId;
     return reply(chatId, "✅ شمارهٔ شما تأیید شد و در سایت وارد شدید. به صفحهٔ سایت برگردید.", { remove_keyboard: true });
   }
 
@@ -142,9 +166,12 @@ async function handle(m: Msg, logins: Login[]): Promise<void> {
 let polling: Promise<void> | null = null;
 let lastPoll = 0;
 
-/** Reads the bot's new messages (at most every 1.5 s, one reader at a time). */
-export async function pollBale(): Promise<void> {
-  if (!token() || !live(state().logins).length) return;
+/**
+ * Reads the bot's new messages (at most every 1.5 s, one reader at a time): while someone is
+ * signing in, or when `always` (the scheduler, for «توقف» and other commands).
+ */
+export async function pollBale(always = false): Promise<void> {
+  if (!token() || (!always && !live(state().logins).length)) return;
   if (polling) return polling;
   if (Date.now() - lastPoll < 1500) return;
   lastPoll = Date.now();
@@ -168,16 +195,27 @@ export async function pollBale(): Promise<void> {
 }
 
 /** Where a sign-in is; once done, it is removed and its phone returned (once). */
-export async function loginStatus(id: string): Promise<{ status: LoginStatus; phone?: string; baleId?: number; error?: string }> {
+export async function loginStatus(id: string): Promise<{ status: LoginStatus; phone?: string; baleId?: number; chatId?: number; error?: string }> {
   await pollBale();
   const s = state();
   const login = s.logins.find((l) => l.id === id);
   if (!login || Date.now() - login.created > LOGIN_MS) return { status: "expired" };
   if (login.status === "done") {
     save({ logins: s.logins.filter((l) => l.id !== id) });
-    return { status: "done", phone: login.phone, baleId: login.baleId };
+    return { status: "done", phone: login.phone, baleId: login.baleId, chatId: login.chatId };
   }
   return { status: login.status, error: s.lastError };
 }
 
 export const baleState = () => state();
+
+/** The site's address as fans reach it (kept from sign-ins), for links in bot messages. */
+export const siteUrl = () => (process.env.SITE_URL || state().siteUrl || "").replace(/\/$/, "");
+export function rememberSiteUrl(url: string) {
+  if (url && url !== state().siteUrl) save({ siteUrl: url });
+}
+
+/** Sends a message to a chat; throws when Bale refuses it. */
+export async function sendBale(chatId: number, text: string): Promise<void> {
+  await call("sendMessage", { chat_id: chatId, text });
+}
