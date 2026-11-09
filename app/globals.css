@@ -1,3 +1,8 @@
+/* News text: Shabnam (SIL OFL, by Saber Rastikerdar), Persian digits. */
+@font-face { font-family: Shabnam; src: url("/fonts/shabnam/Shabnam-FD.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: Shabnam; src: url("/fonts/shabnam/Shabnam-Medium-FD.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: Shabnam; src: url("/fonts/shabnam/Shabnam-Bold-FD.woff2") format("woff2"); font-weight: 700 900; font-display: swap; }
+
 /* Nassaji Sport — dark luxury design.
    Brand (crimson) and accent (gold) come from the selected theme, injected by the
    root layout; the values below are the default "luxury" theme. */
@@ -786,7 +791,7 @@ a:hover .play { transform: scale(1.08); }
 }
 .article-cats { display: flex; gap: 6px; }
 .article-head h1 { font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 900; color: var(--heading); margin: 14px 0 10px; line-height: 1.5; text-wrap: balance; }
-.article-lede { font-size: 1.12rem; color: var(--text-2); margin: 0 0 20px; line-height: 1.95; }
+.article-lede { font-family: Shabnam, Vazirmatn, Tahoma, sans-serif; font-size: 1.2rem; color: var(--text-2); margin: 0 0 20px; line-height: 1.95; }
 .article-meta { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-block: 1px solid var(--border); }
 .article-meta div { display: flex; flex-direction: column; line-height: 1.6; }
 .article-meta strong { color: var(--heading); }
@@ -794,7 +799,10 @@ a:hover .play { transform: scale(1.08); }
 .article-image { border-radius: 14px; margin: 24px 0; aspect-ratio: 16 / 9; width: 100%; }
 .article-page { max-width: 860px; margin: 32px auto 0; }
 .article-page h1 { color: var(--heading); font-size: 2rem; font-weight: 900; margin-bottom: 16px; }
-.prose { font-size: 1.1rem; line-height: 2.2; max-width: 720px; color: var(--text); }
+.prose { font-family: Shabnam, Vazirmatn, Tahoma, sans-serif; font-size: 1.22rem; line-height: 2.15; max-width: 740px; color: var(--text); word-spacing: 0.04em; }
+/* WordPress text kept its own fonts and small sizes; the news text reads in one font and size. */
+.prose :is(p, span, font, div, li, strong, b, em, a) { font-family: inherit !important; }
+.prose :is(p, span, font, li) { font-size: inherit !important; }
 .prose p { margin: 0 0 1.2em; }
 .prose h2, .prose h3 { color: var(--heading); font-weight: 900; margin: 1.6em 0 0.6em; }
 .prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
@@ -1084,7 +1092,7 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .article { padding: 22px 16px; border-radius: 0; margin-inline: -16px; border-inline: 0; box-shadow: none; }
   .article-layout { margin-top: 16px; }
   .article-head h1 { font-size: 1.5rem; }
-  .prose { font-size: 1.04rem; line-height: 2.1; }
+  .prose { font-size: 1.14rem; line-height: 2.1; }
   .standings .form-col { display: none; }
   .pbox-sticky { position: relative; top: auto; }
   .pbox-4 img, .pbox-4 :is(video, .pbox-ph) { aspect-ratio: 300 / 250; }
