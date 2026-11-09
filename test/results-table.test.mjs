@@ -19,14 +19,15 @@ test("table and last five from results, oldest first", () => {
   assert.deepEqual(n.form, ["D", "L", "W", "D", "L"], "the first match (a win) has dropped off");
 });
 
-test("stale symbols replaced only when the results cover every match", () => {
+test("symbols always from the results; none kept from an older table", () => {
   const rows = [
     { team: "نساجی مازندران", played: 6, won: 2, drawn: 2, lost: 2, goalsFor: 8, goalsAgainst: 5, points: 8, form: ["W", "W", "W", "W", "W"] },
     { team: "ملوان", played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 1, goalsAgainst: 2, points: 3, form: ["L"] },
   ];
   const out = withResultForm(rows, fx);
   assert.deepEqual(out[0].form, ["D", "L", "W", "D", "L"]);
-  assert.deepEqual(out[1].form, ["L"], "ملوان: table says 3 matches, results have 2 — kept");
+  assert.deepEqual(out[1].form, ["L", "W"], "ملوان: from its 2 results, not the stored symbols");
+  assert.equal(withResultForm([{ ...rows[0], team: "گل گهر" }], fx)[0].form, undefined, "no results: no symbols");
 });
 
 test("differences in plain words", () => {

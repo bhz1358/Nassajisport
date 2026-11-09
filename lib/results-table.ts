@@ -32,16 +32,14 @@ export function tableFromResults(fixtures: Fixture[]): Map<string, ResultRow> {
 
 /**
  * The table to show: the source's numbers (they include points deductions and matches the
- * results may lack), with the «last five» symbols taken from the results — the league site
- * doesn't publish them, and kept ones go stale. Only when the results cover as many matches
- * as the table says, so the symbols really are the last five.
+ * results may lack), with the «last five» symbols always taken from the match results: the
+ * league site doesn't publish them, and symbols kept from an older table go stale.
  */
 export function withResultForm(standings: StandingRow[], fixtures: Fixture[]): StandingRow[] {
   const calc = tableFromResults(fixtures);
   return standings.map((r) => {
     const c = calc.get(r.team);
-    if (!c || r.partial || c.played !== r.played) return r;
-    return { ...r, form: c.form };
+    return c?.form.length ? { ...r, form: c.form } : { ...r, form: undefined };
   });
 }
 

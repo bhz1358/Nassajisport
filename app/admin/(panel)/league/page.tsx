@@ -386,12 +386,24 @@ function TableCheck() {
             </ul>
           )}
           <details>
-            <summary className="a-hint">نشانه‌های ۵ بازی اخیر هر تیم (از قدیم به جدید)</summary>
-            <p className="a-hint">
-              {league.standings
-                .map((r) => `${r.team}: ${(calc.get(r.team)?.form ?? []).map((x) => (x === "W" ? "ب" : x === "D" ? "م" : "ش")).join(" ") || "—"}`)
-                .join(" · ")}
-            </p>
+            <summary className="a-hint">نشانه‌های ۵ بازی اخیر و آخرین نتیجهٔ هر تیم (نشانه‌ها از قدیم به جدید)</summary>
+            <ul className="a-hint">
+              {league.standings.map((r) => {
+                const last = league.fixtures
+                  .filter((f) => f.status === "finished" && f.homeScore != null && (f.home === r.team || f.away === r.team))
+                  .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))[0];
+                return (
+                  <li key={r.team}>
+                    <b>{r.team}</b>: {(calc.get(r.team)?.form ?? []).map((x) => (x === "W" ? "ب" : x === "D" ? "م" : "ش")).join(" ") || "—"}
+                    {last && (
+                      <>
+                        {" "}— آخرین بازی{last.round ? ` (هفتهٔ ${last.round})` : ""}: {last.home} {last.homeScore}-{last.awayScore} {last.away}
+                      </>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </details>
           <p className="a-hint">
             «جدول N بازی دارد ولی نتیجهٔ M بازی ثبت شده» یعنی نتیجهٔ بعضی بازی‌ها در برنامه نیست؛ درون‌ریزی دوبارهٔ برنامهٔ فصل از فوتبالی معمولاً درستش می‌کند.
