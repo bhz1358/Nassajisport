@@ -19,6 +19,7 @@ import { getSquad } from "./squad";
 import { fetchRetry, networkReason } from "./net-tuning.ts";
 import { readStore, UPLOADS_DIR, writeStore } from "./store";
 import { isForSite, paragraphsToHtml, parsePost } from "./telegram-parse.ts";
+import { channelName, parseWebPage } from "./telegram-web.ts";
 import { resolveTheme } from "./themes";
 import type { Post } from "./types";
 
@@ -129,14 +130,15 @@ async function coverFor(title: string): Promise<string> {
   return saveUpload(new File([new Uint8Array(buf)], `cover-${slugify(title).slice(0, 30) || "news"}.webp`, { type: "image/webp" }));
 }
 
+/** One channel post, from the bot or from the channel's web page. */
+type Source = { id: number; date: number; text: string; media: (title: string) => Promise<{ photos: string[]; videos: string[] }> };
+
 /** Builds (or rebuilds) the news post for one channel post. */
-async function buildPost(messages: TgMessage[], existing: Post | undefined, state: TelegramState): Promise<Post> {
-  const main = messages.find((m) => m.caption || m.text) ?? messages[0];
-  const text = main.caption ?? main.text ?? "";
-  const parsed = parsePost(text);
+async function buildPost(src: Source, existing: Post | undefined, state: TelegramState): Promise<Post> {
+  const parsed = parsePost(src.text);
   const title = parsed.title || "خبر";
   // Media only when the post is new: edits change text, not pictures already saved.
-  const media = existing ? { photos: [], videos: [] } : await saveMedia(messages, title);
+  const media = existing ? { photos: [], videos: [] } : await src.media(title);
   const featuredImage = existing?.featuredImage ?? media.photos[0] ?? (await coverFor(title));
   const extra = [
     ...media.photos.slice(1).map((u) => `<p><img src="${u}" alt=""></p>`),
@@ -155,7 +157,7 @@ async function buildPost(messages: TgMessage[], existing: Post | undefined, stat
   const posts = getAllPosts();
   let path = existing?.path;
   if (!path) {
-    const base = slugify(title).slice(0, 80) || `news-${main.message_id}`;
+    const base = slugify(title).slice(0, 80) || `news-${src.id}`;
     path = normalizePath(`/${base}/`);
     for (let n = 2; posts.some((p) => normalizePath(p.path) === path); n++) path = normalizePath(`/${base}-${n}/`);
   }
@@ -166,7 +168,7 @@ async function buildPost(messages: TgMessage[], existing: Post | undefined, stat
     title,
     slug: path.split("/").filter(Boolean).pop() ?? slugify(title),
     path,
-    date: existing?.date ?? new Date(main.date * 1000).toISOString(),
+    date: existing?.date ?? new Date(src.date * 1000).toISOString(),
     modified: new Date().toISOString(),
     author: existing?.author ?? "تحریریه نساجی اسپرت",
     excerpt: autoExcerpt(content),
@@ -178,6 +180,15 @@ async function buildPost(messages: TgMessage[], existing: Post | undefined, stat
     createdBy: existing?.createdBy ?? "telegram",
   };
 }
+
+/**
+ * The same channel post has one key whether the bot or the web page found it
+ * ("@channel:123"); posts of a channel without a public name keep "chatId:123".
+ */
+const keyOf = (chat: { id?: number; username?: string }, messageId: number) =>
+  chat.username ? `@${chat.username.toLowerCase()}:${messageId}` : `${chat.id}:${messageId}`;
+const findProcessed = (processed: Record<string, number>, chat: { id?: number; username?: string }, messageId: number) =>
+  processed[keyOf(chat, messageId)] ?? (chat.id !== undefined ? processed[`${chat.id}:${messageId}`] : undefined);
 
 /** Reads new channel posts and makes or updates news posts. */
 export type SyncResult = { ok: true; created: number; updated: number; seen: number; withoutMark: number; otherChats: string[] } | { ok: false; error: string };
@@ -220,21 +231,20 @@ export async function syncTelegram(): Promise<SyncResult> {
       const key = m ? (m.media_group_id ? `g${m.chat.id}:${m.media_group_id}` : `${m.chat.id}:${m.message_id}`) : "";
       const g = groups.get(key);
       if (g && g.lastUpdate === u.update_id) {
-        const main = g.messages.find((x) => x.caption || x.text);
-        const doneKey = `${g.messages[0].chat.id}:${(main ?? g.messages[0]).message_id}`;
-        const existingId = processed[doneKey] ?? g.messages.map((x) => processed[`${x.chat.id}:${x.message_id}`]).find(Boolean);
-        const text = main?.caption ?? main?.text ?? "";
-        const posts = getAllPosts();
-        const existing = existingId ? posts.find((p) => p.id === existingId) : undefined;
+        const main = g.messages.find((x) => x.caption || x.text) ?? g.messages[0];
+        const existingId = g.messages.map((x) => findProcessed(processed, x.chat, x.message_id)).find(Boolean);
+        const text = main.caption ?? main.text ?? "";
+        const existing = existingId ? getAllPosts().find((p) => p.id === existingId) : undefined;
+        const src: Source = { id: main.message_id, date: main.date, text, media: (title) => saveMedia(g.messages, title) };
         if (existing && isForSite(text)) {
-          const post = await buildPost(g.messages, existing, state);
+          const post = await buildPost(src, existing, state);
           savePosts(getAllPosts().map((p) => (p.id === post.id ? post : p)));
           log.unshift({ at: new Date().toISOString(), postId: post.id, title: post.title, action: "updated" });
           updated++;
         } else if (!existing && isForSite(text)) {
-          const post = await buildPost(g.messages, undefined, state);
+          const post = await buildPost(src, undefined, state);
           savePosts([post, ...getAllPosts()]);
-          processed[doneKey] = post.id;
+          processed[keyOf(main.chat, main.message_id)] = post.id;
           log.unshift({ at: new Date().toISOString(), postId: post.id, title: post.title, action: "created" });
           created++;
         }
@@ -267,4 +277,160 @@ export function maybeTelegramSync() {
     .finally(() => {
       running = false;
     });
+}
+
+// ---------------------------------------------------------------- first import from the channel's past posts
+
+export type BackfillItem = {
+  id: number;
+  date: string;
+  title: string;
+  text: string;
+  photos: string[];
+  videos: string[];
+  postId?: number;
+  /** Already news before this import (made by the bot or an earlier run). */
+  existed?: boolean;
+  error?: string;
+};
+export type Backfill = {
+  status: "idle" | "preview" | "running" | "done";
+  from?: string;
+  to?: string;
+  /** How many channel posts were looked at while searching the range. */
+  scanned?: number;
+  items: BackfillItem[];
+  startedAt?: string;
+  finishedAt?: string;
+  error?: string;
+};
+export const backfillState = (): Backfill => ({ status: "idle", items: [], ...readStore<Partial<Backfill>>("telegram-backfill", () => ({})) });
+const saveBackfill = (b: Backfill) => writeStore("telegram-backfill", b);
+
+const web = () => (process.env.TELEGRAM_WEB || "https://t.me").replace(/\/$/, "");
+const MAX_PAGES = 300; // about 6,000 posts
+
+async function webPage(channel: string, before?: number) {
+  let res: Response;
+  try {
+    res = await fetchRetry(`${web()}/s/${encodeURIComponent(channel)}${before ? `?before=${before}` : ""}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36", "Accept-Language": "fa" },
+      cache: "no-store",
+    });
+  } catch (e) {
+    throw new Error(`صفحه‌ی کانال در t.me باز نشد (${networkReason(e)}).`);
+  }
+  if (!res.ok) throw new Error(`صفحه‌ی کانال در t.me جواب نداد (HTTP ${res.status}).`);
+  return parseWebPage(await res.text());
+}
+
+/**
+ * Looks through the channel's past posts (newest to oldest) for those between `from`
+ * and `to` that end with 🌍, and keeps them as a list to check before anything is made.
+ */
+export async function previewBackfill(from: string, to: string): Promise<{ ok: true; found: number; scanned: number } | { ok: false; error: string }> {
+  const state = telegramState();
+  const channel = channelName(state.channel);
+  if (!channel || /^-?\d+$/.test(channel)) return { ok: false, error: "برای خواندن پست‌های قبلی، آیدی عمومی کانال (مثل @nassajisport) را در تنظیمات وارد کنید." };
+  if (backfilling) return { ok: false, error: "ساخت خبرها هنوز در جریان است؛ صبر کنید تا تمام شود." };
+  const start = Date.parse(from);
+  const end = Date.parse(to);
+  const found = new Map<number, BackfillItem>();
+  let scanned = 0;
+  let before: number | undefined;
+  try {
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const posts = await webPage(channel, before);
+      if (!posts.length) {
+        if (page === 0) return { ok: false, error: "در صفحه‌ی وب کانال پستی پیدا نشد. کانال باید عمومی باشد (آیدی داشته باشد) و آیدی در تنظیمات درست باشد." };
+        break;
+      }
+      scanned += posts.length;
+      for (const p of posts) {
+        const t = Date.parse(p.date);
+        if (t < start || t > end || !isForSite(p.text)) continue;
+        const postId = findProcessed(state.processed, { username: channel }, p.id);
+        found.set(p.id, { id: p.id, date: p.date, title: parsePost(p.text).title || "خبر", text: p.text, photos: p.photos, videos: p.videos, postId, existed: !!postId });
+      }
+      const oldest = Math.min(...posts.map((p) => p.id));
+      // Pages go back in time: once the oldest post on a page is before the range, stop.
+      if (Math.min(...posts.map((p) => Date.parse(p.date))) < start || oldest <= 1 || oldest === before) break;
+      before = oldest;
+    }
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+  const items = [...found.values()].sort((a, b) => a.id - b.id);
+  saveBackfill({ status: "preview", from, to, scanned, items });
+  return { ok: true, found: items.length, scanned };
+}
+
+/** Photos and videos of a web post, saved on the site (photos fitted to the 16:9 frame). */
+async function saveWebMedia(item: BackfillItem, title: string) {
+  const photos: string[] = [];
+  const videos: string[] = [];
+  const name = slugify(title).slice(0, 40) || "telegram";
+  for (const url of item.photos) {
+    const res = await fetchRetry(url, { cache: "no-store", timeoutMs: 60_000 });
+    if (!res.ok) continue;
+    photos.push(await saveNewsPhoto(new File([new Uint8Array(await res.arrayBuffer())], `${name}.jpg`, { type: "image/jpeg" })));
+  }
+  for (const url of item.videos) {
+    const res = await fetchRetry(url, { cache: "no-store", timeoutMs: 120_000 });
+    if (!res.ok) continue;
+    const buf = new Uint8Array(await res.arrayBuffer());
+    if (buf.length > 25 * 1024 * 1024) continue;
+    videos.push(await saveUpload(new File([buf], `${name}.mp4`, { type: "video/mp4" })));
+  }
+  return { photos, videos };
+}
+
+let backfilling = false;
+
+/** Is a run going on in this server process? ("running" in the store may be left from a restart.) */
+export const backfillRunning = () => backfilling;
+
+/** Makes the news posts of the previewed list, oldest first, in the background. */
+export function startBackfill(): { ok: true } | { ok: false; error: string } {
+  const b = backfillState();
+  if (backfilling) return { ok: false, error: "ساخت خبرها در جریان است." };
+  // "running" left over from a restart counts as a list that can be continued.
+  if (!["preview", "running", "done"].includes(b.status) || !b.items.some((i) => !i.postId && !i.error)) return { ok: false, error: "اول «پیش‌نمایش» را بزنید؛ خبر تازه‌ای برای ساختن در فهرست نیست." };
+  backfilling = true;
+  saveBackfill({ ...b, status: "running", startedAt: new Date().toISOString(), finishedAt: undefined, error: undefined });
+  void (async () => {
+    const channel = channelName(telegramState().channel);
+    try {
+      for (const item of backfillState().items) {
+        if (item.postId) continue;
+        const state = telegramState();
+        // Made meanwhile by the bot (or an earlier run)?
+        const already = findProcessed(state.processed, { username: channel }, item.id);
+        let postId = already;
+        let error: string | undefined;
+        if (!already) {
+          try {
+            const post = await buildPost({ id: item.id, date: Date.parse(item.date) / 1000, text: item.text, media: (title) => saveWebMedia(item, title) }, undefined, state);
+            savePosts([post, ...getAllPosts()]);
+            postId = post.id;
+            const s2 = telegramState();
+            saveState({
+              processed: { ...s2.processed, [keyOf({ username: channel }, item.id)]: post.id },
+              log: [{ at: new Date().toISOString(), postId: post.id, title: post.title, action: "created" as const }, ...s2.log].slice(0, 30),
+            });
+          } catch (e) {
+            error = (e as Error).message;
+          }
+        }
+        const cur = backfillState();
+        saveBackfill({ ...cur, items: cur.items.map((i) => (i.id === item.id ? { ...i, postId, error, existed: !!already } : i)) });
+      }
+      saveBackfill({ ...backfillState(), status: "done", finishedAt: new Date().toISOString() });
+    } catch (e) {
+      saveBackfill({ ...backfillState(), status: "done", finishedAt: new Date().toISOString(), error: (e as Error).message });
+    } finally {
+      backfilling = false;
+    }
+  })();
+  return { ok: true };
 }

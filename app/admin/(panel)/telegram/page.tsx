@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Field, Flash, PageHead } from "../../ui";
-import { SubmitButton } from "../../ui-client";
+import { AutoRefresh, SubmitButton } from "../../ui-client";
 import { requireAccess } from "@/lib/auth";
 import { str, withError } from "@/lib/form";
 import { faDate } from "@/lib/format";
 import { isoToJalaliParts } from "@/lib/jalali";
-import { botInfo, hasToken, syncTelegram, telegramState } from "@/lib/telegram-sync";
+import { backfillRunning, backfillState, botInfo, hasToken, previewBackfill, startBackfill, syncTelegram, telegramState } from "@/lib/telegram-sync";
+import { jalaliPartsToIso } from "@/lib/jalali";
+import { faNum } from "@/lib/format";
 import { writeStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "تلگرام" };
@@ -23,6 +25,26 @@ function seenText(seen: number, withoutMark: number, otherChats: string[], creat
     otherChats.length ? `پست‌هایی هم از ${otherChats.join("، ")} آمد که چون کانال تنظیم‌شده نیست نادیده گرفته شد` : "",
   ];
   return parts.filter(Boolean).join("؛ ") + ".";
+}
+
+async function previewPast(fd: FormData) {
+  "use server";
+  await requireAccess("publish");
+  const from = jalaliPartsToIso(str(fd, "from"), "00:00");
+  const to = jalaliPartsToIso(str(fd, "to"), "23:59");
+  if (!from || !to) redirect(withError(BACK, "تاریخ شروع و پایان را به شکل ۱۴۰۵/۰۷/۰۱ وارد کنید.") + "#past");
+  if (Date.parse(from) > Date.parse(to)) redirect(withError(BACK, "تاریخ شروع بعد از تاریخ پایان است.") + "#past");
+  const r = await previewBackfill(from, to);
+  if (!r.ok) redirect(withError(BACK, r.error) + "#past");
+  redirect(`${BACK}?ok=${encodeURIComponent(`${r.scanned} پست کانال بررسی شد؛ ${r.found} پست با 🌍 در این بازه پیدا شد. فهرست را ببینید و «ساخت خبرها» را بزنید.`)}#past`);
+}
+
+async function runPast() {
+  "use server";
+  await requireAccess("publish");
+  const r = startBackfill();
+  if (!r.ok) redirect(withError(BACK, r.error) + "#past");
+  redirect(`${BACK}#past`);
 }
 
 async function saveSettings(fd: FormData) {
@@ -129,6 +151,8 @@ export default async function TelegramPage({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
+      <PastPosts />
+
       <section className="a-card">
         <h2>خبرهای ساخته‌شده از کانال</h2>
         {s.log.length === 0 ? (
@@ -147,5 +171,104 @@ export default async function TelegramPage({ searchParams }: { searchParams: Pro
         )}
       </section>
     </>
+  );
+}
+
+/** First import: past channel posts in a date range, previewed and then made in the background. */
+function PastPosts() {
+  const b = backfillState();
+  const running = backfillRunning();
+  const pending = b.items.filter((i) => !i.postId && !i.error).length;
+  const made = b.items.filter((i) => i.postId).length;
+  const existed = b.items.filter((i) => i.existed).length;
+  const failed = b.items.filter((i) => i.error).length;
+  const jal = (iso?: string) => (iso ? isoToJalaliParts(iso).date : "");
+  return (
+    <section className="a-card" id="past">
+      {running && <AutoRefresh every={3} />}
+      <h2>خواندن پست‌های قبلی کانال</h2>
+      <p className="a-hint">
+        ربات فقط پست‌های تازه را می‌بیند. برای پست‌هایی که قبلاً در کانال منتشر شده‌اند، بازه‌ی تاریخ را بدهید: سایت صفحه‌ی عمومی کانال (t.me/s/…) را می‌خواند و پست‌های
+        آن بازه را که 🌍 دارند فهرست می‌کند. اول فهرست را ببینید، بعد «ساخت خبرها» را بزنید؛ خبرها با تاریخ اصلی پستشان ساخته می‌شوند و پستی که قبلاً خبر شده تکراری
+        نمی‌شود. کانال باید عمومی باشد.
+      </p>
+      <form action={previewPast} className="a-grid-fields">
+        <Field label="از تاریخ" hint="شمسی">
+          <input name="from" defaultValue={jal(b.from)} dir="ltr" placeholder="1405/07/01" required />
+        </Field>
+        <Field label="تا تاریخ" hint="شمسی">
+          <input name="to" defaultValue={jal(b.to)} dir="ltr" placeholder="1405/08/18" required />
+        </Field>
+        <div>
+          <SubmitButton className="a-btn" pendingText="در حال گشتن در کانال…">
+            پیش‌نمایش
+          </SubmitButton>
+        </div>
+      </form>
+
+      {b.items.length > 0 && (
+        <>
+          <p className="a-section-gap">
+            {faNum(b.scanned ?? 0)} پست بررسی شد؛ <b>{faNum(b.items.length)}</b> پست با 🌍 از {faDate(b.from!)} تا {faDate(b.to!)}
+            {made ? ` · ${faNum(made)} خبر شده` : ""}
+            {failed ? ` · ${faNum(failed)} خطا` : ""}
+          </p>
+          {running ? (
+            <p className="a-flash">
+              در حال ساخت خبرها… {faNum(made)} از {faNum(b.items.length)} (این صفحه خودش به‌روز می‌شود؛ می‌توانید ببندیدش، کار ادامه دارد)
+            </p>
+          ) : pending > 0 ? (
+            <form action={runPast}>
+              <SubmitButton pendingText="شروع…">ساخت {faNum(pending)} خبر</SubmitButton>
+            </form>
+          ) : (
+            b.status === "done" && (
+              <p className="a-flash">
+                تمام شد: {faNum(made - existed)} خبر تازه ساخته شد{existed ? `؛ ${faNum(existed)} پست از قبل خبر شده بود` : ""}
+                {failed ? `؛ ${faNum(failed)} پست خطا داشت (روی «خطا» نگه دارید تا علتش را ببینید)` : ""}.
+              </p>
+            )
+          )}
+          <div className="a-table-wrap">
+            <table className="a-table">
+              <thead>
+                <tr>
+                  <th>تاریخ</th>
+                  <th>تیتر</th>
+                  <th>رسانه</th>
+                  <th>وضعیت</th>
+                </tr>
+              </thead>
+              <tbody>
+                {b.items.map((i) => (
+                  <tr key={i.id}>
+                    <td className="muted a-nowrap">{faDate(i.date)}</td>
+                    <td>{i.title}</td>
+                    <td className="muted a-nowrap">
+                      {i.photos.length ? `${faNum(i.photos.length)} عکس` : "بدون عکس (کاور)"}
+                      {i.videos.length ? ` · ${faNum(i.videos.length)} ویدیو` : ""}
+                    </td>
+                    <td className="a-nowrap">
+                      {i.postId ? (
+                        <Link href={`/admin/posts/${i.postId}/`} className="a-tag is-ok">
+                          {i.existed ? "از قبل خبر شده" : "خبر شد"}
+                        </Link>
+                      ) : i.error ? (
+                        <span className="a-tag is-warn" title={i.error}>
+                          خطا
+                        </span>
+                      ) : (
+                        <span className="a-tag">آماده</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+      {b.status === "preview" && b.items.length === 0 && b.from && <p className="muted">در این بازه پستی با 🌍 پیدا نشد.</p>}
+    </section>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 
 export function SubmitButton({
   children,
@@ -381,4 +382,14 @@ export function ImageField({ name, defaultValue, label, video = false }: { name:
       )}
     </div>
   );
+}
+
+/** Reloads the page's data every few seconds while something runs on the server. */
+export function AutoRefresh({ every = 3 }: { every?: number }) {
+  const router = useRouter();
+  useEffect(() => {
+    const t = setInterval(() => router.refresh(), every * 1000);
+    return () => clearInterval(t);
+  }, [router, every]);
+  return null;
 }
