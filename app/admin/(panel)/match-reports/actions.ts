@@ -4,13 +4,23 @@ import { redirect } from "next/navigation";
 import { requireAccess } from "@/lib/auth";
 import { file, num, str, withError } from "@/lib/form";
 import { getLeague } from "@/lib/league";
-import { getReports, reportId, saveReports, type MatchReport, type SheetPlayer } from "@/lib/match-reports";
+import { forgetReport, getReports, reportId, saveReports, type MatchReport, type SheetPlayer } from "@/lib/match-reports";
 import { saveUploadAsWebp } from "@/lib/media";
 import { fixtureKey } from "@/lib/predict-score";
 import { parseLineupText } from "@/lib/squad";
 
+const fa2en = (s: string) => s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+/** One player per line: "9 جواد آقایی پور (گل)", "(2 گل)" for two, "(c)" for the captain. */
 const players = (text: string): SheetPlayer[] =>
-  parseLineupText(text).map((p) => ({ ...(p.number ? { number: p.number } : {}), name: p.name, ...(p.captain ? { captain: true } : {}) }));
+  text
+    .split("\n")
+    .map((line) => {
+      const m = fa2en(line).match(/\((\d+)?\s*گل\)/);
+      const goals = m ? Number(m[1] ?? 1) : 0;
+      const [p] = parseLineupText(line.replace(/\(([\d۰-۹]+)?\s*گل\)/, "").trim());
+      return p ? { ...(p.number ? { number: p.number } : {}), name: p.name, ...(p.captain ? { captain: true } : {}), ...(goals ? { goals } : {}) } : undefined;
+    })
+    .filter((p): p is SheetPlayer => !!p && !!p.name);
 
 /** "سرمربی: سعید دقیقی" per line. */
 const pairs = (text: string) =>
@@ -74,5 +84,6 @@ export async function saveReport(fd: FormData) {
 export async function deleteReport(fd: FormData) {
   await requireAccess("squad");
   saveReports(getReports().filter((r) => r.id !== str(fd, "id")));
+  forgetReport(str(fd, "id"));
   redirect("/admin/match-reports/?ok=deleted");
 }

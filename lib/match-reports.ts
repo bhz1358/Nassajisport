@@ -8,7 +8,7 @@ import { readStore, seedFromContent, writeStore } from "./store";
 import { canonicalTeam } from "./team-names.ts";
 import type { Fixture } from "./types";
 
-export type SheetPlayer = { number?: number; name: string; captain?: boolean };
+export type SheetPlayer = { number?: number; name: string; captain?: boolean; /** Goals scored in this match. */ goals?: number };
 export type TeamSheet = {
   team: string;
   kit?: { shirt?: string; shorts?: string; socks?: string };
@@ -34,7 +34,26 @@ export type MatchReport = {
   createdAt: string;
 };
 
-export const getReports = () => readStore<MatchReport[]>("match-reports", () => seedFromContent<MatchReport[]>("match-reports.json"));
+const seed = () => seedFromContent<MatchReport[]>("match-reports.json");
+const deleted = () => readStore<string[]>("match-reports-deleted", () => []);
+
+/**
+ * The reports. Reports shipped with an update (content/match-reports.json) are added the
+ * first time the site sees them, unless the admin deleted that one; edits in the panel win.
+ */
+export function getReports(): MatchReport[] {
+  const saved = readStore<MatchReport[]>("match-reports", () => []);
+  const have = new Set([...saved.map((r) => r.id), ...deleted()]);
+  const fresh = seed().filter((r) => !have.has(r.id));
+  if (!fresh.length) return saved;
+  const all = [...saved, ...fresh];
+  writeStore("match-reports", all);
+  return all;
+}
+
+export function forgetReport(id: string) {
+  writeStore("match-reports-deleted", [...new Set([...deleted(), id])]);
+}
 export const saveReports = (r: MatchReport[]) => writeStore("match-reports", r);
 export const getReport = (id: string) => getReports().find((r) => r.id === id);
 
@@ -44,7 +63,10 @@ export function fixtureOf(r: MatchReport): Fixture | undefined {
   const known = [...league.standings.map((s) => s.team), ...league.fixtures.flatMap((f) => [f.home, f.away])];
   const home = canonicalTeam(r.home.team, known);
   const away = canonicalTeam(r.away.team, known);
-  return league.fixtures.find((f) => f.home === home && f.away === away && Math.abs(Date.parse(f.date) - Date.parse(r.date)) < 3 * 86_400_000);
+  // Same teams in the same week, or (without a week) within 3 days.
+  return league.fixtures.find(
+    (f) => f.home === home && f.away === away && (r.round && f.round ? f.round === r.round : Math.abs(Date.parse(f.date) - Date.parse(r.date)) < 3 * 86_400_000),
+  );
 }
 
 /** Team names as the rest of the site writes them (for logos and the club's highlight). */

@@ -1359,3 +1359,4 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .report-team b { font-size: 0.95rem; }
   .report-score .crest { width: 52px !important; height: 52px !important; }
 }
+.sheet-goals { margin-inline-start: 6px; font-size: 0.85rem; letter-spacing: 1px; }

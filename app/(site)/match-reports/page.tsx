@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default function ReportsPage() {
-  const reports = [...getReports()].sort((a, b) => b.date.localeCompare(a.date));
+  const reports = [...getReports()].sort((a, b) => (b.round ?? 0) - (a.round ?? 0) || b.date.localeCompare(a.date));
   return (
     <div className="reports">
       <h1 className="page-title">گزارش بازی‌ها</h1>
@@ -28,7 +28,7 @@ export default function ReportsPage() {
                   <b dir="ltr">{played ? `${faNum(f!.awayScore!)} - ${faNum(f!.homeScore!)}` : "–"}</b>
                   <span>{r.away.team} <Crest team={siteTeam(r.away.team)} size={36} /></span>
                 </span>
-                <span className="muted report-card-meta">{faDate(r.date)}{r.venue ? ` · ${r.venue}` : ""}</span>
+                <span className="muted report-card-meta">{faDate(f?.date ?? r.date)}{r.venue ? ` · ${r.venue}` : ""}</span>
               </Link>
             </li>
           );

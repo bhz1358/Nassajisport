@@ -12,7 +12,8 @@ import { deleteReport, saveReport } from "../actions";
 
 export const metadata: Metadata = { title: "گزارش بازی" };
 
-const lines = (ps: SheetPlayer[]) => ps.map((p) => `${p.number ?? ""} ${p.name}${p.captain ? " (c)" : ""}`.trim()).join("\n");
+const lines = (ps: SheetPlayer[]) =>
+  ps.map((p) => `${p.number ?? ""} ${p.name}${p.captain ? " (c)" : ""}${p.goals ? (p.goals > 1 ? ` (${p.goals} گل)` : " (گل)") : ""}`.trim()).join("\n");
 const pairLines = (xs: { role: string; name: string }[]) => xs.map((x) => (x.role ? `${x.role}: ${x.name}` : x.name)).join("\n");
 const OFFICIALS = "داور وسط: \nکمک داور اول: \nکمک داور دوم: \nداور چهارم: \nناظر: \nناظر داوری: ";
 
@@ -28,7 +29,7 @@ function TeamFields({ side, sheet, label }: { side: "home" | "away"; sheet?: Tea
         <Field label="رنگ شورت"><input name={`${side}_shorts`} defaultValue={sheet?.kit?.shorts} /></Field>
         <Field label="رنگ جوراب"><input name={`${side}_socks`} defaultValue={sheet?.kit?.socks} /></Field>
       </div>
-      <Field label="ترکیب اصلی" hint="هر بازیکن یک خط: شماره و نام، مثلاً «۲ ابوالفضل کوهی»؛ کاپیتان با (c) در آخر">
+      <Field label="ترکیب اصلی" hint="هر بازیکن یک خط: شماره و نام، مثلاً «۲ ابوالفضل کوهی»؛ کاپیتان با (c) و گلزن با (گل) یا (۲ گل) در آخر">
         <textarea name={`${side}_starters`} rows={11} defaultValue={sheet ? lines(sheet.starters) : ""} className="a-lineup-text" />
       </Field>
       <Field label="ذخیره‌ها">

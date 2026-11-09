@@ -30,6 +30,7 @@ function PlayerLine({ p, color, link }: { p: SheetPlayer; color: string; link?: 
     <span className="sheet-name">
       {p.name}
       {p.captain && <span className="sheet-captain" title="کاپیتان">C</span>}
+      {p.goals ? <span className="sheet-goals" title={`${faNum(p.goals)} گل`}>{"⚽".repeat(Math.min(p.goals, 5))}</span> : null}
     </span>
   );
   return (

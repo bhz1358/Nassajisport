@@ -19,6 +19,7 @@ export default async function ReportPage({ params }: Props) {
   const r = getReport(decodeURIComponent((await params).id));
   if (!r) notFound();
   const f = fixtureOf(r);
+  const date = f?.date ?? r.date;
   const played = f && f.status !== "scheduled" && f.homeScore != null;
   return (
     <article className="report">
@@ -39,7 +40,7 @@ export default async function ReportPage({ params }: Props) {
             {played ? (
               <strong dir="ltr">{faNum(f!.awayScore!)} - {faNum(f!.homeScore!)}</strong>
             ) : (
-              <strong>{faTime(r.date)}</strong>
+              <strong>{faTime(date)}</strong>
             )}
             {f?.status === "live" && <small className="predict-live"><span className="live-dot" /> زنده</small>}
             {f?.status === "finished" && <small>پایان بازی</small>}
@@ -51,7 +52,7 @@ export default async function ReportPage({ params }: Props) {
           </span>
         </div>
         <ul className="report-meta">
-          <li>📅 {faWeekday(r.date)} {faDate(r.date)}، ساعت {faTime(r.date)}</li>
+          <li>📅 {faWeekday(date)} {faDate(date).replace(/^.*?(\S+)$/, "$1")}، ساعت {faTime(date)}</li>
           {r.venue && <li>🏟️ {r.venue}{r.city ? `، ${r.city}` : ""}</li>}
           {r.weather && <li>🌤️ هوا: {r.weather}</li>}
         </ul>
