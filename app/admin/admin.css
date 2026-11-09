@@ -315,3 +315,8 @@ a.a-stat:hover { border-color: var(--brand-600); }
 .a-checkall { display: inline-flex; gap: 12px; font-size: 0.88rem; }
 .a-table tr.is-muted td { opacity: 0.55; }
 .a-table td input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--acc-600); }
+.a-suggest { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+.a-suggest-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.a-suggest-grid li { display: flex; flex-direction: column; gap: 6px; }
+.a-suggest-grid img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+.a-suggest-grid .a-hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }

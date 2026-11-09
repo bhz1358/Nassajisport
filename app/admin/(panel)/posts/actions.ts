@@ -16,6 +16,8 @@ import { autoExcerpt, fillImageAlts, findTags, firstImage, plainText } from "@/l
 import { HOME_TEAM } from "@/lib/site";
 import { getSquad } from "@/lib/squad";
 import type { Post } from "@/lib/types";
+import { autoCover } from "@/lib/auto-cover";
+import { suggestPhotos } from "@/lib/photo-suggest";
 
 /** Teams of the league (for automatic tags). */
 const teamNames = () => [...new Set([HOME_TEAM, ...getLeague().standings.map((r) => r.team)])];
@@ -117,4 +119,23 @@ export async function deletePost(fd: FormData) {
     getComments().filter((c) => c.postId !== id),
   );
   redirect("/admin/posts/?ok=deleted");
+}
+
+/** Sets a suggested archive photo, or a team-logo cover, as the post's featured image. */
+export async function setSuggestedPhoto(fd: FormData) {
+  const me = await requireAccess("posts");
+  const id = num(fd, "id");
+  const posts = getAllPosts();
+  const post = posts.find((p) => p.id === id);
+  if (!post) redirect(withError("/admin/posts/", "این مطلب پیدا نشد."));
+  if (!canEditPost(me.role, me.username, post)) redirect(withError("/admin/posts/", "این خبر را نمی‌توانید ویرایش کنید."));
+  const back = `/admin/posts/${id}/`;
+  let url = str(fd, "url");
+  if (str(fd, "cover")) {
+    url = await autoCover(post.title, plainText(post.content));
+  } else if (!suggestPhotos(post, posts, 50).some((s) => s.url === url)) {
+    redirect(withError(back, "این عکس در پیشنهادها نیست."));
+  }
+  savePosts(posts.map((p) => (p.id === id ? { ...p, featuredImage: url } : p)));
+  redirect(`${back}?ok=saved`);
 }

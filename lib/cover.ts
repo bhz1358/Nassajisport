@@ -12,7 +12,12 @@ function variant(seed: string) {
   return { angle: 20 + (h % 50), glowX: 20 + ((h >> 3) % 60), glowY: 15 + ((h >> 7) % 50) };
 }
 
-export async function makeCover(seed: string, logoFile: string, brand = "#8e1b2e", accent = "#c9a45c"): Promise<Buffer> {
+/**
+ * The cover's background, with one logo in the middle (`logoFiles` of one) or two
+ * side by side for a match (two teams named in the post), split by a gold slash.
+ */
+export async function makeCover(seed: string, logoFiles: string | string[], brand = "#8e1b2e", accent = "#c9a45c"): Promise<Buffer> {
+  const logoList = (Array.isArray(logoFiles) ? logoFiles : [logoFiles]).slice(0, 2);
   const sharp = (await import("sharp")).default;
   const { width, height } = FRAME;
   const v = variant(seed);
@@ -24,14 +29,20 @@ export async function makeCover(seed: string, logoFile: string, brand = "#8e1b2e
     </defs>
     <rect width="100%" height="100%" fill="url(#g)"/>${stripes}<rect width="100%" height="100%" fill="url(#r)"/>
     <rect x="0" y="${height - 10}" width="100%" height="10" fill="${accent}" opacity="0.8"/>
+    ${logoList.length === 2 ? `<path d="M${width / 2 + 40} 150 L${width / 2 - 40} ${height - 150}" stroke="${accent}" stroke-width="10" stroke-linecap="round" opacity="0.9"/>` : ""}
   </svg>`;
   const layers: { input: Buffer; left: number; top: number }[] = [];
-  try {
-    const size = Math.round(height * 0.5);
-    const logo = await sharp(fs.readFileSync(logoFile)).resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
-    layers.push({ input: logo, left: Math.round((width - size) / 2), top: Math.round((height - size) / 2) - 20 });
-  } catch {
-    /* no logo: the colours alone */
+  const pair = logoList.length === 2;
+  const size = Math.round(height * (pair ? 0.42 : 0.5));
+  // In RTL the first team (usually the home side) sits on the right.
+  const lefts = pair ? [Math.round(width * 0.73 - size / 2), Math.round(width * 0.27 - size / 2)] : [Math.round((width - size) / 2)];
+  for (const [i, file] of logoList.entries()) {
+    try {
+      const logo = await sharp(fs.readFileSync(file)).resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+      layers.push({ input: logo, left: lefts[i], top: Math.round((height - size) / 2) - 20 });
+    } catch {
+      /* missing logo: that side stays plain */
+    }
   }
   return sharp(Buffer.from(svg)).composite(layers).webp({ quality: 85 }).toBuffer();
 }

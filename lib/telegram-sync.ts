@@ -7,20 +7,18 @@
 // a relay when api.telegram.org can't be reached from the server.
 
 import { getAllPosts, getCategories, normalizePath, nextPostId, savePosts } from "./content";
-import { logoPath, makeCover } from "./cover.ts";
+import { autoCover } from "./auto-cover";
 import { getLeague } from "./league";
 import { saveNewsPhoto, saveUpload } from "./media";
 import { sanitizeHtml } from "./sanitize.ts";
 import { autoExcerpt, fillImageAlts, findTags, firstImage, plainText } from "./seo-auto.ts";
-import { getSettings, logoUrl } from "./settings";
 import { HOME_TEAM } from "./site";
 import { slugify } from "./slug.ts";
 import { getSquad } from "./squad";
 import { fetchRetry, networkReason } from "./net-tuning.ts";
-import { readStore, UPLOADS_DIR, writeStore } from "./store";
+import { readStore, writeStore } from "./store";
 import { isForSite, paragraphsToHtml, parsePost } from "./telegram-parse.ts";
 import { channelName, parseWebPage } from "./telegram-web.ts";
-import { resolveTheme } from "./themes";
 import type { Post } from "./types";
 
 export type TelegramState = {
@@ -123,12 +121,6 @@ async function saveMedia(messages: TgMessage[], title: string) {
   return { photos, videos };
 }
 
-async function coverFor(title: string): Promise<string> {
-  const settings = getSettings();
-  const { brand, accent } = resolveTheme(settings.theme);
-  const buf = await makeCover(title, logoPath(logoUrl(settings), UPLOADS_DIR), brand, accent);
-  return saveUpload(new File([new Uint8Array(buf)], `cover-${slugify(title).slice(0, 30) || "news"}.webp`, { type: "image/webp" }));
-}
 
 /** One channel post, from the bot or from the channel's web page. */
 type Source = { id: number; date: number; text: string; media: (title: string) => Promise<{ photos: string[]; videos: string[] }> };
@@ -139,7 +131,8 @@ async function buildPost(src: Source, existing: Post | undefined, state: Telegra
   const title = parsed.title || "خبر";
   // Media only when the post is new: edits change text, not pictures already saved.
   const media = existing ? { photos: [], videos: [] } : await src.media(title);
-  const featuredImage = existing?.featuredImage ?? media.photos[0] ?? (await coverFor(title));
+  // No photo: a cover with the logos of the teams the post is about.
+  const featuredImage = existing?.featuredImage ?? media.photos[0] ?? (await autoCover(title, parsed.paragraphs.join(" ")));
   const extra = [
     ...media.photos.slice(1).map((u) => `<p><img src="${u}" alt=""></p>`),
     ...media.videos.map((u) => `<video src="${u}" controls playsinline preload="metadata"></video>`),
