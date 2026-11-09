@@ -9,6 +9,7 @@ import { getPredictions } from "./predictions";
 import { dueReminders, tehranDay, weekOver, weekSummaries, type ReminderFan } from "./reminder-plan.ts";
 import { readStore, writeStore } from "./store";
 import { currentWeek } from "./weeks";
+import { getPolls, isOpenPoll, openDuePolls, savePolls } from "./ratings";
 
 export type ReminderState = {
   /** Reminders on for the whole site (the admin's switch). */
@@ -69,6 +70,30 @@ export async function runReminders(now = Date.now()): Promise<number> {
       await sleep(80);
     }
     if (sent) state.log.unshift({ at: new Date(now).toISOString(), text: `یادآوری پیش از بازی برای ${faNum(sent)} نفر` });
+
+    // Player ratings: a poll opens when a Nassaji match is over; tell the fans once.
+    openDuePolls(now);
+    const polls = getPolls();
+    const fresh = polls.filter((p) => !p.notified && isOpenPoll(p, now));
+    for (const p of fresh) {
+      let n = 0;
+      const text =
+        `⭐ بازی ${p.score ?? p.match} تمام شد!\n\nبه بازیکنان و سرمربی نساجی از ۱ تا ۱۰ نمره بدهید؛ بازیکن برتر به انتخاب هواداران در صفحهٔ اول سایت معرفی می‌شود.` +
+        (site ? `\n${site}/ratings/` : "") +
+        `\n\nنمره‌دهی تا ۲۴ ساعت باز است.${footer}`;
+      for (const f of rfans.filter((x) => x.chat && x.remind !== false && !x.blocked)) {
+        try {
+          await sendBale(f.chat!, text);
+          n++;
+        } catch {
+          /* skip */
+        }
+        await sleep(80);
+      }
+      sent += n;
+      state.log.unshift({ at: new Date(now).toISOString(), text: `دعوت به نمره‌دهی (${p.opponent}) برای ${faNum(n)} نفر` });
+    }
+    if (fresh.length) savePolls(polls.map((p) => (fresh.some((x) => x.key === p.key) ? { ...p, notified: true } : p)));
 
     // After a week
     const current = currentWeek(league.fixtures);

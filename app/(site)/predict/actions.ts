@@ -38,7 +38,8 @@ export async function saveName(fd: FormData) {
   if (problem) redirect(`/predict/me/?error=${encodeURIComponent(problem)}`);
   saveFans(getFans().map((f) => (f.id === fan.id ? { ...f, name, named: true } : f)));
   const next = String(fd.get("next") ?? "");
-  const to = next.startsWith("/predict/") && !next.includes("//") ? next : "/predict/";
+  // Back to where the fan was going (the contest or the ratings), never off the site.
+  const to = /^\/(predict|ratings)\//.test(next) && !next.includes("//") ? next : "/predict/";
   redirect(`${to}${to.includes("?") ? "&" : "?"}ok=${encodeURIComponent(`نام نمایشی شما «${name}» شد.`)}`);
 }
 

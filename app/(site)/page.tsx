@@ -4,6 +4,7 @@ import { FitToColumn, HeroSlider, MediaRail, type HeroSlide } from "./client";
 import { WeekSchedule } from "./week-schedule";
 import { PredictBox } from "./predict/PredictBox";
 import { TopFans } from "./predict/TopFans";
+import { BestPlayerBox } from "./ratings/BestPlayerBox";
 import {
   BreakingBar,
   NewsCard,
@@ -95,6 +96,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <aside className="home-side">
           <NextMatchCard f={nextMatch} />
           <PredictBox />
+          <BestPlayerBox />
           <TopFans />
           <AdSlot slot={2} />
           {league.fixtures.some((f) => f.round) && (
