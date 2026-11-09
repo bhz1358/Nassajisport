@@ -744,7 +744,7 @@ a:hover .play { transform: scale(1.08); }
 /* Home sidebar: the full table in a narrow column. */
 .standings.is-home-table { font-size: 0.82rem; border-spacing: 0 3px; }
 .standings.is-home-table td { padding: 7px 3px; }
-.standings.is-home-table th:nth-child(n + 3), .standings.is-home-table td:nth-child(n + 3) { width: 40px; }
+.standings.is-home-table th:nth-child(n + 3), .standings.is-home-table td:nth-child(n + 3) { width: 34px; }
 .standings.is-home-table .team-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .standings.is-home-table td.team-col { max-width: 150px; }
 

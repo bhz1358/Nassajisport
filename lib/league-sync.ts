@@ -26,10 +26,9 @@ export function applyStandings(rows: StandingRow[]): string[] {
     if (team !== r.team) renamed.push(`${r.team} ← ${team}`);
     return team === r.team ? r : { ...r, team };
   });
-  const formByTeam = new Map(league.standings.map((r) => [r.team, r.form]));
-  // The source's own form guide wins; otherwise the one already on the site is kept.
-  const merged = rows.map((r) => (r.form?.length || !formByTeam.get(r.team) ? r : { ...r, form: formByTeam.get(r.team) }));
-  saveLeague({ ...league, previousStandings: league.standings, standings: sortStandings(merged), isSample: false });
+  // A form guide kept from an older table goes stale; without the source's own, the
+  // «last five» symbols come from the match results when the page is shown (lib/results-table.ts).
+  saveLeague({ ...league, previousStandings: league.standings, standings: sortStandings(rows), isSample: false });
   return renamed;
 }
 

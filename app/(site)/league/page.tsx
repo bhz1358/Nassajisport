@@ -4,6 +4,7 @@ import { FixtureRow, MatchHero, SampleNotice, SectionHeader, StandingsTable } fr
 import { faNum } from "@/lib/format";
 import { WeekSchedule } from "../week-schedule";
 import { getClubMatch, getLeague } from "@/lib/league";
+import { withResultForm } from "@/lib/results-table";
 
 export const metadata: Metadata = { title: "مرکز لیگ" };
 
@@ -33,7 +34,7 @@ export default async function LeaguePage({ searchParams }: { searchParams: Promi
         <section className="panel">
           <SectionHeader title="جدول لیگ" />
           <div className="table-scroll">
-            <StandingsTable rows={league.standings} />
+            <StandingsTable rows={withResultForm(league.standings, league.fixtures)} />
           </div>
           {league.standings.some((r) => r.deducted) && (
             <p className="legend">

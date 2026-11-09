@@ -395,7 +395,7 @@ export function FormDots({ form }: { form?: StandingRow["form"] }) {
 /** A dash for columns the source table did not give (see StandingRow.partial). */
 const known = (r: StandingRow, n: number) => (r.partial ? "—" : faNum(n));
 
-/** Home page table: every team, only played / won / lost / points. */
+/** Home page table: every team, only played / won / drawn / lost / points. */
 export function HomeStandings({ rows }: { rows: StandingRow[] }) {
   return (
     <table className="standings is-home-table">
@@ -405,6 +405,7 @@ export function HomeStandings({ rows }: { rows: StandingRow[] }) {
           <th className="team-col">تیم</th>
           <th>بازی</th>
           <th>برد</th>
+          <th>مساوی</th>
           <th>باخت</th>
           <th>امتیاز</th>
         </tr>
@@ -419,6 +420,7 @@ export function HomeStandings({ rows }: { rows: StandingRow[] }) {
             </td>
             <td>{faNum(r.played)}</td>
             <td>{known(r, r.won)}</td>
+            <td>{known(r, r.drawn)}</td>
             <td>{known(r, r.lost)}</td>
             <td className="pts">
               {faNum(r.points)}

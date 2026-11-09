@@ -6,6 +6,7 @@ import { ImageField, SubmitButton } from "../../ui-client";
 import { faDate } from "@/lib/format";
 import { isoToJalaliParts } from "@/lib/jalali";
 import { getLeague, teamLogo } from "@/lib/league";
+import { tableDifferences, tableFromResults } from "@/lib/results-table";
 import { liveSettings } from "@/lib/live-sync";
 import { seasonSource } from "@/lib/season-sync";
 import type { Fixture } from "@/lib/types";
@@ -280,6 +281,8 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
+      <TableCheck />
+
       <section id="standings" className="a-card">
         <h2>جدول لیگ</h2>
         <p className="a-hint">
@@ -349,5 +352,52 @@ export default async function LeagueAdmin({ searchParams }: { searchParams: Prom
         </form>
       </section>
     </>
+  );
+}
+
+/** The table compared with the match results, team by team. */
+function TableCheck() {
+  const league = getLeague();
+  const finished = league.fixtures.filter((f) => f.status === "finished" && f.homeScore != null).length;
+  const diffs = tableDifferences(league.standings, league.fixtures);
+  const calc = tableFromResults(league.fixtures);
+  const ok = league.standings.length - diffs.length;
+  return (
+    <section id="table-check" className="a-card">
+      <h2>بررسی جدول با نتایج بازی‌ها</h2>
+      <p className="a-hint">
+        برد، مساوی، باخت، گل‌ها و امتیاز هر تیم در جدول با نتیجهٔ {finished} بازیِ تمام‌شدهٔ برنامهٔ فصل مقایسه می‌شود. نشانه‌های «۵ بازی اخیر» در سایت هم از همین نتایج
+        ساخته می‌شود (سایت سازمان لیگ آن‌ها را منتشر نمی‌کند).
+      </p>
+      {!finished ? (
+        <p className="a-hint">هنوز نتیجه‌ای در برنامهٔ بازی‌ها نیست؛ از بخش «برنامهٔ کامل فصل از فوتبالی» درون‌ریزی کنید.</p>
+      ) : (
+        <>
+          <p>
+            <span className="a-tag is-ok">{ok} تیم درست</span> {diffs.length > 0 && <span className="a-tag">{diffs.length} تیم با اختلاف</span>}
+          </p>
+          {diffs.length > 0 && (
+            <ul>
+              {diffs.map((d) => (
+                <li key={d.team}>
+                  <b>{d.team}</b>: {d.notes.join(" ")}
+                </li>
+              ))}
+            </ul>
+          )}
+          <details>
+            <summary className="a-hint">نشانه‌های ۵ بازی اخیر هر تیم (از قدیم به جدید)</summary>
+            <p className="a-hint">
+              {league.standings
+                .map((r) => `${r.team}: ${(calc.get(r.team)?.form ?? []).map((x) => (x === "W" ? "ب" : x === "D" ? "م" : "ش")).join(" ") || "—"}`)
+                .join(" · ")}
+            </p>
+          </details>
+          <p className="a-hint">
+            «جدول N بازی دارد ولی نتیجهٔ M بازی ثبت شده» یعنی نتیجهٔ بعضی بازی‌ها در برنامه نیست؛ درون‌ریزی دوبارهٔ برنامهٔ فصل از فوتبالی معمولاً درستش می‌کند.
+          </p>
+        </>
+      )}
+    </section>
   );
 }
