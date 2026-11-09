@@ -1,8 +1,10 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { splitTitle } from "@/lib/title";
 
 export function ReadingProgress() {
@@ -115,24 +117,21 @@ export function MainNav({ items }: { items: NavItem[] }) {
   // Close on navigation.
   useEffect(() => setOpen(null), [pathname]);
 
-  // Place the panel under its item. The panel is position: fixed so the menu's
-  // horizontal scrolling can't clip it; its containing block may be the header
-  // (backdrop-filter), so the offset is measured rather than assumed.
-  useEffect(() => {
+  // Place the panel under its item. The panel is rendered into <body> (a portal) with
+  // position: fixed, so neither the menu's horizontal scrolling nor the glass header
+  // (whose backdrop-filter would otherwise become the panel's frame) can move it.
+  // Measured before paint, so a panel moving to another item never flashes in the old place.
+  useLayoutEffect(() => {
     if (open === null) return;
     const place = () => {
       const trigger = itemEl(open);
       const el = panel.current;
       if (!trigger || !el) return;
-      el.style.left = "0px";
-      el.style.top = "0px";
-      const origin = el.getBoundingClientRect();
       const r = trigger.getBoundingClientRect();
       const w = el.offsetWidth;
       // RTL: line the panel up with the item's right edge, kept on screen.
       const right = Math.min(window.innerWidth - 8, r.right);
-      const left = Math.max(8, right - w);
-      setPos({ left: left - origin.left, top: r.bottom + 6 - origin.top });
+      setPos({ left: Math.max(8, right - w), top: r.bottom + 6 });
     };
     place();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
@@ -214,7 +213,7 @@ export function MainNav({ items }: { items: NavItem[] }) {
           </span>
         );
       })}
-      {openItem?.children?.length ? (
+      {openItem?.children?.length && typeof document !== "undefined" ? createPortal(
         <div
           ref={panel}
           id="nav-sub-panel"
@@ -234,7 +233,8 @@ export function MainNav({ items }: { items: NavItem[] }) {
               onClick={() => setOpen(null)}
             />
           ))}
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </nav>
   );

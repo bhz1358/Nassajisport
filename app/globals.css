@@ -253,11 +253,11 @@ button { font: inherit; }
   animation: sub-in 0.18s var(--ease) both;
 }
 @keyframes sub-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-.nav .nav-sub a {
+.nav-sub a { transition: background 0.15s, color 0.15s;
   display: block; padding: 10px 14px; border-radius: 11px; font-size: 0.9rem; font-weight: 600; color: #ddd5c6; white-space: normal;
 }
-.nav .nav-sub a:hover, .nav .nav-sub a:focus-visible { background: rgb(255 255 255 / 0.07); color: #fff; outline: none; }
-.nav .nav-sub a.is-current { color: var(--acc-500); background: rgb(255 255 255 / 0.05); }
+.nav-sub a:hover, .nav-sub a:focus-visible { background: rgb(255 255 255 / 0.07); color: #fff; outline: none; }
+.nav-sub a.is-current { color: var(--acc-500); background: rgb(255 255 255 / 0.05); }
 .nav-glider {
   position: absolute; top: 4px; bottom: 4px; left: 0; z-index: 0; border-radius: 11px; pointer-events: none;
   background: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.05));
