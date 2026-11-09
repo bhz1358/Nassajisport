@@ -14,6 +14,8 @@ export type Fan = {
   createdAt: string;
   /** Has chosen a display name (asked once after the first sign-in). */
   named?: boolean;
+  /** Profile photo (/uploads/fans/…webp). */
+  avatar?: string;
   blocked?: boolean;
 };
 

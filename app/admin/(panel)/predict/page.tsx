@@ -5,6 +5,7 @@ import { SubmitButton } from "../../ui-client";
 import { requireAccess } from "@/lib/auth";
 import { baleBotInfo, baleState, hasBaleToken } from "@/lib/bale-login";
 import { getFans, saveFans } from "@/lib/fans";
+import { removeAvatar } from "@/lib/fan-avatar";
 import { str, withError } from "@/lib/form";
 import { faDate, faNum } from "@/lib/format";
 import { getLeague } from "@/lib/league";
@@ -32,6 +33,13 @@ async function toggleBlock(fd: FormData) {
   const id = str(fd, "id");
   saveFans(getFans().map((f) => (f.id === id ? { ...f, blocked: !f.blocked } : f)));
   redirect(`${BACK}?ok=saved#fans`);
+}
+
+async function clearAvatar(fd: FormData) {
+  "use server";
+  await requireAccess("users");
+  removeAvatar(str(fd, "id"));
+  redirect(`${BACK}?ok=${encodeURIComponent("عکس حذف شد.")}#fans`);
 }
 
 export default async function PredictAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
@@ -121,11 +129,23 @@ export default async function PredictAdmin({ searchParams }: { searchParams: Pro
           <div className="a-table-wrap">
             <table className="a-table">
               <thead>
-                <tr><th>نام نمایشی</th><th>شماره</th><th>عضویت</th><th>پیش‌بینی</th><th></th></tr>
+                <tr><th>عکس</th><th>نام نمایشی</th><th>شماره</th><th>عضویت</th><th>پیش‌بینی</th><th></th></tr>
               </thead>
               <tbody>
                 {[...fans].reverse().map((f) => (
                   <tr key={f.id}>
+                    <td>
+                      {f.avatar ? (
+                        <form action={clearAvatar} className="a-row" style={{ alignItems: "center", gap: 6 }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={f.avatar} alt="" width={36} height={36} style={{ borderRadius: "50%" }} />
+                          <input type="hidden" name="id" value={f.id} />
+                          <SubmitButton className="a-btn a-btn-small a-btn-danger" pendingText="…" confirm="عکس این هوادار حذف شود؟">حذف عکس</SubmitButton>
+                        </form>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td>{f.name} {f.blocked && <span className="a-tag">غیرفعال</span>}</td>
                     <td dir="ltr">{f.phone}</td>
                     <td>{faDate(f.createdAt)}</td>

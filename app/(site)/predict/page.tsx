@@ -71,7 +71,7 @@ export default async function PredictPage({ searchParams }: { searchParams: Prom
                 سلام <b>{fan.name}</b>! {myWeek ? <>امتیاز شما در این هفته: <b>{faNum(myWeek)}</b></> : anyOpen ? "نتیجه‌ها را بنویسید و ذخیره کنید." : ""}
               </p>
               <div className="predict-me-links">
-                <Link href="/predict/me/">تغییر نام</Link>
+                <Link href="/predict/me/">پروفایل و عکس</Link>
                 <form action={logoutFan}><button type="submit">خروج</button></form>
               </div>
             </div>

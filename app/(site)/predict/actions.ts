@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { currentFan, getFans, nameProblem, saveFans, signOutFan } from "@/lib/fans";
 import { savePredictions } from "@/lib/predictions";
+import { removeAvatar, setAvatar } from "@/lib/fan-avatar";
 
 const toInt = (v: FormDataEntryValue | null) => {
   const s = String(v ?? "").replace(/[۰-۹]/g, (c) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(c))).replace(/[٠-٩]/g, (c) => String("٠١٢٣٤٥٦٧٨٩".indexOf(c))).trim();
@@ -44,4 +45,19 @@ export async function saveName(fd: FormData) {
 export async function logoutFan() {
   await signOutFan();
   redirect("/predict/");
+}
+
+export async function uploadAvatar(fd: FormData) {
+  const fan = await currentFan();
+  if (!fan) redirect("/predict/login/");
+  const file = fd.get("photo");
+  const error = file instanceof File ? await setAvatar(fan, file) : "عکسی انتخاب نشده است.";
+  redirect(error ? `/predict/me/?error=${encodeURIComponent(error)}` : `/predict/me/?ok=${encodeURIComponent("عکس پروفایل شما ذخیره شد.")}`);
+}
+
+export async function deleteAvatar() {
+  const fan = await currentFan();
+  if (!fan) redirect("/predict/login/");
+  removeAvatar(fan.id);
+  redirect(`/predict/me/?ok=${encodeURIComponent("عکس پروفایل حذف شد.")}`);
 }
