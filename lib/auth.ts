@@ -71,6 +71,29 @@ function sign(payload: string) {
   return crypto.createHmac("sha256", secret()).update(payload).digest("base64url");
 }
 
+/** A value signed with the site's secret: `data.signature` (for cookies other code sets). */
+export const signValue = (data: object) => {
+  const payload = Buffer.from(JSON.stringify(data)).toString("base64url");
+  return `${payload}.${sign(payload)}`;
+};
+
+/** The data of a value made by signValue, or null if it was tampered with. */
+export function readSigned<T>(raw: string | undefined): T | null {
+  if (!raw) return null;
+  const [payload, sig] = raw.split(".");
+  if (!payload || !sig) return null;
+  const expected = sign(payload);
+  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  try {
+    return JSON.parse(Buffer.from(payload, "base64url").toString()) as T;
+  } catch {
+    return null;
+  }
+}
+
+/** Cookies are Secure in production unless the site still runs on plain HTTP (INSECURE_COOKIES=1). */
+export const secureCookies = () => process.env.NODE_ENV === "production" && process.env.INSECURE_COOKIES !== "1";
+
 export async function createSession(username: string) {
   const exp = Date.now() + SESSION_DAYS * 86_400_000;
   const payload = Buffer.from(JSON.stringify({ u: username, exp })).toString("base64url");

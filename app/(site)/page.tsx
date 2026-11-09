@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdSlot } from "./ad-slot";
 import { FitToColumn, HeroSlider, MediaRail, type HeroSlide } from "./client";
 import { WeekSchedule } from "./week-schedule";
+import { PredictBox } from "./predict/PredictBox";
 import {
   BreakingBar,
   NewsCard,
@@ -92,6 +93,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
 
         <aside className="home-side">
           <NextMatchCard f={nextMatch} />
+          <PredictBox />
           <AdSlot slot={2} />
           {league.fixtures.some((f) => f.round) && (
             <div className="panel" id="home-weeks">
