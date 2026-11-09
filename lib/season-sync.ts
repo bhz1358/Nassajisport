@@ -1,3 +1,4 @@
+import "./net-tuning.ts";
 import { getLeague, saveLeague } from "./league";
 import type { FeedMatch } from "./live-scores.ts";
 import { mergeSeason, readFixturesPage } from "./season-import.ts";

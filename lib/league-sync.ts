@@ -1,3 +1,4 @@
+import "./net-tuning.ts";
 import { getLeague, saveLeague, sortStandings } from "./league";
 import { parseStandings } from "./standings-import.ts";
 import { canonicalTeam } from "./team-names.ts";

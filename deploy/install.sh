@@ -159,7 +159,9 @@ Type=simple
 User=$APP_USER
 WorkingDirectory=$APP_DIR
 EnvironmentFile=$ENV_FILE
-ExecStart=/usr/local/bin/node $APP_DIR/node_modules/next/dist/bin/next start -H 127.0.0.1 -p $PORT
+# Slow links to Telegram and other sites: give each IPv6/IPv4 connection attempt 3 s
+# (Node's default 250 ms cancels them all and fetch fails with AggregateError).
+ExecStart=/usr/local/bin/node --network-family-autoselection-attempt-timeout=3000 $APP_DIR/node_modules/next/dist/bin/next start -H 127.0.0.1 -p $PORT
 Restart=always
 RestartSec=3
 NoNewPrivileges=true

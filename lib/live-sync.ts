@@ -1,3 +1,4 @@
+import "./net-tuning.ts";
 import { getLeague, saveLeague } from "./league";
 import { DEFAULT_LIVE, FOOTBALLI_URL, liveWindowOpen, mergeLive, readFeed, type LiveSettings } from "./live-scores.ts";
 

@@ -33,3 +33,11 @@ test("the headline line may sit lower; without 🔸 the first line is the headli
 test("paragraphs become safe HTML with links", () => {
   assert.equal(paragraphsToHtml(["الف <b>ب</b>", "لینک https://iranleague.ir/x"]), `<p>الف &lt;b&gt;ب&lt;/b&gt;</p><p>لینک <a href="https://iranleague.ir/x" target="_blank" rel="noopener">https://iranleague.ir/x</a></p>`);
 });
+
+test("network errors are explained, not just «AggregateError»", async () => {
+  const { networkReason } = await import("../lib/net-tuning.ts");
+  const agg = new AggregateError([Object.assign(new Error("x"), { code: "ETIMEDOUT", address: "149.154.167.220" }), Object.assign(new Error("y"), { code: "ENETUNREACH", address: "2001:67c:4e8:f004::9" })]);
+  const err = Object.assign(new TypeError("fetch failed"), { cause: agg });
+  assert.equal(networkReason(err), "ETIMEDOUT 149.154.167.220، ENETUNREACH 2001:67c:4e8:f004::9");
+  assert.equal(networkReason(Object.assign(new TypeError("fetch failed"), { cause: Object.assign(new Error("z"), { code: "ECONNRESET" }) })), "ECONNRESET");
+});

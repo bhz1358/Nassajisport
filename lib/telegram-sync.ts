@@ -16,6 +16,7 @@ import { getSettings, logoUrl } from "./settings";
 import { HOME_TEAM } from "./site";
 import { slugify } from "./slug.ts";
 import { getSquad } from "./squad";
+import { fetchRetry, networkReason } from "./net-tuning.ts";
 import { readStore, UPLOADS_DIR, writeStore } from "./store";
 import { isForSite, paragraphsToHtml, parsePost } from "./telegram-parse.ts";
 import { resolveTheme } from "./themes";
@@ -51,15 +52,14 @@ const hide = (s: string) => (token() ? s.split(token()).join("***") : s);
 async function call<T>(method: string, params: Record<string, unknown> = {}): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${api()}/bot${token()}/${method}`, {
+    res = await fetchRetry(`${api()}/bot${token()}/${method}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
-      signal: AbortSignal.timeout(25_000),
       cache: "no-store",
     });
   } catch (e) {
-    throw new Error(hide(`اتصال به تلگرام برقرار نشد (${(e as Error).cause ? String((e as Error).cause) : (e as Error).message}). اگر سرور در ایران است، به پروکسی یا واسط نیاز دارد.`));
+    throw new Error(hide(`اتصال به تلگرام برقرار نشد، حتی بعد از ۳ بار تلاش (${networkReason(e)}). اگر این تکرار شد، اتصال سرور به تلگرام ناپایدار است و به پروکسی یا واسط نیاز دارد.`));
   }
   const data = (await res.json().catch(() => ({}))) as { ok?: boolean; result?: T; description?: string };
   if (!data.ok) {
@@ -74,7 +74,12 @@ async function call<T>(method: string, params: Record<string, unknown> = {}): Pr
 async function download(fileId: string): Promise<{ buffer: Buffer; name: string }> {
   const f = await call<{ file_path?: string; file_size?: number }>("getFile", { file_id: fileId });
   if (!f.file_path) throw new Error("فایل در تلگرام پیدا نشد (فایل‌های بیشتر از ۲۰ مگابایت را ربات نمی‌تواند بگیرد).");
-  const res = await fetch(`${api()}/file/bot${token()}/${f.file_path}`, { signal: AbortSignal.timeout(60_000), cache: "no-store" });
+  let res: Response;
+  try {
+    res = await fetchRetry(`${api()}/file/bot${token()}/${f.file_path}`, { cache: "no-store", timeoutMs: 90_000 });
+  } catch (e) {
+    throw new Error(hide(`دانلود فایل از تلگرام انجام نشد (${networkReason(e)}).`));
+  }
   if (!res.ok) throw new Error(`دانلود فایل از تلگرام انجام نشد (HTTP ${res.status}).`);
   return { buffer: Buffer.from(await res.arrayBuffer()), name: f.file_path.split("/").pop() || "file" };
 }
