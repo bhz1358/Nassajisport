@@ -7,7 +7,7 @@ import { getLeague } from "@/lib/league";
 import { fixtureKey, isOpen, pointsFor } from "@/lib/predict-score";
 import { contestWeek, getPredictions, seasonTable, weekFixtures, weekTable } from "@/lib/predictions";
 import { submitPredictions, logoutFan } from "./actions";
-import { Leaders, Notice, Rules } from "./ui";
+import { FanAvatar, Leaders, Notice, Rules } from "./ui";
 
 export const metadata: Metadata = {
   title: "مسابقهٔ پیش‌بینی لیگ برتر",
@@ -67,6 +67,9 @@ export default async function PredictPage({ searchParams }: { searchParams: Prom
         <section className="panel" id="matches">
           {fan ? (
             <div className="predict-me">
+              <Link href="/predict/me/" className="predict-me-photo" title="پروفایل و عکس">
+                <FanAvatar name={fan.name} src={fan.avatar} size={44} />
+              </Link>
               <p>
                 سلام <b>{fan.name}</b>! {myWeek ? <>امتیاز شما در این هفته: <b>{faNum(myWeek)}</b></> : anyOpen ? "نتیجه‌ها را بنویسید و ذخیره کنید." : ""}
               </p>
