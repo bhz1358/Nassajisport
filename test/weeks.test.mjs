@@ -14,10 +14,12 @@ test("during a week, that week", () => {
   assert.equal(currentWeek(fixtures, now(8, 23)), 12, "evening of the last match");
 });
 
-test("the day after the last match the week stays; the next day the next week", () => {
-  assert.equal(currentWeek(fixtures, now(9, 10)), 12, "whole next day");
-  assert.equal(currentWeek(fixtures, now(9, 23)), 12);
-  assert.equal(currentWeek(fixtures, now(10, 0) + 60_000), 13, "from midnight two days on");
+test("results stay 24 hours after the last match ends; then the next week", () => {
+  // last match: Sat 8 Nov 18:00, over by 20:00 → week 13 from Sun 9 Nov 20:00
+  assert.equal(currentWeek(fixtures, now(9, 10)), 12, "next morning");
+  assert.equal(currentWeek(fixtures, now(9, 19) + 59 * 60_000), 12, "a minute before 24 hours");
+  assert.equal(currentWeek(fixtures, now(9, 20)), 13, "24 hours after the match ended");
+  assert.equal(currentWeek(fixtures, now(9, 23)), 13);
   assert.equal(currentWeek(fixtures, now(12, 9)), 13, "before week 13 starts");
 });
 
