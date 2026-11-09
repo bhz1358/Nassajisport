@@ -11,6 +11,7 @@ import { fetchRetry, networkReason } from "./net-tuning";
 import { normalizePhone } from "./predict-score.ts";
 import { readStore, writeStore } from "./store";
 import { getFans, saveFans } from "./fans";
+import { registerBackupChat } from "./backup";
 
 const token = () => (process.env.BALE_BOT_TOKEN || "").trim();
 const api = () => (process.env.BALE_API || "https://tapi.bale.ai").replace(/\/$/, "");
@@ -117,6 +118,19 @@ async function handle(m: Msg, logins: Login[]): Promise<void> {
   if (m.chat.type && m.chat.type !== "private") return;
   if (Date.now() / 1000 - m.date > 30 * 60) return; // old message: whatever it was for is over
   const chatId = m.chat.id;
+  // «پشتیبان 123456»: an admin registering this chat for the nightly backup.
+  const backup = faDigits(m.text ?? "").trim().match(/^(?:\/backup|پشتیبان)\s+(\d{6})$/i);
+  if (backup) {
+    const r = registerBackupChat(chatId, backup[1]);
+    return reply(
+      chatId,
+      r === "bad"
+        ? "این کد درست نیست یا منقضی شده؛ در پنل سایت، بخش «پشتیبان در بله»، کد تازه بگیرید."
+        : r === "known"
+          ? "این گفت‌وگو قبلاً برای دریافت پشتیبان ثبت شده است."
+          : "✅ ثبت شد. از امشب حدود ساعت ۳ بامداد، فایل پشتیبان داده‌های سایت همین‌جا فرستاده می‌شود.",
+    );
+  }
   const word = (m.text ?? "").trim().toLowerCase();
   if (STOP_WORDS.has(word) || ON_WORDS.has(word)) {
     const on = ON_WORDS.has(word);
@@ -213,6 +227,22 @@ export const baleState = () => state();
 export const siteUrl = () => (process.env.SITE_URL || state().siteUrl || "").replace(/\/$/, "");
 export function rememberSiteUrl(url: string) {
   if (url && url !== state().siteUrl) save({ siteUrl: url });
+}
+
+/** Sends a file to a chat; throws when Bale refuses it. */
+export async function sendBaleDocument(chatId: number, data: Buffer, filename: string, caption?: string): Promise<void> {
+  const fd = new FormData();
+  fd.set("chat_id", String(chatId));
+  if (caption) fd.set("caption", caption);
+  fd.set("document", new Blob([new Uint8Array(data)], { type: "application/gzip" }), filename);
+  let res: Response;
+  try {
+    res = await fetchRetry(`${api()}/bot${token()}/sendDocument`, { method: "POST", body: fd, cache: "no-store", timeoutMs: 120_000 }, 2);
+  } catch (e) {
+    throw new Error(hide(`اتصال به بله برقرار نشد (${networkReason(e)}).`));
+  }
+  const out = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string };
+  if (!out.ok) throw new Error(hide(`بله فایل را نپذیرفت: ${out.description ?? `HTTP ${res.status}`}`));
 }
 
 /** Sends a message to a chat; throws when Bale refuses it. */

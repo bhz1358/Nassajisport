@@ -33,6 +33,7 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/ads/", label: "تبلیغات" },
       { href: "/admin/appearance/", label: "ظاهر و تم رنگی" },
       { href: "/admin/settings/", label: "تنظیمات" },
+      { href: "/admin/backup/", label: "پشتیبان در بله" },
       { href: "/admin/users/", label: "کاربران" },
       { href: "/admin/import/", label: "درون‌ریزی وردپرس" },
     ],
