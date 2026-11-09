@@ -49,5 +49,9 @@ export async function makeCover(seed: string, logoFiles: string | string[], bran
 
 /** Where the site's logo file is on disk (uploaded logo, or the bundled one). */
 export function logoPath(logoUrl: string, uploadsDir: string, publicDir = path.join(process.cwd(), "public")): string {
-  return logoUrl.startsWith("/uploads/") ? path.join(uploadsDir, logoUrl.replace(/^\/uploads\//, "").split("?")[0]) : path.join(publicDir, logoUrl.split("?")[0]);
+  const clean = logoUrl.split("?")[0];
+  if (clean.startsWith("/uploads/")) return path.join(uploadsDir, clean.replace(/^\/uploads\//, ""));
+  // Bundled team logos have a sharper 512px copy for covers.
+  const large = clean.replace(/^\/teams\/([^/]+)$/, "/teams/large/$1");
+  return path.join(publicDir, large !== clean && fs.existsSync(path.join(publicDir, large)) ? large : clean);
 }

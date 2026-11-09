@@ -14,14 +14,39 @@ export function getLeague(): LeagueData {
 
 
 /**
- * Logos shipped with the site for teams whose logo the usual sources lack
- * (iranleague.ir's Chadormalu file is missing). A logo set in the admin wins.
+ * Pro League logos shipped with the site (github.com/LordArma/Iran-Football-Leagues, MIT;
+ * 256px here, 512px in /teams/large/ for news covers). They replace logos the fetch tool
+ * downloaded into /uploads/teams/; a logo uploaded in the admin still wins.
  */
 export const BUNDLED_LOGOS: Record<string, string> = {
+  "آلومینیوم اراک": "/teams/aluminium-arak.webp",
+  استقلال: "/teams/esteghlal.webp",
+  "استقلال خوزستان": "/teams/esteghlal-khuzestan.webp",
+  تراکتور: "/teams/tractor.webp",
+  "خیبر خرم آباد": "/teams/kheybar.webp",
+  "ذوب آهن": "/teams/zob-ahan.webp",
+  سپاهان: "/teams/sepahan.webp",
+  "شمس آذر قزوین": "/teams/shams-azar.webp",
+  "صنعت نفت آبادان": "/teams/sanat-naft.webp",
+  "فجر سپاسی": "/teams/fajr-sepasi.webp",
+  فولاد: "/teams/foolad.webp",
+  "مس شهر بابک": "/teams/mes-shahr-babak.webp",
+  ملوان: "/teams/malavan.webp",
+  "نساجی مازندران": "/teams/nassaji.webp",
+  پرسپولیس: "/teams/persepolis.webp",
+  پیکان: "/teams/paykan.webp",
   "چادرملو اردکان": "/teams/chadormalu.webp",
+  "گل گهر": "/teams/golgohar.webp",
 };
 
-export const teamLogo = (league: LeagueData, team: string): string | undefined => league.teamLogos?.[team] || BUNDLED_LOGOS[team];
+const bundledKey = (s: string) => s.replace(/[\u200c\s]+/g, " ").replace(/ي/g, "ی").replace(/ك/g, "ک").trim();
+const BUNDLED_BY_KEY = new Map(Object.entries(BUNDLED_LOGOS).map(([t, u]) => [bundledKey(t), u]));
+
+export const teamLogo = (league: LeagueData, team: string): string | undefined => {
+  const set = league.teamLogos?.[team];
+  if (set && !set.startsWith("/uploads/teams/")) return set;
+  return BUNDLED_BY_KEY.get(bundledKey(team)) ?? set;
+};
 
 export function saveLeague(league: LeagueData) {
   writeStore("league", { ...league, updatedAt: new Date().toISOString() });
