@@ -309,3 +309,9 @@ a.a-stat:hover { border-color: var(--brand-600); }
 .a-serp-url { font-size: 0.78rem; color: #188038; text-align: right; }
 .a-serp-title { font-size: 1.1rem; font-weight: 600; color: #1a0dab; line-height: 1.5; }
 .a-serp-desc { font-size: 0.86rem; color: #4d5156; line-height: 1.8; }
+
+.a-past-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
+.a-past-bar select { max-width: 360px; }
+.a-checkall { display: inline-flex; gap: 12px; font-size: 0.88rem; }
+.a-table tr.is-muted td { opacity: 0.55; }
+.a-table td input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--acc-600); }

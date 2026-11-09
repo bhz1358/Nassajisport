@@ -291,6 +291,8 @@ export type BackfillItem = {
   postId?: number;
   /** Already news before this import (made by the bot or an earlier run). */
   existed?: boolean;
+  /** Left out of this run (not ticked in the list). */
+  skip?: boolean;
   error?: string;
 };
 export type Backfill = {
@@ -303,6 +305,8 @@ export type Backfill = {
   startedAt?: string;
   finishedAt?: string;
   error?: string;
+  /** This run's choice: publish the posts or keep them as drafts. */
+  mode?: "publish" | "draft";
 };
 export const backfillState = (): Backfill => ({ status: "idle", items: [], ...readStore<Partial<Backfill>>("telegram-backfill", () => ({})) });
 const saveBackfill = (b: Backfill) => writeStore("telegram-backfill", b);
@@ -391,19 +395,26 @@ let backfilling = false;
 export const backfillRunning = () => backfilling;
 
 /** Makes the news posts of the previewed list, oldest first, in the background. */
-export function startBackfill(): { ok: true } | { ok: false; error: string } {
-  const b = backfillState();
+export function startBackfill(ids: number[], mode: "publish" | "draft"): { ok: true } | { ok: false; error: string } {
+  const prev = backfillState();
   if (backfilling) return { ok: false, error: "ساخت خبرها در جریان است." };
+  // Only the ticked posts are made; a post with an error can be ticked to try again.
+  const chosen = new Set(ids);
+  const b: Backfill = { ...prev, mode, items: prev.items.map((i) => (i.postId ? i : { ...i, skip: !chosen.has(i.id), error: chosen.has(i.id) ? undefined : i.error })) };
+  saveBackfill(b);
+  if (!chosen.size) return { ok: false, error: "هیچ پستی تیک نخورده است." };
   // "running" left over from a restart counts as a list that can be continued.
-  if (!["preview", "running", "done"].includes(b.status) || !b.items.some((i) => !i.postId && !i.error)) return { ok: false, error: "اول «پیش‌نمایش» را بزنید؛ خبر تازه‌ای برای ساختن در فهرست نیست." };
+  if (!["preview", "running", "done"].includes(b.status) || !b.items.some((i) => !i.postId && !i.skip)) return { ok: false, error: "اول «پیش‌نمایش» را بزنید؛ خبر تازه‌ای برای ساختن در فهرست نیست." };
   backfilling = true;
   saveBackfill({ ...b, status: "running", startedAt: new Date().toISOString(), finishedAt: undefined, error: undefined });
   void (async () => {
     const channel = channelName(telegramState().channel);
     try {
+      const runMode = backfillState().mode ?? telegramState().mode;
       for (const item of backfillState().items) {
-        if (item.postId) continue;
-        const state = telegramState();
+        if (item.postId || item.skip) continue;
+        // This run's publish/draft choice wins over the channel setting.
+        const state = { ...telegramState(), mode: runMode };
         // Made meanwhile by the bot (or an earlier run)?
         const already = findProcessed(state.processed, { username: channel }, item.id);
         let postId = already;

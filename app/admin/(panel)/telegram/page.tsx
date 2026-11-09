@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Field, Flash, PageHead } from "../../ui";
-import { AutoRefresh, SubmitButton } from "../../ui-client";
+import { AutoRefresh, CheckAll, SubmitButton } from "../../ui-client";
 import { requireAccess } from "@/lib/auth";
 import { str, withError } from "@/lib/form";
 import { faDate } from "@/lib/format";
@@ -39,10 +39,11 @@ async function previewPast(fd: FormData) {
   redirect(`${BACK}?ok=${encodeURIComponent(`${r.scanned} پست کانال بررسی شد؛ ${r.found} پست با 🌍 در این بازه پیدا شد. فهرست را ببینید و «ساخت خبرها» را بزنید.`)}#past`);
 }
 
-async function runPast() {
+async function runPast(fd: FormData) {
   "use server";
   await requireAccess("publish");
-  const r = startBackfill();
+  const ids = fd.getAll("ids").map(Number).filter(Number.isInteger);
+  const r = startBackfill(ids, str(fd, "mode") === "draft" ? "draft" : "publish");
   if (!r.ok) redirect(withError(BACK, r.error) + "#past");
   redirect(`${BACK}#past`);
 }
@@ -178,7 +179,7 @@ export default async function TelegramPage({ searchParams }: { searchParams: Pro
 function PastPosts() {
   const b = backfillState();
   const running = backfillRunning();
-  const pending = b.items.filter((i) => !i.postId && !i.error).length;
+  const pending = b.items.filter((i) => !i.postId).length;
   const made = b.items.filter((i) => i.postId).length;
   const existed = b.items.filter((i) => i.existed).length;
   const failed = b.items.filter((i) => i.error).length;
@@ -213,59 +214,84 @@ function PastPosts() {
             {made ? ` · ${faNum(made)} خبر شده` : ""}
             {failed ? ` · ${faNum(failed)} خطا` : ""}
           </p>
-          {running ? (
+          {running && (
             <p className="a-flash">
-              در حال ساخت خبرها… {faNum(made)} از {faNum(b.items.length)} (این صفحه خودش به‌روز می‌شود؛ می‌توانید ببندیدش، کار ادامه دارد)
+              در حال ساخت خبرها… {faNum(made - existed)} از {faNum(b.items.filter((i) => !i.skip && !i.existed).length)} (این صفحه خودش به‌روز می‌شود؛ می‌توانید ببندیدش، کار ادامه دارد)
             </p>
-          ) : pending > 0 ? (
-            <form action={runPast}>
-              <SubmitButton pendingText="شروع…">ساخت {faNum(pending)} خبر</SubmitButton>
-            </form>
-          ) : (
-            b.status === "done" && (
-              <p className="a-flash">
-                تمام شد: {faNum(made - existed)} خبر تازه ساخته شد{existed ? `؛ ${faNum(existed)} پست از قبل خبر شده بود` : ""}
-                {failed ? `؛ ${faNum(failed)} پست خطا داشت (روی «خطا» نگه دارید تا علتش را ببینید)` : ""}.
-              </p>
-            )
           )}
-          <div className="a-table-wrap">
-            <table className="a-table">
-              <thead>
-                <tr>
-                  <th>تاریخ</th>
-                  <th>تیتر</th>
-                  <th>رسانه</th>
-                  <th>وضعیت</th>
-                </tr>
-              </thead>
-              <tbody>
-                {b.items.map((i) => (
-                  <tr key={i.id}>
-                    <td className="muted a-nowrap">{faDate(i.date)}</td>
-                    <td>{i.title}</td>
-                    <td className="muted a-nowrap">
-                      {i.photos.length ? `${faNum(i.photos.length)} عکس` : "بدون عکس (کاور)"}
-                      {i.videos.length ? ` · ${faNum(i.videos.length)} ویدیو` : ""}
-                    </td>
-                    <td className="a-nowrap">
-                      {i.postId ? (
-                        <Link href={`/admin/posts/${i.postId}/`} className="a-tag is-ok">
-                          {i.existed ? "از قبل خبر شده" : "خبر شد"}
-                        </Link>
-                      ) : i.error ? (
-                        <span className="a-tag is-warn" title={i.error}>
-                          خطا
-                        </span>
-                      ) : (
-                        <span className="a-tag">آماده</span>
-                      )}
-                    </td>
+          {!running && b.status === "done" && (
+            <p className="a-flash">
+              تمام شد: {faNum(made - existed)} خبر تازه ساخته شد{existed ? `؛ ${faNum(existed)} پست از قبل خبر شده بود` : ""}
+              {failed ? `؛ ${faNum(failed)} پست خطا داشت (روی «خطا» نگه دارید تا علتش را ببینید)` : ""}.
+            </p>
+          )}
+          <form action={runPast} id="past-form">
+            {!running && pending > 0 && (
+              <div className="a-past-bar">
+                <CheckAll form="past-form" name="ids" />
+                <select name="mode" defaultValue={b.mode ?? telegramState().mode} aria-label="انتشار یا پیش‌نویس">
+                  <option value="publish">تیک‌خورده‌ها مستقیم منتشر شوند</option>
+                  <option value="draft">تیک‌خورده‌ها پیش‌نویس بمانند (برای مرور قبل از انتشار)</option>
+                </select>
+                <SubmitButton pendingText="شروع…">ساخت خبرهای انتخاب‌شده</SubmitButton>
+              </div>
+            )}
+            <div className="a-table-wrap">
+              <table className="a-table">
+                <thead>
+                  <tr>
+                    <th aria-label="انتخاب" />
+                    <th>تاریخ</th>
+                    <th>تیتر</th>
+                    <th>رسانه</th>
+                    <th>وضعیت</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {b.items.map((i) => (
+                    <tr key={i.id} className={i.skip && !i.postId ? "is-muted" : ""}>
+                      <td>
+                        {!i.postId && (
+                          <input
+                            type="checkbox"
+                            name="ids"
+                            value={i.id}
+                            // Ticked unless left out of an earlier run.
+                            defaultChecked={!i.skip}
+                            disabled={running}
+                            aria-label={`انتخاب «${i.title}»`}
+                          />
+                        )}
+                      </td>
+                      <td className="muted a-nowrap">{faDate(i.date)}</td>
+                      <td>{i.title}</td>
+                      <td className="muted a-nowrap">
+                        {i.photos.length ? `${faNum(i.photos.length)} عکس` : "بدون عکس (کاور)"}
+                        {i.videos.length ? ` · ${faNum(i.videos.length)} ویدیو` : ""}
+                      </td>
+                      <td className="a-nowrap">
+                        {i.postId ? (
+                          <Link href={`/admin/posts/${i.postId}/`} className="a-tag is-ok">
+                            {i.existed ? "از قبل خبر شده" : "خبر شد"}
+                          </Link>
+                        ) : i.error ? (
+                          <span className="a-tag is-warn" title={i.error}>
+                            خطا
+                          </span>
+                        ) : running && !i.skip ? (
+                          <span className="a-tag">در صف</span>
+                        ) : i.skip && b.status !== "preview" ? (
+                          <span className="a-tag">انتخاب نشد</span>
+                        ) : (
+                          <span className="a-tag">آماده</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </form>
         </>
       )}
       {b.status === "preview" && b.items.length === 0 && b.from && <p className="muted">در این بازه پستی با 🌍 پیدا نشد.</p>}

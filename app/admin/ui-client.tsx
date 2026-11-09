@@ -393,3 +393,19 @@ export function AutoRefresh({ every = 3 }: { every?: number }) {
   }, [router, every]);
   return null;
 }
+
+/** «انتخاب همه» / «هیچ‌کدام» for a list of checkboxes in a form. */
+export function CheckAll({ form, name }: { form: string; name: string }) {
+  const set = (on: boolean) =>
+    document.querySelectorAll<HTMLInputElement>(`#${form} input[type=checkbox][name="${name}"]:not(:disabled)`).forEach((c) => (c.checked = on));
+  return (
+    <span className="a-checkall">
+      <button type="button" className="a-link" onClick={() => set(true)}>
+        انتخاب همه
+      </button>
+      <button type="button" className="a-link" onClick={() => set(false)}>
+        هیچ‌کدام
+      </button>
+    </span>
+  );
+}
