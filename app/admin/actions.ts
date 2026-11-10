@@ -11,10 +11,11 @@ import {
   recordLoginFailure,
 } from "@/lib/auth";
 import { str, withError } from "@/lib/form";
+import { clientIp } from "@/lib/client-ip";
 
 export async function login(fd: FormData) {
   const h = await headers();
-  const key = (h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "local").trim();
+  const key = clientIp(h);
   if (loginBlocked(key)) redirect(withError("/admin/login/", "تلاش‌های ناموفق زیاد بود. ۱۵ دقیقه بعد دوباره امتحان کنید."));
 
   const username = str(fd, "username");

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { loginStatus, rememberSiteUrl, startLogin, hasBaleToken } from "@/lib/bale-login";
 import { fanForPhone, signInFan } from "@/lib/fans";
 import { secureCookies } from "@/lib/auth";
+import { clientIp } from "@/lib/client-ip";
 
 export const dynamic = "force-dynamic";
 const COOKIE = "ns_fan_login";
@@ -14,7 +15,7 @@ const starts = new Map<string, { n: number; until: number }>();
 export async function POST() {
   if (!hasBaleToken()) return NextResponse.json({ error: "ورود با بله هنوز راه‌اندازی نشده است." }, { status: 503 });
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
+  const ip = clientIp(h);
   const host = h.get("x-forwarded-host") ?? h.get("host");
   if (host) rememberSiteUrl(`${(h.get("x-forwarded-proto") ?? "http").split(",")[0]}://${host}`);
   const s = starts.get(ip);
