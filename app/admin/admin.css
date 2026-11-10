@@ -320,3 +320,4 @@ a.a-stat:hover { border-color: var(--brand-600); }
 .a-suggest-grid li { display: flex; flex-direction: column; gap: 6px; }
 .a-suggest-grid img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
 .a-suggest-grid .a-hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }
+.a-badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-inline-start: 6px; border-radius: 99px; background: var(--loss, #e04848); color: #fff; font-size: 0.72rem; font-weight: 800; }

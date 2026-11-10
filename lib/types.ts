@@ -37,6 +37,12 @@ export type Comment = {
   author: string;
   date: string;
   content: string;
+  /** New comments wait for an editor; imported WordPress comments have none and are not shown. */
+  status?: "pending" | "approved";
+  /** Written by the site's editors (shown with a badge, never moderated). */
+  byStaff?: boolean;
+  /** Hashed sender address, to see repeated spam from one place. */
+  ipHash?: string;
 };
 
 export type StandingRow = {

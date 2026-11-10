@@ -10,6 +10,7 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
     title: "محتوا",
     items: [
       { href: "/admin/posts/", label: "خبرها و برگه‌ها" },
+      { href: "/admin/comments/", label: "نظرها" },
       { href: "/admin/categories/", label: "دسته‌ها" },
       { href: "/admin/media/", label: "رسانه" },
       { href: "/admin/telegram/", label: "تلگرام" },
@@ -41,7 +42,7 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
 ];
 
 /** Panel menu; sections the user's role cannot open are left out. */
-export function AdminNav({ role }: { role: Role }) {
+export function AdminNav({ role, pendingComments = 0 }: { role: Role; pendingComments?: number }) {
   const pathname = usePathname();
   const allowed = (href: string) => {
     const section = sectionOfPath(href);
@@ -61,6 +62,7 @@ export function AdminNav({ role }: { role: Role }) {
           {g.items.map((i) => (
             <Link key={i.href} href={i.href} aria-current={i.href === active ? "page" : undefined}>
               {i.label}
+              {i.href === "/admin/comments/" && pendingComments > 0 && <span className="a-badge">{pendingComments.toLocaleString("fa-IR")}</span>}
             </Link>
           ))}
         </div>

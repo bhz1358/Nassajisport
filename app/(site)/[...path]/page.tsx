@@ -3,6 +3,7 @@ import { AdSlot } from "../ad-slot";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReadingProgress, ShareBar } from "../client";
+import { Comments } from "../Comments";
 import { CategoryBadge, LatestTimeline, SectionHeader, StoryCard, Thumb } from "../components";
 import { getByPath, getNews, getPostsInCategory } from "@/lib/content";
 import { faDate, faNum, faTime, readingMinutes } from "@/lib/format";
@@ -11,7 +12,7 @@ import { postImage, withImageFallbacks } from "@/lib/images";
 import { seoFor } from "@/lib/seo-auto";
 import { getSettings, logoUrl } from "@/lib/settings";
 
-type Props = { params: Promise<{ path: string[] }> };
+type Props = { params: Promise<{ path: string[] }>; searchParams: Promise<Record<string, string>> };
 
 /**
  * Splits post HTML after the n-th closing </p> that is not inside another block
@@ -67,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PostPage({ params }: Props) {
+export default async function PostPage({ params, searchParams }: Props) {
   const post = await load(params);
   if (!post) notFound();
 
@@ -136,6 +137,7 @@ export default async function PostPage({ params }: Props) {
             </p>
           )}
           <ShareBar title={post.title} />
+          <Comments post={post} sp={await searchParams} />
         </article>
 
         <aside className="sticky-side">

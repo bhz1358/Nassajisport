@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { logout } from "../actions";
 import { AdminNav } from "./nav";
+import { pendingCount } from "@/lib/comments";
 import { requireAccess } from "@/lib/auth";
 import { roleInfo } from "@/lib/roles";
 import { getSettings, logoUrl } from "@/lib/settings";
@@ -20,7 +21,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <small>پنل مدیریت</small>
           </span>
         </Link>
-        <AdminNav role={user.role} />
+        <AdminNav role={user.role} pendingComments={pendingCount()} />
         <div className="a-side-foot">
           <Link href="/" target="_blank" className="a-btn a-btn-small">
             مشاهده سایت ↗
