@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LiveRefresher, MainNav, TabBar } from "./client";
+import { HeaderAutoHide, LiveRefresher, MainNav, TabBar } from "./client";
 import { LiveButton } from "./components";
 import { getLeague } from "@/lib/league";
 import { maybeAutoSync } from "@/lib/league-sync";
@@ -36,6 +36,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <a href="#main" className="skip-link">
         رفتن به محتوا
       </a>
+      <HeaderAutoHide />
       <header className="site-header">
         <div className="container">
           <div className="header-bar">

@@ -261,6 +261,7 @@ export function MainNav({ items }: { items: NavItem[] }) {
 const TABS = [
   { label: "خانه", href: "/", icon: "M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z" },
   { label: "نتایج", href: "/league/", icon: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4l3 2.2-1.2 3.6h-3.6L9 8.2z" },
+  { label: "پیش‌بینی", href: "/predict/", icon: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zm0 3a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm0 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" },
   { label: "تیم", href: "/team/", icon: "M8 3L2 6l2 6 3-1v10h10V11l3 1 2-6-6-3c-.5 1.7-2 3-4 3S8.5 4.7 8 3z" },
   { label: "ویدیو", href: "/category/video/", icon: "M4 5h12a2 2 0 0 1 2 2v2.5l4-2.5v10l-4-2.5V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" },
 ];
@@ -269,7 +270,7 @@ const TABS = [
 export function TabBar({ ticketsUrl }: { ticketsUrl: string }) {
   const pathname = usePathname();
   return (
-    <nav className={`tabbar ${ticketsUrl ? "" : "no-tickets"}`} aria-label="دسترسی سریع">
+    <nav className={`tabbar ${ticketsUrl ? "" : "no-tickets"}`} aria-label="دسترسی سریع" style={{ ["--tabs" as string]: TABS.length + (ticketsUrl ? 1 : 0) }}>
       {TABS.map((t) => {
         const active = t.href === "/" ? pathname === "/" : pathname.startsWith(t.href);
         return (
@@ -591,4 +592,42 @@ export function WeekSelect({ basePath, anchor = "schedule", value, options }: { 
       {!js && <button type="submit">نمایش</button>}
     </form>
   );
+}
+
+/**
+ * Phones and tablets: the header slides away while reading down the page and comes back as
+ * soon as the reader scrolls up, so the screen is left to the content.
+ */
+export function HeaderAutoHide() {
+  useEffect(() => {
+    const header = document.querySelector<HTMLElement>(".site-header");
+    if (!header) return;
+    const small = window.matchMedia("(max-width: 1024px)");
+    let last = window.scrollY;
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const y = window.scrollY;
+      const dy = y - last;
+      if (!small.matches || y < 120 || document.querySelector(".nav-sub")) header.classList.remove("is-hidden");
+      else if (dy > 8) header.classList.add("is-hidden");
+      else if (dy < -8) header.classList.remove("is-hidden");
+      if (Math.abs(dy) > 8 || y < 120) last = y;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    // Keyboard focus inside the header (Tab) brings it back.
+    const onFocus = () => header.classList.remove("is-hidden");
+    header.addEventListener("focusin", onFocus);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      header.removeEventListener("focusin", onFocus);
+    };
+  }, []);
+  return null;
 }

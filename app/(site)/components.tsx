@@ -312,7 +312,7 @@ export function LiveButton({ live }: { live: number }) {
   return (
     <Link href="/league/" className={`live-btn ${live ? "is-on" : ""}`} title={live ? `${faNum(live)} بازی در جریان است` : "نتایج و جدول لیگ"}>
       <span className="live-dot" aria-hidden="true" />
-      <span className="live-btn-text">نتایج زنده</span>
+      <span className="live-btn-text"><span className="live-btn-word">نتایج </span>زنده</span>
       {live > 0 && <span className="live-btn-count">{faNum(live)}</span>}
     </Link>
   );
