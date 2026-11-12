@@ -14,6 +14,9 @@ import { SocialIcons } from "./social";
 import { UserButton } from "./UserButton";
 import { currentFan } from "@/lib/fans";
 
+/** The header shows just the name: «پایگاه خبری تحلیلی نساجی اسپرت» → «نساجی اسپرت» (the full title stays for Google and tabs). */
+const shortName = (title: string) => title.replace(/^\s*(پایگاه|سایت)\s+(خبری|تحلیلی|ورزشی|و|\s)+/, "").trim() || title;
+
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   maybeAutoSync();
   maybeLiveSync();
@@ -43,8 +46,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
                 <span className="logo-est">تأسیس {FOUNDED}</span>
               </span>
               <span className="logo-text">
-                <small className="logo-kicker">پایگاه خبری تحلیلی</small>
-                <strong>{settings.title}</strong>
+                <strong>{shortName(settings.title)}</strong>
               </span>
             </Link>
             <MainNav items={menus.header} />

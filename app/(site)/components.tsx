@@ -403,11 +403,11 @@ export function HomeStandings({ rows }: { rows: StandingRow[] }) {
         <tr>
           <th>#</th>
           <th className="team-col">تیم</th>
-          <th>بازی</th>
-          <th>برد</th>
-          <th>مساوی</th>
-          <th>باخت</th>
-          <th>امتیاز</th>
+          <th title="بازی">بازی</th>
+          <th title="برد">ب</th>
+          <th title="مساوی">م</th>
+          <th title="باخت (شکست)">ش</th>
+          <th title="امتیاز" className="pts-col">امتیاز</th>
         </tr>
       </thead>
       <tbody>

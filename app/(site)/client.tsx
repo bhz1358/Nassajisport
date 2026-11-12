@@ -108,9 +108,27 @@ export function MainNav({ items }: { items: NavItem[] }) {
     toActive();
     const el = nav.current;
     if (!el) return;
+    const bar = el.closest<HTMLElement>(".header-bar");
+    // When every item can't fit beside the logo and the buttons, the menu takes its own row
+    // under them (class is-crowded) instead of scrolling. Measured from the items' own widths,
+    // so the decision doesn't flip once the menu has the whole row.
+    const fit = () => {
+      if (!bar || window.innerWidth <= 960) return bar?.classList.remove("is-crowded");
+      const items = [...el.querySelectorAll<HTMLElement>(":scope > .nav-item")].reduce((w, i) => w + i.offsetWidth, 0) + 12;
+      const logo = bar.querySelector<HTMLElement>(".logo")?.offsetWidth ?? 0;
+      const actions = bar.querySelector<HTMLElement>(".header-actions")?.offsetWidth ?? 0;
+      const style = getComputedStyle(bar);
+      const room = bar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - logo - actions - 2 * parseFloat(style.columnGap || "0");
+      bar.classList.toggle("is-crowded", items > room);
+    };
+    fit();
     // Fonts loading or the window resizing change link widths.
-    const ro = new ResizeObserver(() => toActive());
+    const ro = new ResizeObserver(() => {
+      toActive();
+      fit();
+    });
     ro.observe(el);
+    if (bar) ro.observe(bar);
     return () => ro.disconnect();
   }, [toActive]);
 

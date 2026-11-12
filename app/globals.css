@@ -210,8 +210,7 @@ button { font: inherit; }
 .logo-mark { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: none; }
 .logo-est { font-size: 0.62rem; font-weight: 700; line-height: 1; color: var(--acc-500); letter-spacing: 0.02em; white-space: nowrap; }
 .logo-text { display: flex; flex-direction: column; line-height: 1.3; }
-.logo-text .logo-kicker { font-size: 0.74rem; font-weight: 700; color: #b9b1a2; max-width: none; letter-spacing: 0; }
-.logo-text strong { font-size: 1.32rem; font-weight: 900; }
+.logo-text strong { font-size: 1.3rem; font-weight: 900; white-space: nowrap; }
 .logo-text strong { background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .logo-text small { font-size: 0.68rem; color: #9c9486; max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nav {
@@ -222,7 +221,7 @@ button { font: inherit; }
 }
 .nav::-webkit-scrollbar { display: none; }
 .nav a {
-  position: relative; z-index: 1; color: #cfc8ba; padding: 6px 10px; border-radius: 10px; font-weight: 600; font-size: 0.82rem;
+  position: relative; z-index: 1; color: #cfc8ba; padding: 5px 8px; border-radius: 9px; font-weight: 600; font-size: 0.76rem;
   white-space: nowrap; transition: color 0.25s;
 }
 .nav a:hover, .nav a:focus-visible { color: #fff; }
@@ -233,12 +232,12 @@ button { font: inherit; }
 .nav-item { position: relative; z-index: 1; display: inline-flex; align-items: center; flex: none; }
 .nav-item.has-sub > a, .nav-item.has-sub > .nav-parent { padding-inline-end: 4px; }
 .nav-parent {
-  font: inherit; background: none; border: 0; cursor: pointer; color: #cfc8ba; padding: 6px 10px; border-radius: 10px;
-  font-weight: 600; font-size: 0.82rem; white-space: nowrap; transition: color 0.25s;
+  font: inherit; background: none; border: 0; cursor: pointer; color: #cfc8ba; padding: 5px 8px; border-radius: 9px;
+  font-weight: 600; font-size: 0.76rem; white-space: nowrap; transition: color 0.25s;
 }
 .nav-parent:hover, .nav-parent[aria-current="page"] { color: var(--acc-500); }
 .nav-caret {
-  display: grid; place-items: center; width: 18px; height: 22px; margin-inline-end: 4px; padding: 0; border: 0; border-radius: 6px;
+  display: grid; place-items: center; width: 16px; height: 20px; margin-inline-end: 3px; padding: 0; border: 0; border-radius: 6px;
   background: none; color: #a39b8c; cursor: pointer; transition: transform 0.25s var(--ease), color 0.2s, background 0.2s;
 }
 .nav-caret:hover, .nav-item.is-open .nav-caret { color: var(--acc-500); background: rgb(255 255 255 / 0.06); }
@@ -423,7 +422,7 @@ a:hover .play { transform: scale(1.08); }
 /* Smaller laptops: a tighter header so the menu and the social icons both fit. */
 @media (min-width: 961px) and (max-width: 1279px) {
   .header-bar { gap: 12px; padding: 0 12px; }
-  .nav a, .nav-parent { padding: 6px 8px; font-size: 0.78rem; }
+  .nav a, .nav-parent { padding: 5px 6px; font-size: 0.72rem; }
   .header-actions { gap: 6px; }
   .header-social { gap: 4px; }
   .header-social a { width: 30px; height: 30px; }
@@ -1413,3 +1412,31 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .user-btn.is-in .user-btn-label { display: none; }
   .user-btn.is-in { padding: 0 5px; }
 }
+
+/* A compact header so every menu item fits beside the buttons. */
+.header-bar { gap: 14px; }
+.nav { gap: 0; padding: 3px; }
+.header-actions { gap: 6px; }
+.header-actions .icon-btn { width: 38px; height: 38px; border-radius: 11px; }
+.user-btn { height: 38px; padding: 0 10px; font-size: 0.78rem; border-radius: 11px; }
+.user-btn img, .user-btn-letter { width: 26px; height: 26px; }
+.user-btn.is-in .user-btn-label { max-width: 72px; }
+.header-tickets.btn-sm { min-height: 38px; padding: 0 12px; font-size: 0.78rem; }
+.live-btn { padding: 5px 10px; font-size: 0.78rem; }
+.header-social a { width: 32px; height: 32px; }
+.header-social svg { width: 16px; height: 16px; }
+/* Too many menu items for one row (set by the menu's script): the menu gets its own row, whole. */
+@media (min-width: 961px) {
+  .header-bar.is-crowded { height: auto; flex-wrap: wrap; padding-block: 10px 8px; row-gap: 8px; }
+  .header-bar.is-crowded .nav { flex-basis: 100%; order: 3; justify-content: center; }
+  .header-bar.is-crowded .header-actions { margin-inline-start: auto; }
+}
+/* The home table (with the draws column) always fits its sidebar column. */
+.standings.is-home-table { width: 100%; table-layout: fixed; }
+.standings.is-home-table th:first-child, .standings.is-home-table td:first-child { width: 26px; }
+.standings.is-home-table th:nth-child(n + 3), .standings.is-home-table td:nth-child(n + 3) { width: 32px; padding-inline: 2px; text-align: center; }
+.standings.is-home-table td.team-col { max-width: none; overflow: hidden; }
+.home-side > * { min-width: 0; }
+@media (max-width: 1180px) { .standings.is-home-table { font-size: 0.76rem; } .standings.is-home-table th:nth-child(n + 4), .standings.is-home-table td:nth-child(n + 4) { width: 26px; } .standings.is-home-table th.pts-col, .standings.is-home-table td:last-child { width: 40px; } }
+.standings.is-home-table th:nth-child(3), .standings.is-home-table td:nth-child(3) { width: 36px; }
+.standings.is-home-table th.pts-col, .standings.is-home-table td:last-child { width: 44px; }
