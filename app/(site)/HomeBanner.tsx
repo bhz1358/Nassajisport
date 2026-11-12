@@ -6,7 +6,7 @@ export function HomeBanner() {
   const s = getSettings();
   if (s.homeBanner?.hidden) return null;
   // eslint-disable-next-line @next/next/no-img-element
-  const img = <img src={bannerUrl(s)} alt="هواداران نساجی مازندران" width={2000} height={181} fetchPriority="high" />;
+  const img = <img src={bannerUrl(s)} alt="نساجی اسپرت؛ هواداران نساجی مازندران" width={2000} height={667} fetchPriority="high" />;
   const link = s.homeBanner?.link;
   return (
     <div className="home-banner">

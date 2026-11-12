@@ -51,6 +51,6 @@ export function saveSettings(settings: Settings) {
   writeStore("settings", settings);
 }
 
-/** The home banner shipped with the site (Nassaji's fans). */
-export const DEFAULT_BANNER = "/banners/fans-banner.webp";
+/** The home banner shipped with the site («Nassaji Sport» with the fans, softened). */
+export const DEFAULT_BANNER = "/banners/nassaji-sport-banner.webp";
 export const bannerUrl = (s: Settings) => s.homeBanner?.image || DEFAULT_BANNER;

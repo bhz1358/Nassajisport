@@ -79,7 +79,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         </Field>
         <fieldset className="a-fieldset">
           <legend>بنر بالای صفحهٔ اول</legend>
-          <p className="a-hint">زیر منوی اصلی و بالای اسلایدر. بهترین اندازه: عکس پهن و باریک، مثلاً ۲۰۰۰ در ۱۸۰ پیکسل. برای برگشت به بنر پیش‌فرض (هواداران نساجی)، عکس را حذف و ذخیره کنید.</p>
+          <p className="a-hint">زیر منوی اصلی و بالای اسلایدر. بهترین اندازه: عکس پهن و باریک، مثلاً ۲۰۰۰ در ۶۶۷ پیکسل (۳ به ۱). برای برگشت به بنر پیش‌فرض (هواداران نساجی)، عکس را حذف و ذخیره کنید.</p>
           <label className="a-check">
             <input type="checkbox" name="bannerShow" defaultChecked={!s.homeBanner?.hidden} /> بنر نمایش داده شود
           </label>

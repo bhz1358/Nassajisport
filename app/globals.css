@@ -1384,12 +1384,8 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 .comment-rules { font-size: 0.78rem; margin: 0; }
 .comment-hp { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
-/* Home banner: between the menu and the slider */
+/* Home banner: between the menu and the slider, at the picture's own shape (none of it cut). */
 .home-banner { margin-top: 18px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); background: #0b0b10; line-height: 0; }
 .home-banner a { display: block; }
-.home-banner img { display: block; width: 100%; height: auto; aspect-ratio: 2000 / 181; object-fit: cover; }
-/* On phones the full strip would be a sliver: show its middle (the club's name) taller. */
-@media (max-width: 720px) {
-  .home-banner { margin-top: 12px; border-radius: 14px; }
-  .home-banner img { aspect-ratio: auto; height: 84px; object-position: center; }
-}
+.home-banner img { display: block; width: 100%; height: auto; }
+@media (max-width: 720px) { .home-banner { margin-top: 12px; border-radius: 14px; } }
