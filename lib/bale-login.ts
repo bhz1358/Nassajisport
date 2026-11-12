@@ -245,6 +245,22 @@ export async function sendBaleDocument(chatId: number, data: Buffer, filename: s
   if (!out.ok) throw new Error(hide(`بله فایل را نپذیرفت: ${out.description ?? `HTTP ${res.status}`}`));
 }
 
+/** Sends a picture to a chat (shown in the chat, not as a file); throws when Bale refuses it. */
+export async function sendBalePhoto(chatId: number, data: Buffer, filename: string, caption?: string): Promise<void> {
+  const fd = new FormData();
+  fd.set("chat_id", String(chatId));
+  if (caption) fd.set("caption", caption);
+  fd.set("photo", new Blob([new Uint8Array(data)], { type: "image/jpeg" }), filename);
+  let res: Response;
+  try {
+    res = await fetchRetry(`${api()}/bot${token()}/sendPhoto`, { method: "POST", body: fd, cache: "no-store", timeoutMs: 120_000 }, 2);
+  } catch (e) {
+    throw new Error(hide(`اتصال به بله برقرار نشد (${networkReason(e)}).`));
+  }
+  const out = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string };
+  if (!out.ok) throw new Error(hide(`بله عکس را نپذیرفت: ${out.description ?? `HTTP ${res.status}`}`));
+}
+
 /** Sends a message to a chat; throws when Bale refuses it. */
 export async function sendBale(chatId: number, text: string): Promise<void> {
   await call("sendMessage", { chat_id: chatId, text });

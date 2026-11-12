@@ -5,6 +5,7 @@ import { Crest } from "../../components";
 import { faDate, faNum, faTime, faWeekday } from "@/lib/format";
 import { fixtureOf, getReport, siteTeam } from "@/lib/match-reports";
 import { TeamSheetCard } from "../ui";
+import { fixtureKey } from "@/lib/predict-score";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -56,6 +57,11 @@ export default async function ReportPage({ params }: Props) {
           {r.venue && <li>🏟️ {r.venue}{r.city ? `، ${r.city}` : ""}</li>}
           {r.weather && <li>🌤️ هوا: {r.weather}</li>}
         </ul>
+        {f && (
+          <p className="report-story">
+            <a href={`/story/?m=${encodeURIComponent(fixtureKey(f))}&download=1`} className="btn btn-primary btn-sm">📲 دانلود کارت استوری</a>
+          </p>
+        )}
       </header>
 
       <div className="report-sheets">

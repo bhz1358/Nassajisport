@@ -1393,3 +1393,4 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
   .home-banner { margin-top: 12px; border-radius: 14px; }
   .home-banner img { aspect-ratio: 4 / 1; }
 }
+.report-story { margin: 16px 0 0; }
