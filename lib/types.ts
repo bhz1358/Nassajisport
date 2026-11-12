@@ -173,6 +173,8 @@ export type Settings = {
   };
   sourceUrl?: string;
   importedAt?: string;
+  /** Wide banner between the menu and the home slider. */
+  homeBanner?: { image?: string; link?: string; hidden?: boolean };
   /** Bumped when a redesign changes the default theme (see getSettings). */
   designVersion?: number;
 };

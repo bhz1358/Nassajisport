@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdSlot } from "./ad-slot";
 import { FitToColumn, HeroSlider, MediaRail, type HeroSlide } from "./client";
 import { WeekSchedule } from "./week-schedule";
+import { HomeBanner } from "./HomeBanner";
 import { PredictBox } from "./predict/PredictBox";
 import { TopFans } from "./predict/TopFans";
 import { BestPlayerBox } from "./ratings/BestPlayerBox";
@@ -70,6 +71,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
 
   return (
     <>
+      <HomeBanner />
       <HeroSlider slides={slides} logo={logo} />
       <BreakingBar posts={breaking} />
       <AdSlot slot={1} className="pbox-top" />

@@ -50,3 +50,7 @@ export const logoUrl = (s: Settings) => s.logo || DEFAULT_LOGO;
 export function saveSettings(settings: Settings) {
   writeStore("settings", settings);
 }
+
+/** The home banner shipped with the site (Nassaji's fans). */
+export const DEFAULT_BANNER = "/banners/fans-banner.webp";
+export const bannerUrl = (s: Settings) => s.homeBanner?.image || DEFAULT_BANNER;

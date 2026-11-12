@@ -5,7 +5,7 @@ import { ImageField, SubmitButton } from "../../ui-client";
 import { requireAccess } from "@/lib/auth";
 import { file, str, withError } from "@/lib/form";
 import { saveUploadAsWebp } from "@/lib/media";
-import { DEFAULT_LOGO, getSettings, logoUrl, saveSettings } from "@/lib/settings";
+import { bannerUrl, DEFAULT_BANNER, DEFAULT_LOGO, getSettings, logoUrl, saveSettings } from "@/lib/settings";
 import { SOCIAL_NETWORKS, type SocialLinks } from "@/lib/social";
 
 export const metadata: Metadata = { title: "تنظیمات" };
@@ -34,8 +34,21 @@ async function save(fd: FormData) {
       redirect(withError("/admin/settings/", (e as Error).message));
     }
   }
+  // The home banner: a new upload keeps its width (up to 2400 px); clearing it brings back the default.
+  let banner = str(fd, "banner") || undefined;
+  const bannerUpload = file(fd, "bannerFile");
+  if (bannerUpload) {
+    try {
+      banner = await saveUploadAsWebp(bannerUpload, 2400);
+    } catch (e) {
+      redirect(withError("/admin/settings/", (e as Error).message));
+    }
+  }
+  const bannerLink = str(fd, "bannerLink");
+  if (bannerLink && !okUrl(bannerLink) && !/^\/(?!\/)/.test(bannerLink)) redirect(withError("/admin/settings/", "لینک بنر باید با https:// یا / شروع شود."));
   saveSettings({
     ...s,
+    homeBanner: { image: banner === DEFAULT_BANNER ? undefined : banner, link: bannerLink || undefined, hidden: fd.get("bannerShow") !== "on" },
     logo: logo === DEFAULT_LOGO ? undefined : logo,
     title: str(fd, "title") || s.title,
     description: str(fd, "description"),
@@ -64,6 +77,17 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <Field label="لینک خرید بلیت" hint="خالی بماند، دکمه‌ی خرید بلیت نمایش داده نمی‌شود">
           <input name="ticketsUrl" defaultValue={s.ticketsUrl} dir="ltr" placeholder="https://" />
         </Field>
+        <fieldset className="a-fieldset">
+          <legend>بنر بالای صفحهٔ اول</legend>
+          <p className="a-hint">زیر منوی اصلی و بالای اسلایدر. بهترین اندازه: عکس پهن و باریک، مثلاً ۲۰۰۰ در ۱۸۰ پیکسل. برای برگشت به بنر پیش‌فرض (هواداران نساجی)، عکس را حذف و ذخیره کنید.</p>
+          <label className="a-check">
+            <input type="checkbox" name="bannerShow" defaultChecked={!s.homeBanner?.hidden} /> بنر نمایش داده شود
+          </label>
+          <ImageField name="banner" defaultValue={bannerUrl(s)} label="عکس بنر" />
+          <Field label="لینک (اختیاری)" hint="با کلیک روی بنر باز می‌شود؛ مثلاً /team/ یا https://…">
+            <input name="bannerLink" defaultValue={s.homeBanner?.link ?? ""} dir="ltr" />
+          </Field>
+        </fieldset>
         <fieldset className="a-fieldset">
           <legend>شبکه‌های اجتماعی</legend>
           <p className="a-hint">آیکون هر شبکه‌ای که لینک داشته باشد در بالای سایت، پایین سایت و صفحه‌ی «ارتباط با ما» نمایش داده می‌شود. برای حذف، لینک را پاک کنید.</p>
