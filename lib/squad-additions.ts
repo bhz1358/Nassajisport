@@ -10,6 +10,9 @@ import type { Player, Position } from "./types";
 
 type Addition = { name: string; number?: number; position?: Position; bio?: string };
 
+/** Players of the sample squad the site starts with. */
+export const isSample = (name: string) => /نمونه/.test(name);
+
 const key = (s: string) => s.replace(/ي/g, "ی").replace(/ك/g, "ک").replace(/[\s‌_-]+/g, "");
 
 function additions(): Addition[] {
@@ -38,8 +41,14 @@ export function applySquadAdditions(): number {
       done.add(key(a.name));
       continue;
     }
-    // A new player needs a free shirt number and a position; otherwise wait for the panel.
-    if (!a.number || !a.position || players.some((p) => p.number === a.number)) continue;
+    // A new player needs a shirt number and a position. A sample player («… نمونه …», shipped with
+    // the site) holding that number gives way; a real one means waiting for the panel.
+    if (!a.number || !a.position) continue;
+    const holder = players.findIndex((p) => p.number === a.number);
+    if (holder >= 0) {
+      if (!isSample(players[holder].name)) continue;
+      players.splice(holder, 1);
+    }
     let slug = `player-${a.number}`;
     if (players.some((p) => p.slug === slug)) slug = `${slug}-${Date.now().toString(36)}`;
     const player: Player = {
