@@ -144,6 +144,7 @@ export default async function SquadAdmin({ searchParams }: { searchParams: Promi
               <tr>
                 <th>سمت</th>
                 <th>نام</th>
+                <th>عکس</th>
                 <th>حذف</th>
               </tr>
             </thead>
@@ -155,6 +156,21 @@ export default async function SquadAdmin({ searchParams }: { searchParams: Promi
                   </td>
                   <td>
                     <input name={`name_${i}`} defaultValue={s?.name} placeholder={s ? "" : "نام"} aria-label="نام" />
+                  </td>
+                  <td>
+                    <div className="staff-photo-cell">
+                    {s?.photo && (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={s.photo} alt="" width={40} height={40} className="staff-thumb" />
+                        <input type="hidden" name={`photo_${i}`} value={s.photo} />
+                        <label className="muted">
+                          <input type="checkbox" name={`nophoto_${i}`} /> بدون عکس
+                        </label>
+                      </>
+                    )}
+                    <input type="file" name={`photoFile_${i}`} accept="image/jpeg,image/png,image/webp,image/avif" aria-label="عکس" />
+                    </div>
                   </td>
                   <td>{s && <input type="checkbox" name={`delete_${i}`} aria-label={`حذف ${s.name}`} />}</td>
                 </tr>

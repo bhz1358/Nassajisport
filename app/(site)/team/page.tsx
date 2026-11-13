@@ -89,9 +89,14 @@ export default function TeamPage() {
         <ul className="staff-grid">
           {squad.staff.map((s) => (
             <li key={s.name} className="panel">
-              <span className="avatar" aria-hidden="true">
-                {s.name.charAt(0)}
-              </span>
+              {s.photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={s.photo} alt={s.name} width={64} height={64} className="avatar staff-photo" loading="lazy" />
+              ) : (
+                <span className="avatar" aria-hidden="true">
+                  {s.name.charAt(0)}
+                </span>
+              )}
               <div>
                 <strong>{s.name}</strong>
                 <span className="muted">{s.role}</span>

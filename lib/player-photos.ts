@@ -10,6 +10,7 @@ import { getSquad, saveSquad } from "./squad";
 import { readStore, UPLOADS_DIR, writeStore } from "./store";
 import type { Player } from "./types";
 import { applySquadAdditions } from "./squad-additions";
+import { applyStaffPhotos } from "./staff-photos";
 
 const DIR = path.join(UPLOADS_DIR, "players");
 
@@ -56,6 +57,11 @@ export async function styleSquadPhotos(force = false): Promise<number> {
     applySquadAdditions();
   } catch {
     /* a bad entry mustn't stop the photos */
+  }
+  try {
+    await applyStaffPhotos();
+  } catch {
+    /* nor a bad staff photo */
   }
   if (!photoLookOn()) return 0;
   running = true;

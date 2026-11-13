@@ -1,6 +1,7 @@
 "use server";
 
 import { photoLookOn, stylePlayer } from "@/lib/player-photos";
+import { saveStaffPhoto, squareStaffPhoto } from "@/lib/staff-photos";
 
 import { redirect } from "next/navigation";
 import { requireAccess } from "@/lib/auth";
@@ -115,11 +116,22 @@ export async function deletePlayer(fd: FormData) {
 export async function saveStaff(fd: FormData) {
   await requireAccess("squad");
   const count = num(fd, "count");
-  const staff = [];
+  const staff: { role: string; name: string; photo?: string }[] = [];
   for (let i = 0; i < count; i++) {
     const name = str(fd, `name_${i}`);
     const role = str(fd, `role_${i}`);
-    if (name && role && fd.get(`delete_${i}`) !== "on") staff.push({ role, name });
+    if (!name || !role || fd.get(`delete_${i}`) === "on") continue;
+    let photo = fd.get(`nophoto_${i}`) === "on" ? undefined : str(fd, `photo_${i}`) || undefined;
+    const upload = file(fd, `photoFile_${i}`);
+    if (upload) {
+      try {
+        if (!/\.(jpe?g|png|webp|avif)$/i.test(upload.name)) throw new Error("فقط عکس (jpg، png، webp) مجاز است.");
+        photo = saveStaffPhoto(await squareStaffPhoto(Buffer.from(await upload.arrayBuffer())));
+      } catch (e) {
+        redirect(withError("/admin/squad/#staff", `عکس «${name}»: ${(e as Error).message}`));
+      }
+    }
+    staff.push({ role, name, ...(photo ? { photo } : {}) });
   }
   saveSquad({ ...getSquad(), staff, isSample: false });
   redirect("/admin/squad/?ok=saved#staff");
