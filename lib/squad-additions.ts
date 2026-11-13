@@ -86,6 +86,19 @@ export function applySquadAdditions(): number {
     done.add("staff");
     changed++;
   }
+  // Staff shipped later (once each; the admin may delete them afterwards). The club's top roles
+  // (مدیرعامل) go first in the list.
+  if (done.has("staff") || !staff.some((s) => isSample(s.name))) {
+    for (const s of file.staff ?? []) {
+      const k = `staff:${key(s.name)}`;
+      if (done.has(k)) continue;
+      if (!staff.some((x) => key(x.name) === key(s.name))) {
+        staff = /مدیرعامل|رئیس/.test(s.role) ? [s, ...staff] : [...staff, s];
+        changed++;
+      }
+      done.add(k);
+    }
+  }
   // A line-up of sample players goes with them.
   const sampleLineup = squad.lineup && [...squad.lineup.home.starters, ...squad.lineup.away.starters].some((p) => isSample(p.name));
   const lineup = file.replaceSample && sampleLineup && !players.some((p) => isSample(p.name)) ? undefined : squad.lineup;
