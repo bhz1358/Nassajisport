@@ -57,6 +57,7 @@ export default async function RatingsPage({ searchParams }: { searchParams: Prom
           ) : (
             <p className="ratings-status">نمره‌دهی تمام شد · {faNum(votes.length)} هوادار نمره دادند</p>
           )}
+          {!open && mine && <p className="ratings-mine-note">نمره‌های شما ثبت شده است و فقط قابل دیدن است؛ مهلت تغییرش تمام شده.</p>}
           {open && !fan && (
             <div className="predict-cta">
               <p>برای نمره دادن با حساب «بله» وارد شوید (همان حساب مسابقهٔ پیش‌بینی).</p>
@@ -102,6 +103,7 @@ export default async function RatingsPage({ searchParams }: { searchParams: Prom
                   <span className="ratings-who">
                     <b>{r.name}{best?.id === r.id ? " ⭐" : ""}</b>
                     <small>{r.role === "coach" ? "سرمربی" : r.number ? `شمارهٔ ${faNum(r.number)}` : "بازیکن"} · {faNum(r.count)} نمره</small>
+                    {mine?.scores[r.id] ? <small className="ratings-mine">نمرهٔ شما: {faNum(mine.scores[r.id])}</small> : null}
                   </span>
                   <span className="ratings-bar"><span style={{ width: `${r.avg * 10}%` }} /></span>
                   <span className="ratings-avg">{faScore(r.avg)}</span>
@@ -129,10 +131,10 @@ export default async function RatingsPage({ searchParams }: { searchParams: Prom
           <section className="panel">
             <SectionHeader title="چطور کار می‌کند؟" />
             <ul className="predict-rules">
-              <li>بعد از سوت پایان هر بازی نساجی، نمره‌دهی خودکار باز می‌شود و ۲۴ ساعت باز می‌ماند.</li>
+              <li>بعد از سوت پایان هر بازی نساجی، نمره‌دهی خودکار باز می‌شود و تا ۴۸ ساعت (دو روز) بعد از شروع بازی باز می‌ماند.</li>
               <li>به بازیکنانی که در بازی حاضر بودند و سرمربی از ۱ تا ۱۰ نمره بدهید.</li>
               <li>بازیکن با بالاترین میانگین، «بازیکن برتر هفته به انتخاب هواداران» در صفحهٔ اول می‌شود.</li>
-              <li>هر هوادار یک بار نمره می‌دهد و تا پایان مهلت می‌تواند تغییرش دهد.</li>
+              <li>هر هوادار یک بار نمره می‌دهد و تا پایان مهلت می‌تواند تغییرش دهد؛ بعد از آن نمره‌ها بسته می‌شوند و فقط دیده می‌شوند.</li>
             </ul>
           </section>
         </aside>

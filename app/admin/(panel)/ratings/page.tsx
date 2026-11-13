@@ -8,7 +8,7 @@ import { faDate, faNum } from "@/lib/format";
 import { getLeague } from "@/lib/league";
 import { fixtureKey } from "@/lib/predict-score";
 import { faScore } from "@/lib/ratings-calc";
-import { candidatesFor, getPolls, getVotes, isOpenPoll, newPoll, openDuePolls, pollBest, pollResults, savePolls } from "@/lib/ratings";
+import { POLL_HOURS, candidatesFor, getPolls, getVotes, isOpenPoll, newPoll, openDuePolls, pollBest, pollResults, savePolls } from "@/lib/ratings";
 import { HOME_TEAM } from "@/lib/site";
 import { writeStore } from "@/lib/store";
 
@@ -26,18 +26,21 @@ async function pollAction(fd: FormData) {
   if (act === "create") {
     const f = getLeague().fixtures.find((x) => fixtureKey(x) === key);
     if (!f || polls.some((x) => x.key === key)) redirect(withError(BACK, "این بازی پیدا نشد یا نمره‌دهی‌اش ساخته شده است."));
-    savePolls([...polls, { ...newPoll(f), notified: true }]);
-    redirect(`${BACK}?ok=${encodeURIComponent("نمره‌دهی باز شد (۲۴ ساعت).")}`);
+    const fresh = newPoll(f);
+    // An older match: open for 24 hours from now.
+    const late = Date.parse(f.date) + POLL_HOURS * HOUR <= Date.now();
+    savePolls([...polls, { ...fresh, notified: true, ...(late ? { reopened: true, closesAt: new Date(Date.now() + 24 * HOUR).toISOString() } : {}) }]);
+    redirect(`${BACK}?ok=${encodeURIComponent(late ? "نمره‌دهی باز شد (۲۴ ساعت)." : "نمره‌دهی باز شد (تا ۴۸ ساعت بعد از بازی).")}`);
   }
   if (!p) redirect(withError(BACK, "نمره‌دهی پیدا نشد."));
   let next = p;
-  if (act === "close") next = { ...p, closesAt: new Date().toISOString() };
-  if (act === "reopen") next = { ...p, closesAt: new Date(Date.now() + 24 * HOUR).toISOString() };
+  if (act === "close") next = { ...p, closesAt: new Date().toISOString(), reopened: false };
+  if (act === "reopen") next = { ...p, reopened: true, closesAt: new Date(Date.now() + 24 * HOUR).toISOString() };
   if (act === "refresh") {
     const f = getLeague().fixtures.find((x) => fixtureKey(x) === key);
-    if (f) next = { ...p, candidates: candidatesFor(f) };
+    if (f) next = { ...p, candidates: candidatesFor(f), dropped: [] };
   }
-  if (act === "drop") next = { ...p, candidates: p.candidates.filter((c) => c.id !== str(fd, "cand")) };
+  if (act === "drop") next = { ...p, candidates: p.candidates.filter((c) => c.id !== str(fd, "cand")), dropped: [...(p.dropped ?? []), str(fd, "cand")] };
   if (act === "delete") {
     savePolls(polls.filter((x) => x.key !== key));
     writeStore("rating-votes", getVotes().filter((v) => v.poll !== key));
@@ -64,7 +67,7 @@ export default async function RatingsAdmin({ searchParams }: { searchParams: Pro
       <Flash searchParams={searchParams} />
       <div className="a-card">
         <p className="a-hint">
-          بعد از سوت پایان هر بازی نساجی، نمره‌دهی (۱ تا ۱۰) برای بازیکنان و سرمربی خودکار باز می‌شود و ۲۴ ساعت می‌ماند؛ بازوی بله هم به هواداران خبر می‌دهد. فهرست بازیکنان از
+          بعد از سوت پایان هر بازی نساجی، نمره‌دهی (۱ تا ۱۰) برای بازیکنان و سرمربی خودکار باز می‌شود و تا ۴۸ ساعت بعد از شروع بازی می‌ماند (بعد از آن نمره‌ها فقط دیده می‌شوند)؛ بازوی بله هم به هواداران خبر می‌دهد. فهرست بازیکنان از
           «ترکیب بازی» همان مسابقه (اصلی و ذخیره) ساخته می‌شود؛ اگر ترکیب وارد نشده باشد، همهٔ بازیکنان. اگر ترکیب را بعداً وارد کردید، «به‌روزرسانی فهرست از ترکیب» را بزنید. عکس هر
           بازیکن از صفحهٔ «بازیکنان و کادر» می‌آید. صفحهٔ هواداران: <a href="/ratings/" target="_blank">/ratings/</a>
         </p>

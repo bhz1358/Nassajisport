@@ -1525,3 +1525,5 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 .staff-grid .staff-photo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid var(--acc-600, #a3121f); background: var(--surface-2); }
 .staff-photo-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .staff-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.ratings-mine-note { margin: 0 0 12px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); font-size: 0.9rem; }
+.ratings-who .ratings-mine { color: var(--acc-600, #c9a24a); font-weight: 700; }

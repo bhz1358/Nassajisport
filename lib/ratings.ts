@@ -1,5 +1,6 @@
 // Fans rate Nassaji's players and coach (1–10) after each match: a poll opens by itself when
-// the match is over and closes 24 hours later.
+// the match is over and closes 48 hours after kick-off. After that it stays on the site to be seen
+// (each fan's own scores and the averages) but can't be changed.
 
 import crypto from "node:crypto";
 import { faNum } from "./format";
@@ -12,7 +13,9 @@ import { fixtureOf, getReports } from "./match-reports";
 import { readStore, writeStore } from "./store";
 import type { Fixture } from "./types";
 
-export const POLL_HOURS = 24;
+/** Fans may rate for this long after kick-off. */
+export const POLL_HOURS = 48;
+const HOUR = 3_600_000;
 
 export type Poll = {
   key: string;
@@ -27,13 +30,19 @@ export type Poll = {
   candidates: Candidate[];
   /** Fans were told in Bale. */
   notified?: boolean;
+  /** Reopened by the admin: the 48-hour limit doesn't apply. */
+  reopened?: boolean;
+  /** Candidates the admin removed: the match sheet doesn't bring them back. */
+  dropped?: string[];
 };
 
 export const getPolls = () => readStore<Poll[]>("rating-polls", () => []);
 export const savePolls = (p: Poll[]) => writeStore("rating-polls", p);
 export const getVotes = () => readStore<RatingVote[]>("rating-votes", () => []);
 
-export const isOpenPoll = (p: Poll, now = Date.now()) => Date.parse(p.closesAt) > now;
+/** Open until its closing time, and never more than 48 hours after kick-off (unless reopened). */
+export const isOpenPoll = (p: Poll, now = Date.now()) =>
+  Date.parse(p.closesAt) > now && (!!p.reopened || Date.parse(p.kickoff) + POLL_HOURS * HOUR > now);
 const isClub = (t: string) => t === HOME_TEAM || t.includes("نساجی");
 
 const norm = (s: string) => s.replace(/ي/g, "ی").replace(/ك/g, "ک").replace(/[\s‌]+/g, " ").trim();
@@ -77,19 +86,39 @@ export function candidatesFor(f: Fixture): Candidate[] {
   return list;
 }
 
-/** Opens a poll for a Nassaji match that ended in the last 30 hours and has none yet. */
+/**
+ * Opens a poll for a finished Nassaji match still inside its 48 hours, and keeps the candidates of
+ * open polls in step with the match sheet (added or corrected after the poll opened); someone who
+ * already has scores stays on the list.
+ */
 export function openDuePolls(now = Date.now()): Poll[] {
   const polls = getPolls();
   const have = new Set(polls.map((p) => p.key));
+  const fixtures = getLeague().fixtures;
   const fresh: Poll[] = [];
-  for (const f of getLeague().fixtures) {
+  for (const f of fixtures) {
     if (f.status !== "finished" || !(isClub(f.home) || isClub(f.away))) continue;
     const key = fixtureKey(f);
     const age = now - Date.parse(f.date);
-    if (have.has(key) || age < 0 || age > 30 * 3_600_000) continue;
+    if (have.has(key) || age < 0 || age > POLL_HOURS * HOUR) continue;
     fresh.push(newPoll(f, now));
   }
-  if (fresh.length) savePolls([...polls, ...fresh]);
+  let changed = fresh.length > 0;
+  const votes = getVotes();
+  const next = polls.map((p) => {
+    if (!isOpenPoll(p, now)) return p;
+    const f = fixtures.find((x) => fixtureKey(x) === p.key);
+    if (!f) return p;
+    const rated = new Set(votes.filter((v) => v.poll === p.key).flatMap((v) => Object.keys(v.scores)));
+    const gone = new Set(p.dropped ?? []);
+    const now_ = candidatesFor(f).filter((c) => !gone.has(c.id));
+    const ids = new Set(now_.map((c) => c.id));
+    const candidates = [...now_, ...p.candidates.filter((c) => rated.has(c.id) && !ids.has(c.id))];
+    if (JSON.stringify(candidates) === JSON.stringify(p.candidates)) return p;
+    changed = true;
+    return { ...p, candidates };
+  });
+  if (changed) savePolls([...next, ...fresh]);
   return fresh;
 }
 
@@ -102,7 +131,7 @@ export function newPoll(f: Fixture, now = Date.now()): Poll {
     ...(f.round ? { round: f.round } : {}),
     kickoff: f.date,
     openedAt: new Date(now).toISOString(),
-    closesAt: new Date(now + POLL_HOURS * 3_600_000).toISOString(),
+    closesAt: new Date(Math.max(now, Date.parse(f.date) + POLL_HOURS * HOUR)).toISOString(),
     candidates: candidatesFor(f),
   };
 }

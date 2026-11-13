@@ -80,7 +80,7 @@ export async function runReminders(now = Date.now()): Promise<number> {
       const text =
         `⭐ بازی ${p.score ?? p.match} تمام شد!\n\nبه بازیکنان و سرمربی نساجی از ۱ تا ۱۰ نمره بدهید؛ بازیکن برتر به انتخاب هواداران در صفحهٔ اول سایت معرفی می‌شود.` +
         (site ? `\n${site}/ratings/` : "") +
-        `\n\nنمره‌دهی تا ۲۴ ساعت باز است.${footer}`;
+        `\n\nنمره‌دهی تا ۴۸ ساعت بعد از شروع بازی باز است.${footer}`;
       for (const f of rfans.filter((x) => x.chat && x.remind !== false && !x.blocked)) {
         try {
           await sendBale(f.chat!, text);
