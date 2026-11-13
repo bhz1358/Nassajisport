@@ -2,6 +2,7 @@
 
 import { maybeNightlyBackup } from "./backup";
 import { sendFinishedStories } from "./story-send";
+import { styleSquadPhotos } from "./player-photos";
 import { runReminders } from "./reminders";
 
 const EVERY_MS = 5 * 60_000;
@@ -14,6 +15,7 @@ export function startScheduler() {
     await runReminders().catch((e) => console.error("reminders:", (e as Error).message));
     await maybeNightlyBackup().catch((e) => console.error("backup:", (e as Error).message));
     await sendFinishedStories().catch((e) => console.error("story:", (e as Error).message));
+    await styleSquadPhotos().catch((e) => console.error("player photos:", (e as Error).message));
   };
   setTimeout(tick, 30_000).unref();
   setInterval(tick, EVERY_MS).unref();

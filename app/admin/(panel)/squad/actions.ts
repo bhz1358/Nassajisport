@@ -1,5 +1,7 @@
 "use server";
 
+import { photoLookOn, stylePlayer } from "@/lib/player-photos";
+
 import { redirect } from "next/navigation";
 import { requireAccess } from "@/lib/auth";
 import { file, num, str, withError } from "@/lib/form";
@@ -38,13 +40,30 @@ export async function savePlayer(fd: FormData) {
   const birthDate = birth ? jalaliPartsToIso(birth, "12:00")?.slice(0, 10) : undefined;
   if (birth && !birthDate) redirect(withError(back, "تاریخ تولد را شمسی و به شکل ۱۳۷۶/۱۱/۲۲ وارد کنید."));
 
+  // The photo field shows the styled photo; a new upload (or a new address) is the new original,
+  // and the site's look is applied to it (lib/player-photo.ts).
   let photo = str(fd, "photo") || undefined;
+  let photoOriginal = photo && photo === existing?.photo ? existing?.photoOriginal : photo;
+  // A new shirt number means a new picture (the number is drawn on it).
+  let photoStyle = photo && photo === existing?.photo && existing?.number === number ? existing?.photoStyle : undefined;
   const upload = file(fd, "photoFile");
   if (upload) {
     try {
-      photo = await saveUpload(upload);
+      photoOriginal = await saveUpload(upload);
+      photo = photoOriginal;
+      photoStyle = undefined;
     } catch (e) {
       redirect(withError(back, (e as Error).message));
+    }
+  }
+  if (photo && photoStyle === undefined && photoLookOn()) {
+    try {
+      const styled = await stylePlayer({ slug, name, number, position: "MF", photo: photoOriginal ?? photo, photoOriginal, stats: {} as Player["stats"] });
+      photo = styled.photo;
+      photoOriginal = styled.photoOriginal;
+      photoStyle = styled.photoStyle;
+    } catch {
+      /* keep the photo as uploaded */
     }
   }
   const position = POS.find((p) => p === str(fd, "position")) ?? "MF";
@@ -59,6 +78,8 @@ export async function savePlayer(fd: FormData) {
     ...(str(fd, "foot") ? { foot: str(fd, "foot") } : {}),
     ...(str(fd, "nationality") ? { nationality: str(fd, "nationality") } : {}),
     ...(photo ? { photo } : {}),
+    ...(photo && photoOriginal ? { photoOriginal } : {}),
+    ...(photo && photoStyle ? { photoStyle } : {}),
     ...(str(fd, "bio") ? { bio: str(fd, "bio") } : {}),
     stats: {
       appearances: num(fd, "appearances"),

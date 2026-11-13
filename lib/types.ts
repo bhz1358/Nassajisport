@@ -89,6 +89,10 @@ export type Player = {
   foot?: string;
   nationality?: string;
   photo?: string;
+  /** The photo as uploaded, before the site's look was applied (photo is the styled one). */
+  photoOriginal?: string;
+  /** Version of the look applied (lib/player-photo.ts PHOTO_STYLE). */
+  photoStyle?: number;
   bio?: string;
   stats: {
     appearances: number;

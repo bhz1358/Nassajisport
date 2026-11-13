@@ -6,6 +6,25 @@ import { Field, Flash, PageHead } from "../../ui";
 import { SubmitButton } from "../../ui-client";
 import { faNum } from "@/lib/format";
 import { getSquad, POSITIONS } from "@/lib/squad";
+import { redirect } from "next/navigation";
+import { photoLookOn, restoreOriginalPhotos, setPhotoLook, styleSquadPhotos } from "@/lib/player-photos";
+import { bundledPhoto, PHOTO_STYLE } from "@/lib/player-photo";
+
+async function restyleAll() {
+  "use server";
+  await requireAccess("squad");
+  setPhotoLook(true);
+  const n = await styleSquadPhotos(true);
+  redirect(`/admin/squad/?ok=${encodeURIComponent(`${n} عکس با ظاهر یکدست ساخته شد.`)}#photo-look`);
+}
+
+async function restoreAll() {
+  "use server";
+  await requireAccess("squad");
+  setPhotoLook(false);
+  const n = restoreOriginalPhotos();
+  redirect(`/admin/squad/?ok=${encodeURIComponent(`عکس اصلی ${n} بازیکن برگردانده شد.`)}#photo-look`);
+}
 
 export const metadata: Metadata = { title: "بازیکنان و کادر" };
 
@@ -24,6 +43,37 @@ export default async function SquadAdmin({ searchParams }: { searchParams: Promi
         </Link>
       </PageHead>
       <Flash searchParams={searchParams} />
+
+      <section className="a-card" id="photo-look">
+        <h2>ظاهر یکدست عکس بازیکنان</h2>
+        {(() => {
+          const withPhoto = squad.players.filter((p) => p.photo || bundledPhoto(p.name));
+          const styled = squad.players.filter((p) => p.photoStyle === PHOTO_STYLE).length;
+          const on = photoLookOn();
+          return (
+            <>
+              <p className="a-hint">
+                عکس هر بازیکن خودکار به WebP تبدیل می‌شود و یک ظاهر یکدست می‌گیرد: اگر پس‌زمینهٔ عکس سفید یا ساده باشد (عکس آتلیه‌ای) حذف می‌شود و بازیکن روی زمینهٔ زرشکی
+                نساجی با شمارهٔ پیراهنش قرار می‌گیرد؛ عکس‌های دیگر با همان قاب و رنگ یکدست می‌شوند. عکس اصلی هر بازیکن نگه داشته می‌شود. بهترین نتیجه: عکس از کمر به بالا، رو به
+                دوربین، با پس‌زمینهٔ سفید.
+              </p>
+              <p>
+                {on ? <span className="a-tag is-ok">روشن</span> : <span className="a-tag">خاموش (عکس‌های اصلی)</span>} {faNum(styled)} از {faNum(withPhoto.length)} عکس یکدست شده است.
+              </p>
+              <div className="a-row" style={{ gap: 8, flexWrap: "wrap" }}>
+                <form action={restyleAll}>
+                  <SubmitButton className="a-btn a-btn-primary" pendingText="در حال ساخت عکس‌ها…">{on ? "ساخت دوبارهٔ همه" : "روشن کردن و ساخت همه"}</SubmitButton>
+                </form>
+                {on && (
+                  <form action={restoreAll}>
+                    <SubmitButton className="a-btn" confirm="ظاهر یکدست خاموش و عکس‌های اصلی همهٔ بازیکنان برگردانده شود؟">برگرداندن عکس‌های اصلی</SubmitButton>
+                  </form>
+                )}
+              </div>
+            </>
+          );
+        })()}
+      </section>
 
       <form action={saveSeason} className="a-card a-form-row">
         <Field label="فصل">
