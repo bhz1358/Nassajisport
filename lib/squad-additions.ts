@@ -10,7 +10,13 @@ import type { Player, Position } from "./types";
 
 /** fixFrom: a position given earlier as a guess; a player still on it is moved to `position`. */
 type Addition = { name: string; number?: number; position?: Position; bio?: string; fixFrom?: Position };
-type File = { players: Addition[]; staff?: { role: string; name: string }[]; replaceSample?: boolean };
+/** renames: a name written wrongly earlier; it is corrected in the squad, match reports and rating polls. */
+type File = {
+  players: Addition[];
+  staff?: { role: string; name: string }[];
+  replaceSample?: boolean;
+  renames?: { from: string; to: string }[];
+};
 
 /** Players of the sample squad the site starts with. */
 export const isSample = (name: string) => /نمونه/.test(name);
@@ -26,8 +32,39 @@ function load(): File {
   }
 }
 
+/** Every string equal to a wrong name, anywhere in the value, becomes the right one. */
+function renameIn<T>(value: T, map: Map<string, string>): T {
+  if (typeof value === "string") return (map.get(value) ?? value) as T;
+  if (Array.isArray(value)) return value.map((v) => renameIn(v, map)) as T;
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, renameIn(v, map)])) as T;
+  return value;
+}
+
+/** Applies the shipped name corrections to the stored data. Returns how many stores changed. */
+export function applyRenames(renames: { from: string; to: string }[] = load().renames ?? []): number {
+  const map = new Map(renames.filter((r) => r.from && r.to && r.from !== r.to).map((r) => [r.from, r.to]));
+  if (!map.size) return 0;
+  let n = 0;
+  for (const store of ["match-reports", "rating-polls"]) {
+    const before = readStore<unknown[]>(store, () => []);
+    const after = renameIn(before, map);
+    if (JSON.stringify(after) !== JSON.stringify(before)) {
+      writeStore(store, after);
+      n++;
+    }
+  }
+  const squad = getSquad();
+  const fixed = renameIn({ players: squad.players, staff: squad.staff, lineup: squad.lineup }, map);
+  if (JSON.stringify(fixed) !== JSON.stringify({ players: squad.players, staff: squad.staff, lineup: squad.lineup })) {
+    saveSquad({ ...squad, ...fixed });
+    n++;
+  }
+  return n;
+}
+
 export function applySquadAdditions(): number {
   const file = load();
+  applyRenames(file.renames);
   const done = new Set(readStore<string[]>("squad-additions-applied", () => []));
   const todo = file.players.filter((a) => !done.has(key(a.name)));
   const squad = getSquad();
