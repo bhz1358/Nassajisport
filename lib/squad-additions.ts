@@ -8,7 +8,8 @@ import { getSquad, saveSquad } from "./squad";
 import { readStore, writeStore } from "./store";
 import type { Player, Position } from "./types";
 
-type Addition = { name: string; number?: number; position?: Position; bio?: string };
+/** fixFrom: a position given earlier as a guess; a player still on it is moved to `position`. */
+type Addition = { name: string; number?: number; position?: Position; bio?: string; fixFrom?: Position };
 type File = { players: Addition[]; staff?: { role: string; name: string }[]; replaceSample?: boolean };
 
 /** Players of the sample squad the site starts with. */
@@ -33,6 +34,15 @@ export function applySquadAdditions(): number {
   const players = [...squad.players];
   let staff = squad.staff;
   let changed = 0;
+  // Corrections of earlier guesses, for players already added (only while still on the guess).
+  for (const a of file.players) {
+    if (!a.fixFrom || !a.position) continue;
+    const i = players.findIndex((p) => key(p.name) === key(a.name));
+    if (i >= 0 && players[i].position === a.fixFrom) {
+      players[i] = { ...players[i], position: a.position, ...(a.bio && !players[i].bio ? { bio: a.bio } : {}) };
+      changed++;
+    }
+  }
   for (const a of todo) {
     const i = players.findIndex((p) => key(p.name) === key(a.name));
     if (i >= 0) {
