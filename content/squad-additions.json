@@ -1,29 +1,34 @@
-[
-  {
-    "name": "علیرضا جعفرپور",
-    "number": 1,
-    "position": "GK"
-  },
-  {
-    "name": "یعقوب براجعه",
-    "number": 37,
-    "position": "DF",
-    "bio": "مدافع راست که در نقش وینگر راست هم بازی می‌کند؛ ۲۱ ساله."
-  },
-  {
-    "name": "هومن ربیع‌زاده",
-    "number": 3,
-    "position": "DF"
-  },
-  {
-    "name": "علی نصیری",
-    "number": 24,
-    "position": "MF",
-    "bio": "هافبک راست؛ ۲۴ ساله."
-  },
-  {
-    "name": "ویهان رضی",
-    "position": "FW",
-    "bio": "وینگر جوان نساجی؛ ۱۸ ساله."
-  }
-]
+{
+  "note": "Nassaji's squad from the official match sheets (weeks 11 and 12, 1405) and the week 11 line-up reports. Positions marked guess are not confirmed.",
+  "replaceSample": true,
+  "players": [
+    { "name": "امید امیری", "number": 22, "position": "GK" },
+    { "name": "علیرضا جعفرپور", "number": 1, "position": "GK" },
+    { "name": "ابوالفضل کوهی", "number": 2, "position": "DF" },
+    { "name": "هومن ربیع‌زاده", "number": 3, "position": "DF" },
+    { "name": "ایمان اکبری", "number": 81, "position": "DF" },
+    { "name": "محمد حسین‌زاده", "number": 72, "position": "DF" },
+    { "name": "یعقوب براجعه", "number": 37, "position": "DF", "bio": "مدافع راست که در نقش وینگر راست هم بازی می‌کند؛ ۲۱ ساله." },
+    { "name": "امیرمسعود سرآبادانی", "number": 6, "position": "MF" },
+    { "name": "افشین صادقی", "number": 8, "position": "MF" },
+    { "name": "علیرضا آراسته", "number": 17, "position": "MF" },
+    { "name": "صادق آلبوصبیح", "number": 23, "position": "MF" },
+    { "name": "علی نصیری", "number": 24, "position": "MF", "bio": "هافبک راست؛ ۲۴ ساله." },
+    { "name": "علی‌اصغر اعرابی", "number": 20, "position": "MF" },
+    { "name": "جواد آقایی‌پور", "number": 9, "position": "FW" },
+    { "name": "احمدرضا محمدنژاد", "number": 10, "position": "MF", "guess": true },
+    { "name": "امیررضا شیخی‌راد", "number": 11, "position": "FW", "guess": true },
+    { "name": "پوریا رضازاده", "number": 14, "position": "MF", "guess": true },
+    { "name": "ابوالفضل کاظمی", "number": 16, "position": "MF", "guess": true },
+    { "name": "امید فهمی", "number": 18, "position": "DF", "guess": true },
+    { "name": "آریو مهدوی‌کیا", "number": 19, "position": "MF", "guess": true },
+    { "name": "فردین نجفی", "number": 77, "position": "FW", "guess": true },
+    { "name": "کوروش اژدهاکش", "number": 99, "position": "FW", "guess": true },
+    { "name": "ویهان رضی", "position": "FW", "bio": "وینگر جوان نساجی؛ ۱۸ ساله." }
+  ],
+  "staff": [
+    { "role": "سرمربی", "name": "سعید دقیقی" },
+    { "role": "مدیر تیم", "name": "پویا سیف‌پناهی" },
+    { "role": "مدیر رسانه", "name": "آلان حیدری" }
+  ]
+}
