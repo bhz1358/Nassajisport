@@ -9,6 +9,7 @@ import { bundledPhoto, PHOTO_STYLE, stylePlayerPhoto } from "./player-photo.ts";
 import { getSquad, saveSquad } from "./squad";
 import { readStore, UPLOADS_DIR, writeStore } from "./store";
 import type { Player } from "./types";
+import { applySquadAdditions } from "./squad-additions";
 
 const DIR = path.join(UPLOADS_DIR, "players");
 
@@ -49,21 +50,31 @@ let running = false;
  * shipped for them, if any). Returns how many photos were made.
  */
 export async function styleSquadPhotos(force = false): Promise<number> {
-  if (running || !photoLookOn()) return 0;
+  if (running) return 0;
+  // Players shipped with the update come first, so their photos can follow.
+  try {
+    applySquadAdditions();
+  } catch {
+    /* a bad entry mustn't stop the photos */
+  }
+  if (!photoLookOn()) return 0;
   running = true;
   try {
     let squad = getSquad();
     let made = 0;
+    // A photo shipped for a player replaces theirs once; a later upload in the panel stays.
+    const used = new Set(readStore<string[]>("bundled-photos-applied", () => []));
     for (const p of squad.players) {
       let next = p;
-      if (!p.photo && !p.photoOriginal) {
-        const bundled = bundledPhoto(p.name);
-        if (!bundled) continue;
+      const bundled = bundledPhoto(p.name);
+      const stamp = bundled && `${path.basename(bundled)}:${fs.statSync(bundled).size}`;
+      if (bundled && stamp && !used.has(stamp)) {
         fs.mkdirSync(path.join(DIR, "originals"), { recursive: true });
-        const name = `${p.slug}${path.extname(bundled)}`;
+        const name = `${p.slug}-${crypto.randomBytes(3).toString("hex")}${path.extname(bundled)}`;
         fs.copyFileSync(bundled, path.join(DIR, "originals", name));
-        next = { ...p, photoOriginal: `/uploads/players/originals/${name}` };
-      } else if (!force && p.photoStyle === PHOTO_STYLE) continue;
+        next = { ...p, photo: undefined, photoOriginal: `/uploads/players/originals/${name}`, photoStyle: undefined };
+      } else if (!p.photo && !p.photoOriginal) continue;
+      else if (!force && p.photoStyle === PHOTO_STYLE) continue;
       try {
         next = await stylePlayer(next);
       } catch {
@@ -71,6 +82,10 @@ export async function styleSquadPhotos(force = false): Promise<number> {
       }
       if (next.photoStyle === PHOTO_STYLE) {
         made++;
+        if (stamp && !used.has(stamp) && next.photoOriginal?.includes("/originals/")) {
+          used.add(stamp);
+          writeStore("bundled-photos-applied", [...used]);
+        }
         // Re-read: the panel may have saved meanwhile.
         squad = getSquad();
         saveSquad({ ...squad, players: squad.players.map((x) => (x.slug === p.slug ? { ...x, photo: next.photo, photoOriginal: next.photoOriginal, photoStyle: next.photoStyle } : x)) });

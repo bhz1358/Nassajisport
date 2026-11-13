@@ -43,10 +43,13 @@ export function PlayerPhoto({ player, className = "" }: { player: Player; classN
 
 export function PlayerCard({ player }: { player: Player }) {
   return (
-    <Link href={`/team/${player.slug}/`} className="player-card">
-      <span className="player-number" aria-hidden="true">
-        {faNum(player.number)}
-      </span>
+    <Link href={`/team/${player.slug}/`} className={`player-card${player.photo ? " has-photo" : ""}`}>
+      {/* A styled photo carries the shirt number itself. */}
+      {!player.photo && (
+        <span className="player-number" aria-hidden="true">
+          {faNum(player.number)}
+        </span>
+      )}
       <PlayerPhoto player={player} />
       <div className="player-card-body">
         <strong>{player.name}</strong>
