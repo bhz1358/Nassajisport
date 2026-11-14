@@ -77,6 +77,7 @@ export async function startLogin(): Promise<{ id: string; code: string; link?: s
   while (logins.some((l) => l.code === code));
   const id = crypto.randomBytes(18).toString("base64url");
   save({ logins: [...logins, { id, code, created: Date.now(), status: "pending" }] });
+  watchLogins();
   const user = await botUsername();
   return { id, code, link: user ? `https://ble.ir/${user}?start=${code}` : undefined };
 }
@@ -208,9 +209,30 @@ export async function pollBale(always = false): Promise<void> {
   return polling;
 }
 
+let watching = false;
+/**
+ * While a sign-in is open, the server itself reads the bot's messages every ~2 s. The login page
+ * can't be relied on for that: phones pause it as soon as the messenger app opens.
+ */
+function watchLogins() {
+  if (watching || !token()) return;
+  watching = true;
+  void (async () => {
+    try {
+      while (live(state().logins).some((l) => l.status !== "done")) {
+        await pollBale();
+        await new Promise((r) => setTimeout(r, state().lastError ? 5000 : 1600));
+      }
+    } finally {
+      watching = false;
+    }
+  })();
+}
+
 /** Where a sign-in is; once done, it is removed and its phone returned (once). */
 export async function loginStatus(id: string): Promise<{ status: LoginStatus; phone?: string; baleId?: number; chatId?: number; error?: string }> {
-  await pollBale();
+  watchLogins(); // after a restart of the site, too
+  if (!watching) await pollBale();
   const s = state();
   const login = s.logins.find((l) => l.id === id);
   if (!login || Date.now() - login.created > LOGIN_MS) return { status: "expired" };
