@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Field, Flash, PageHead } from "../../ui";
 import { SubmitButton } from "../../ui-client";
-import { destroySession, getUsers, hashPassword, requireAccess, saveUsers } from "@/lib/auth";
+import { createSession, destroySession, getUsers, hashPassword, requireAccess, saveUsers } from "@/lib/auth";
 import { str, withError } from "@/lib/form";
 import { faDate } from "@/lib/format";
 import { isRole, roleInfo, roleOf, ROLES } from "@/lib/roles";
@@ -49,6 +49,8 @@ async function updateUser(fd: FormData) {
   saveUsers(
     users.map((u) => (u.username === username ? { ...u, role, name: name || undefined, ...(password ? { password: hashPassword(password) } : {}) } : u)),
   );
+  // A new password ends the user's sessions; keep your own one.
+  if (password && username === me.username) await createSession(me.username);
   // Taking away your own admin access sends you to the dashboard.
   redirect(username === me.username && role !== "admin" ? "/admin/?ok=saved" : `${BACK}?ok=saved`);
 }

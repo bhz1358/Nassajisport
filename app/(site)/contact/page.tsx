@@ -28,7 +28,7 @@ export default function ContactPage() {
 
   return (
     <article className="contact">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <header className="contact-hero">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoUrl(settings)} alt="" width={96} height={96} className="contact-logo" />

@@ -191,5 +191,7 @@ export type AdminUser = {
   role?: Role;
   /** scrypt: "salt:hash" in hex */
   password: string;
+  /** Raised by «خروج از همهٔ دستگاه‌ها»: older sessions stop working. */
+  sv?: number;
   createdAt: string;
 };

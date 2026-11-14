@@ -324,3 +324,9 @@ a.a-stat:hover { border-color: var(--brand-600); }
 .a-story-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .a-story { display: grid; gap: 8px; align-content: start; }
 .a-story img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); background: #111; }
+.a-captcha { display: grid; gap: 6px; margin: 4px 0 10px; }
+.a-captcha label { font-size: 0.85rem; font-weight: 700; }
+.a-captcha-row { display: flex; align-items: center; gap: 8px; }
+.a-captcha-row img { border-radius: 10px; max-width: calc(100% - 52px); height: auto; }
+.a-captcha-row button { min-width: 44px; min-height: 44px; font-size: 1.2rem; }
+.a-login-log td { font-size: 0.82rem; }

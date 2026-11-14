@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { login } from "../actions";
 import { Field, Flash } from "../ui";
 import { SubmitButton } from "../ui-client";
+import { Captcha } from "./Captcha";
 import { currentUser, getUsers } from "@/lib/auth";
 import { getSettings, logoUrl } from "@/lib/settings";
 
-export const metadata: Metadata = { title: "ورود" };
+export const metadata: Metadata = { title: "ورود", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   if (await currentUser()) redirect("/admin/");
@@ -34,6 +36,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <Field label="رمز عبور">
           <input name="password" type="password" autoComplete="current-password" required dir="ltr" />
         </Field>
+        <Captcha />
         <SubmitButton>ورود</SubmitButton>
       </form>
     </div>

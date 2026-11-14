@@ -8,7 +8,7 @@ import { can, roleOf, type Role, type Section } from "./roles";
 import type { AdminUser } from "./types";
 
 const COOKIE = "ns_admin";
-const SESSION_DAYS = 14;
+const SESSION_DAYS = 7;
 
 /** SESSION_SECRET from the environment, otherwise a random key generated once and kept in DATA_DIR. */
 function secret(): string {
@@ -94,9 +94,16 @@ export function readSigned<T>(raw: string | undefined): T | null {
 /** Cookies are Secure in production unless the site still runs on plain HTTP (INSECURE_COOKIES=1). */
 export const secureCookies = () => process.env.NODE_ENV === "production" && process.env.INSECURE_COOKIES !== "1";
 
+/**
+ * Ties a session to the user's current password and session version: changing the password or
+ * «خروج از همهٔ دستگاه‌ها» ends every other session.
+ */
+const sessionTag = (user: AdminUser | undefined) => (user ? sign(`${user.password}|${user.sv ?? 0}`).slice(0, 16) : "");
+
 export async function createSession(username: string) {
   const exp = Date.now() + SESSION_DAYS * 86_400_000;
-  const payload = Buffer.from(JSON.stringify({ u: username, exp })).toString("base64url");
+  const v = sessionTag(getUsers().find((x) => x.username === username));
+  const payload = Buffer.from(JSON.stringify({ u: username, exp, v })).toString("base64url");
   (await cookies()).set(COOKIE, `${payload}.${sign(payload)}`, {
     httpOnly: true,
     sameSite: "lax",
@@ -118,10 +125,11 @@ export async function currentUser(): Promise<string | null> {
   const expected = sign(payload);
   if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   try {
-    const { u, exp } = JSON.parse(Buffer.from(payload, "base64url").toString());
+    const { u, exp, v } = JSON.parse(Buffer.from(payload, "base64url").toString());
     if (typeof u !== "string" || Date.now() > exp) return null;
-    // A deleted user's cookie stops working immediately.
-    if (!getUsers().some((x) => x.username === u)) return null;
+    // A deleted user's cookie stops working immediately; so does one from before a password change.
+    const user = getUsers().find((x) => x.username === u);
+    if (!user || v !== sessionTag(user)) return null;
     return u;
   } catch {
     return null;

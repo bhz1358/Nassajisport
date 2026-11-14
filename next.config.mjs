@@ -16,6 +16,29 @@ const nextConfig = {
       { key: "X-Frame-Options", value: "SAMEORIGIN" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+      // Where pages may load things from. Scripts only from this site (Next's own inline
+      // bootstrap needs 'unsafe-inline'); no plugins; frames only from the video sites posts embed;
+      // the page may talk only to this site, so injected code couldn't send data elsewhere.
+      {
+        key: "Content-Security-Policy",
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline'",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob: https:",
+          "media-src 'self' blob: https:",
+          "font-src 'self' data:",
+          "connect-src 'self'",
+          "frame-src https://www.aparat.com https://aparat.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "frame-ancestors 'self'",
+        ].join("; "),
+      },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      // Once the site runs on HTTPS (SITE_URL https://…), browsers must keep using it.
+      ...(process.env.SITE_URL?.startsWith("https://") ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }] : []),
     ];
     return [
       { source: "/:path*", headers: common },

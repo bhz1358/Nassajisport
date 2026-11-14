@@ -96,3 +96,22 @@ sudo systemctl start nassaji
 ```
 
 پشتیبان‌ها روی همین سرورند. یک نسخه را هر از گاهی جای دیگری هم نگه دارید.
+
+## Security hardening
+
+After `install.sh` (and again after re-running it), run once as root:
+
+```
+sudo bash deploy/harden.sh
+```
+
+It hides the nginx version and rate-limits requests (sign-in pages strictly), opens only SSH/HTTP/HTTPS
+in the firewall (ufw), bans repeated SSH guessing and sign-in flooding (fail2ban), turns on
+automatic security updates, runs the site with fewer rights (systemd), locks down the secrets file
+and data folder, and turns off direct root login over SSH (password login stays on). Every step
+checks itself and is undone if it would break the site or SSH.
+
+The admin login itself has a captcha (self-hosted image), locks an account for 15 minutes after
+6 wrong passwords, logs every attempt (panel → «حساب من») and reports logins from new addresses
+and account locks to the backup chat in Bale. Changing a password or «خروج از همهٔ دستگاه‌های
+دیگر» ends all other sessions.
