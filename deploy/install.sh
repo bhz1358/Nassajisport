@@ -170,6 +170,8 @@ EnvironmentFile=$ENV_FILE
 ExecStart=/usr/local/bin/node --network-family-autoselection-attempt-timeout=3000 $APP_DIR/node_modules/next/dist/bin/next start -H 127.0.0.1 -p $PORT
 Restart=always
 RestartSec=3
+# Node exits with 143 when systemd stops it (updates, restarts): that is a normal stop.
+SuccessExitStatus=143
 NoNewPrivileges=true
 ProtectSystem=full
 ReadWritePaths=$DATA_DIR $APP_DIR/.next
