@@ -19,9 +19,9 @@ export async function POST() {
   const fresh = !s || Date.now() > s.until;
   if (!fresh && s.n >= 10) return NextResponse.json({ error: "تعداد درخواست‌ها زیاد بود؛ چند دقیقهٔ دیگر دوباره امتحان کنید." }, { status: 429 });
   starts.set(ip, { n: fresh ? 1 : s.n + 1, until: fresh ? Date.now() + 600_000 : s.until });
-  const { id, code, link } = await startTelegramLogin();
+  const { id, code, link, app, bot } = await startTelegramLogin();
   (await cookies()).set(COOKIE, id, { httpOnly: true, sameSite: "lax", secure: secureCookies(), path: "/", maxAge: 900 });
-  return NextResponse.json({ code, link });
+  return NextResponse.json({ code, link, app, bot });
 }
 
 /** Where the sign-in is; when the bot has the phone, signs the fan in. */

@@ -71,7 +71,7 @@ async function botUsername(): Promise<string | undefined> {
 }
 
 /** Starts a sign-in: a secret id (kept in the browser's cookie) and the code shown on the page. */
-export async function startTelegramLogin(): Promise<{ id: string; code: string; link?: string }> {
+export async function startTelegramLogin(): Promise<{ id: string; code: string; link?: string; app?: string; bot?: string }> {
   const logins = live(state().logins);
   let code = "";
   do code = String(crypto.randomInt(100000, 1000000));
@@ -79,7 +79,9 @@ export async function startTelegramLogin(): Promise<{ id: string; code: string; 
   const id = crypto.randomBytes(18).toString("base64url");
   save({ logins: [...logins, { id, code, created: Date.now(), status: "pending" }] });
   const user = await botUsername();
-  return { id, code, link: user ? `${web()}/${user}?start=${code}` : undefined };
+  if (!user) return { id, code };
+  // tg:// opens the Telegram app itself (t.me is filtered in Iran); t.me is the fallback.
+  return { id, code, bot: user, app: `tg://resolve?domain=${user}&start=${code}`, link: `${web()}/${user}?start=${code}` };
 }
 
 const faDigits = (s: string) => s.replace(/[۰-۹]/g, (c) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(c))).replace(/[٠-٩]/g, (c) => String("٠١٢٣٤٥٦٧٨٩".indexOf(c)));

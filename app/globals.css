@@ -1530,3 +1530,5 @@ a.pitch-player:hover span { background: var(--acc-600); color: var(--on-acc); }
 .bale-choices { display: grid; gap: 10px; }
 .bale-start.via-telegram { background: #229ed9; border-color: #229ed9; color: #fff; }
 .bale-switch { justify-self: start; background: none; border: 0; padding: 4px 0; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: 0.88rem; }
+.bale-open.via-telegram { background: #229ed9; border-color: #229ed9; color: #fff; }
+.bale-alt { display: block; margin-top: 8px; color: var(--muted); font-size: 0.85rem; line-height: 1.8; }

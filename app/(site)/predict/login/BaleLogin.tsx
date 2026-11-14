@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 type Via = "bale" | "telegram";
 type Step =
   | { kind: "idle" }
-  | { kind: "wait"; via: Via; code: string; link?: string; inBot: boolean; error?: string }
+  | { kind: "wait"; via: Via; code: string; link?: string; app?: string; bot?: string; inBot: boolean; error?: string }
   | { kind: "expired"; via: Via }
   | { kind: "error"; message: string };
 
@@ -66,8 +66,9 @@ export function BaleLogin({ next, via = ["bale"] }: { next: string; via?: Via[] 
       const res = await fetch(MESSENGERS[which].url, { method: "POST" });
       const r = await res.json();
       if (!res.ok) return setStep({ kind: "error", message: r.error ?? "ورود فعلاً ممکن نیست." });
-      setStep({ kind: "wait", via: which, code: r.code, link: r.link, inBot: false });
-      if (r.link) window.open(r.link, "_blank", "noopener");
+      setStep({ kind: "wait", via: which, code: r.code, link: r.link, app: r.app, bot: r.bot, inBot: false });
+      // Bale opens in a new tab; Telegram through its app link (the fan taps the button).
+      if (which === "bale" && r.link) window.open(r.link, "_blank", "noopener");
     } catch {
       setStep({ kind: "error", message: "اتصال به سایت برقرار نشد؛ دوباره امتحان کنید." });
     } finally {
@@ -77,16 +78,31 @@ export function BaleLogin({ next, via = ["bale"] }: { next: string; via?: Via[] 
 
   if (step.kind === "wait") {
     const m = MESSENGERS[step.via];
-    const bot = step.link?.match(m.host)?.[1];
+    const bot = step.bot ?? step.link?.match(m.host)?.[1];
+    const open = step.app ?? step.link;
     return (
       <div className={`bale-login via-${step.via}`}>
         <ol className="bale-steps">
           <li className={step.inBot ? "done" : "now"}>
-            {m.app} را باز کنید و در {m.bot} «شروع» (Start) را بزنید.
-            {step.link && (
-              <a href={step.link} target="_blank" rel="noopener" className="btn btn-primary bale-open">
-                باز کردن {m.app}
+            {bot ? (
+              <>
+                {m.bot} <b dir="ltr">@{bot}</b> را در {m.app} باز کنید و «شروع» (Start) را بزنید.
+              </>
+            ) : (
+              <>{m.app} را باز کنید و در {m.bot} «شروع» (Start) را بزنید.</>
+            )}
+            {open && (
+              <a href={open} target={step.app ? undefined : "_blank"} rel="noopener" className={`btn btn-primary bale-open via-${step.via}`}>
+                {bot ? `باز کردن @${bot} در ${m.app}` : `باز کردن ${m.app}`}
               </a>
+            )}
+            {step.app && step.link && (
+              <small className="bale-alt">
+                باز نشد؟ در {m.app} نام <b dir="ltr">{bot}</b> را جستجو کنید، یا{" "}
+                <a href={step.link} target="_blank" rel="noopener" dir="ltr">
+                  {step.link.replace(/^https?:\/\//, "").replace(/\?.*$/, "")}
+                </a>
+              </small>
             )}
           </li>
           <li className={step.inBot ? "now" : ""}>در {m.app} دکمهٔ «📱 ارسال شمارهٔ من» را بزنید.</li>
