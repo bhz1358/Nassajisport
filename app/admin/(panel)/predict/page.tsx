@@ -8,7 +8,8 @@ import { getFans, saveFans } from "@/lib/fans";
 import { removeAvatar } from "@/lib/fan-avatar";
 import { reminderState, runReminders } from "@/lib/reminders";
 import { writeStore } from "@/lib/store";
-import { fanChat } from "@/lib/fans";
+import { fanReach } from "@/lib/fans";
+import { hasTelegramLogin, telegramLoginBotInfo, telegramLoginState } from "@/lib/telegram-login";
 import { str, withError } from "@/lib/form";
 import { faDate, faNum } from "@/lib/format";
 import { getLeague } from "@/lib/league";
@@ -24,6 +25,19 @@ async function testBale() {
   try {
     const me = await baleBotInfo();
     msg = `اتصال برقرار است؛ بازو: @${me.username}${me.name ? ` (${me.name})` : ""}`;
+  } catch (e) {
+    redirect(withError(BACK, (e as Error).message));
+  }
+  redirect(`${BACK}?ok=${encodeURIComponent(msg)}`);
+}
+
+async function testTelegram() {
+  "use server";
+  await requireAccess("users");
+  let msg = "";
+  try {
+    const me = await telegramLoginBotInfo();
+    msg = `اتصال برقرار است؛ ربات تلگرام: @${me.username}${me.name ? ` (${me.name})` : ""}`;
   } catch (e) {
     redirect(withError(BACK, (e as Error).message));
   }
@@ -71,7 +85,9 @@ export default async function PredictAdmin({ searchParams }: { searchParams: Pro
   const bale = baleState();
   const token = hasBaleToken();
   const rem = reminderState();
-  const reachable = fans.filter((f) => fanChat(f) && f.remind !== false && !f.blocked).length;
+  const reachable = fans.filter((f) => fanReach(f) && f.remind !== false && !f.blocked).length;
+  const tg = telegramLoginState();
+  const tgToken = hasTelegramLogin();
   const table = (rows: ReturnType<typeof seasonTable>) =>
     rows.length ? (
       <div className="a-table-wrap">
@@ -122,15 +138,36 @@ export default async function PredictAdmin({ searchParams }: { searchParams: Pro
           <p className="a-hint">صفحهٔ مسابقه در سایت: <a href="/predict/" target="_blank">/predict/</a> — برای نمایش در منوی سایت، از بخش «منوها» یک پیوند به همین آدرس اضافه کنید.</p>
         </div>
         <div className="a-card">
+          <h2>ورود با تلگرام</h2>
+          <p>
+            توکن ربات: {tgToken ? <span className="a-tag is-ok">تنظیم شده</span> : <span className="a-tag">تنظیم نشده</span>}
+            {tg.botUsername && <> · ربات: <span dir="ltr">@{tg.botUsername}</span></>}
+          </p>
+          {!tgToken && (
+            <p className="a-hint">
+              یک ربات جدا در BotFather بسازید (نه ربات کانال) و در فایل <code dir="ltr">/etc/nassaji.env</code> خط{" "}
+              <code dir="ltr">TELEGRAM_LOGIN_BOT_TOKEN=…</code> را اضافه کنید، بعد <code dir="ltr">sudo systemctl restart nassaji</code>. توکن را در پنل یا چت ننویسید.
+              دکمهٔ «ورود با تلگرام» بعد از آن در صفحهٔ ورود ظاهر می‌شود.
+            </p>
+          )}
+          {tg.lastError && <p className="a-flash is-error">آخرین خطا: {tg.lastError}</p>}
+          {tg.lastPoll && <p className="a-hint">آخرین بررسی پیام‌های ربات: {faDate(tg.lastPoll)}</p>}
+          {tgToken && (
+            <form action={testTelegram}>
+              <SubmitButton className="a-btn" pendingText="در حال تست…">تست اتصال به تلگرام</SubmitButton>
+            </form>
+          )}
+        </div>
+        <div className="a-card">
           <h2>آمار</h2>
-          <p>هواداران ثبت‌نام‌کرده: <b>{faNum(fans.length)}</b></p>
+          <p>هواداران ثبت‌نام‌کرده: <b>{faNum(fans.length)}</b> (بله: {faNum(fans.filter((f) => f.baleId || f.baleChat).length)} · تلگرام: {faNum(fans.filter((f) => f.tgId || f.tgChat).length)})</p>
           <p>پیش‌بینی‌های ثبت‌شده: <b>{faNum(preds.length)}</b></p>
           <p className="a-hint">شماره‌ها فقط در همین صفحه و فقط برای مدیر کل نمایش داده می‌شود (برای تماس با برندگان).</p>
         </div>
       </div>
 
       <section className="a-card" id="reminders">
-        <h2>یادآوری‌های بله</h2>
+        <h2>یادآوری‌ها (بله و تلگرام)</h2>
         <p className="a-hint">
           بازو خودکار به هوادارها پیام می‌دهد: <b>۲ ساعت پیش از</b> اولین بازی روز که پیش‌بینی نکرده‌اند (روزی یک پیام)، و <b>بعد از پایان هر هفته</b> امتیاز و رتبه‌شان را.
           هر هوادار با فرستادن «توقف» به بازو، یا از صفحهٔ پروفایلش، یادآوری‌ها را خاموش می‌کند.

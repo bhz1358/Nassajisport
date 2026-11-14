@@ -42,7 +42,7 @@ export default async function PredictMe({ searchParams }: { searchParams: Promis
         <label>
           <input type="checkbox" name="remind" defaultChecked={fan.remind !== false} />
           <span>
-            <b>یادآوری در بله</b>
+            <b>یادآوری در {fan.baleId || fan.baleChat || !(fan.tgId || fan.tgChat) ? "بله" : "تلگرام"}</b>
             <small>۲ ساعت پیش از بازی‌هایی که پیش‌بینی نکرده‌اید، و امتیاز و رتبه‌تان بعد از هر هفته.</small>
           </span>
         </label>

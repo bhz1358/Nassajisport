@@ -80,7 +80,7 @@ export default async function PredictPage({ searchParams }: { searchParams: Prom
             </div>
           ) : (
             <div className="predict-cta">
-              <p>برای شرکت در مسابقه با حساب «بله» وارد شوید؛ چند ثانیه طول می‌کشد و رمز عبور لازم ندارد.</p>
+              <p>برای شرکت در مسابقه با حساب «بله» یا «تلگرام» وارد شوید؛ چند ثانیه طول می‌کشد و رمز عبور لازم ندارد.</p>
               <Link href={`/predict/login/?next=${encodeURIComponent(`/predict/?week=${week}`)}`} className="btn btn-primary">ورود و شرکت در مسابقه</Link>
             </div>
           )}

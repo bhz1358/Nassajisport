@@ -60,7 +60,7 @@ export default async function RatingsPage({ searchParams }: { searchParams: Prom
           {!open && mine && <p className="ratings-mine-note">نمره‌های شما ثبت شده است و فقط قابل دیدن است؛ مهلت تغییرش تمام شده.</p>}
           {open && !fan && (
             <div className="predict-cta">
-              <p>برای نمره دادن با حساب «بله» وارد شوید (همان حساب مسابقهٔ پیش‌بینی).</p>
+              <p>برای نمره دادن با حساب «بله» یا «تلگرام» وارد شوید (همان حساب مسابقهٔ پیش‌بینی).</p>
               <Link href="/predict/login/?next=/ratings/" className="btn btn-primary">ورود و نمره دادن</Link>
             </div>
           )}

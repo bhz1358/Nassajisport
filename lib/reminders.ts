@@ -2,7 +2,8 @@
 // summary when a week is over. Run by the scheduler (instrumentation.ts) every few minutes.
 
 import { hasBaleToken, pollBale, sendBale, siteUrl } from "./bale-login";
-import { fanChat, getFans } from "./fans";
+import { fanReach, getFans } from "./fans";
+import { hasTelegramLogin, pollTelegramLogin, sendTelegram } from "./telegram-login";
 import { faNum, faTime } from "./format";
 import { getLeague } from "./league";
 import { getPredictions } from "./predictions";
@@ -39,10 +40,11 @@ let running = false;
 
 /** One round: read the bot's messages, then send what is due. Returns how many messages went out. */
 export async function runReminders(now = Date.now()): Promise<number> {
-  if (running || !hasBaleToken()) return 0;
+  if (running || (!hasBaleToken() && !hasTelegramLogin())) return 0;
   running = true;
   try {
-    await pollBale(true);
+    if (hasBaleToken()) await pollBale(true);
+    if (hasTelegramLogin()) await pollTelegramLogin(true);
     const state = reminderState();
     state.lastRun = new Date(now).toISOString();
     if (!state.enabled) {
@@ -51,7 +53,16 @@ export async function runReminders(now = Date.now()): Promise<number> {
     }
     const league = getLeague();
     const fans = getFans();
-    const rfans: ReminderFan[] = fans.map((f) => ({ id: f.id, name: f.name, blocked: f.blocked, chat: fanChat(f), remind: f.remind }));
+    // A fan is reached in Bale if they have it (and its bot is set up), else in Telegram.
+    const reach = new Map<string, "bale" | "telegram">();
+    const rfans: ReminderFan[] = fans.map((f) => {
+      let r = fanReach(f);
+      if (r?.via === "bale" && !hasBaleToken()) r = f.tgChat ?? f.tgId ? { via: "telegram", chat: (f.tgChat ?? f.tgId)! } : undefined;
+      if (r?.via === "telegram" && !hasTelegramLogin()) r = undefined;
+      if (r) reach.set(f.id, r.via);
+      return { id: f.id, name: f.name, blocked: f.blocked, chat: r?.chat, remind: f.remind };
+    });
+    const send = (fan: ReminderFan, text: string) => (reach.get(fan.id) === "telegram" ? sendTelegram(fan.chat!, text) : sendBale(fan.chat!, text));
     const preds = getPredictions();
     const site = siteUrl();
     let sent = 0;
@@ -61,7 +72,7 @@ export async function runReminders(now = Date.now()): Promise<number> {
       const lines = r.matches.map((f) => `• ${f.home} – ${f.away} (ساعت ${faTime(f.date)})`).join("\n");
       const text = `⏰ یادآوری مسابقهٔ پیش‌بینی نساجی اسپرت\n\nاین بازی‌ها را هنوز پیش‌بینی نکرده‌اید:\n${lines}\n\nپیش‌بینی هر بازی تا لحظهٔ شروعش باز است${site ? `:\n${site}/predict/` : "."}${footer}`;
       try {
-        await sendBale(r.fan.chat!, text);
+        await send(r.fan, text);
         sent++;
       } catch {
         /* blocked the bot, or Bale is unreachable: don't retry this day */
@@ -83,7 +94,7 @@ export async function runReminders(now = Date.now()): Promise<number> {
         `\n\nنمره‌دهی تا ۴۸ ساعت بعد از شروع بازی باز است.${footer}`;
       for (const f of rfans.filter((x) => x.chat && x.remind !== false && !x.blocked)) {
         try {
-          await sendBale(f.chat!, text);
+          await send(f, text);
           n++;
         } catch {
           /* skip */
@@ -112,7 +123,7 @@ export async function runReminders(now = Date.now()): Promise<number> {
           (site ? `\n\nجدول کامل هفته:\n${site}/predict/table/?week=${week}\nپیش‌بینی هفتهٔ بعد:\n${site}/predict/` : "") +
           footer;
         try {
-          await sendBale(s.fan.chat!, text);
+          await send(s.fan, text);
           n++;
         } catch {
           /* skip this fan */

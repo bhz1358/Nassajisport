@@ -1,4 +1,5 @@
-// Fans who sign in to take part in the prediction contest (phone verified through the Bale bot).
+// Fans who sign in to take part in the prediction contest (phone verified through the Bale or
+// Telegram bot; the same number is the same fan in both).
 
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
@@ -7,11 +8,14 @@ import { readStore, writeStore } from "./store";
 
 export type Fan = {
   id: string;
-  /** 09xxxxxxxxx, verified by Bale; never shown on the site. */
+  /** 09xxxxxxxxx, verified by Bale or Telegram; never shown on the site. */
   phone: string;
   baleId?: number;
   /** The fan's private chat with the bot (reminders go there). */
   baleChat?: number;
+  /** Telegram account and private chat with the login bot, when the fan signed in with Telegram. */
+  tgId?: number;
+  tgChat?: number;
   /** Reminders in Bale; on unless the fan turned them off. */
   remind?: boolean;
   name: string;
@@ -30,16 +34,21 @@ export const getFans = () => readStore<Fan[]>("fans", () => []);
 export const saveFans = (fans: Fan[]) => writeStore("fans", fans);
 
 /** The fan with this phone, created on first sign-in with a placeholder name. */
-export function fanForPhone(phone: string, baleId?: number, baleChat?: number): Fan {
+export function fanForPhone(phone: string, baleId?: number, baleChat?: number, tg?: { tgId?: number; tgChat?: number }): Fan {
   const fans = getFans();
+  const ids = {
+    ...(baleId ? { baleId } : {}),
+    ...(baleChat ? { baleChat } : {}),
+    ...(tg?.tgId ? { tgId: tg.tgId } : {}),
+    ...(tg?.tgChat ? { tgChat: tg.tgChat } : {}),
+  };
   const found = fans.find((f) => f.phone === phone);
   if (found) {
-    if ((baleId && found.baleId !== baleId) || (baleChat && found.baleChat !== baleChat)) {
-      saveFans(fans.map((f) => (f.id === found.id ? { ...f, baleId: baleId ?? f.baleId, baleChat: baleChat ?? f.baleChat } : f)));
-    }
-    return found;
+    const next = { ...found, ...ids };
+    if (JSON.stringify(next) !== JSON.stringify(found)) saveFans(fans.map((f) => (f.id === found.id ? next : f)));
+    return next;
   }
-  const fan: Fan = { id: crypto.randomBytes(8).toString("hex"), phone, baleId, baleChat, name: `هوادار ${phone.slice(-4)}`, createdAt: new Date().toISOString() };
+  const fan: Fan = { id: crypto.randomBytes(8).toString("hex"), phone, ...ids, name: `هوادار ${phone.slice(-4)}`, createdAt: new Date().toISOString() };
   saveFans([...fans, fan]);
   return fan;
 }
@@ -77,3 +86,10 @@ export function nameProblem(name: string, fanId: string): string | undefined {
 
 /** Where the bot can reach the fan (in Bale a private chat's id is the user's id). */
 export const fanChat = (f: Fan) => f.baleChat ?? f.baleId;
+/** Where reminders reach the fan: Bale first, else Telegram. */
+export const fanReach = (f: Fan): { via: "bale" | "telegram"; chat: number } | undefined => {
+  const bale = fanChat(f);
+  if (bale) return { via: "bale", chat: bale };
+  const tg = f.tgChat ?? f.tgId;
+  return tg ? { via: "telegram", chat: tg } : undefined;
+};
