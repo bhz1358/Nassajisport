@@ -24,6 +24,12 @@ NODE_MAJOR=22
 PORT="${PORT:-3000}"
 DOMAIN="${DOMAIN:-}"
 EMAIL="${EMAIL:-}"
+# The domain and e-mail given once are remembered, so later updates (update.sh) keep HTTPS.
+DEPLOY_CONF=/etc/nassaji-deploy.conf
+if [[ -z "$DOMAIN" && -f "$DEPLOY_CONF" ]]; then
+  # shellcheck disable=SC1090
+  . "$DEPLOY_CONF"
+fi
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
@@ -184,7 +190,13 @@ SERVER_NAME="${DOMAIN:-_}"
 LISTEN6=""
 [[ -s /proc/net/if_inet6 ]] && LISTEN6="listen [::]:80;"
 [[ -n "$DOMAIN" ]] && SERVER_NAME="$DOMAIN www.$DOMAIN"
-cat > /etc/nginx/sites-available/nassaji <<EOF
+SITE_CONF=/etc/nginx/sites-available/nassaji
+# A config that certbot already set up for this domain is kept as it is (with its HTTPS part
+# and the hardening from harden.sh); otherwise it is (re)written.
+if [[ -n "$DOMAIN" && -f $SITE_CONF ]] && grep -q "managed by Certbot" $SITE_CONF && grep -qE "server_name[^;]*\b$DOMAIN\b" $SITE_CONF; then
+  echo "Keeping the HTTPS nginx config for $DOMAIN."
+else
+cat > $SITE_CONF <<EOF
 server {
     listen 80;
     $LISTEN6
@@ -204,6 +216,12 @@ server {
     }
 }
 EOF
+fi
+# Hardening (deploy/harden.sh) was applied before: keep it in a rewritten config.
+if [[ -f /etc/nginx/snippets/nassaji-security.conf ]] && ! grep -q "snippets/nassaji-security.conf" $SITE_CONF; then
+  sed -i '/^\s*server_name /a\    include snippets/nassaji-security.conf;' $SITE_CONF
+  grep -q "zone=ns_site" $SITE_CONF || sed -i '0,/^\s*location \/ {/s//    location \/ {\n        limit_req zone=ns_site burst=200 nodelay;/' $SITE_CONF
+fi
 ln -sf /etc/nginx/sites-available/nassaji /etc/nginx/sites-enabled/nassaji
 [[ -z "$DOMAIN" ]] && rm -f /etc/nginx/sites-enabled/default
 nginx -t
@@ -214,14 +232,29 @@ if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then
 fi
 
 # ---------------------------------------------------------------- HTTPS
-if [[ -n "$DOMAIN" && -n "$EMAIL" ]]; then
+set_env() { # KEY VALUE: set one line of the settings file
+  if grep -q "^$1=" "$ENV_FILE"; then sed -i "s#^$1=.*#$1=$2#" "$ENV_FILE"; else echo "$1=$2" >> "$ENV_FILE"; fi
+}
+https_on() {
+  sed -i '/^INSECURE_COOKIES=/d' "$ENV_FILE"
+  set_env SITE_URL "https://$DOMAIN"
+  printf 'DOMAIN=%q\nEMAIL=%q\n' "$DOMAIN" "$EMAIL" > "$DEPLOY_CONF"
+  chmod 600 "$DEPLOY_CONF"
+  systemctl restart nassaji
+}
+if [[ -n "$DOMAIN" && -f /etc/letsencrypt/live/$DOMAIN/fullchain.pem ]] && grep -q "managed by Certbot" /etc/nginx/sites-available/nassaji; then
+  say "HTTPS for $DOMAIN is already set up (certbot renews it by itself)"
+  https_on
+elif [[ -n "$DOMAIN" && -n "$EMAIL" ]]; then
   say "Requesting an HTTPS certificate for $DOMAIN"
   apt-get install -y certbot python3-certbot-nginx
-  if certbot --nginx --non-interactive --agree-tos -m "$EMAIL" -d "$DOMAIN" -d "www.$DOMAIN" --redirect; then
-    sed -i '/^INSECURE_COOKIES=/d' "$ENV_FILE"
-    systemctl restart nassaji
+  NAMES=(-d "$DOMAIN")
+  # www only when its DNS record exists (otherwise the whole request would fail).
+  getent hosts "www.$DOMAIN" >/dev/null && NAMES+=(-d "www.$DOMAIN")
+  if certbot --nginx --non-interactive --agree-tos -m "$EMAIL" "${NAMES[@]}" --redirect --keep-until-expiring; then
+    https_on
   else
-    warn "Certificate failed (is $DOMAIN pointing at this server and port 80 open?). The site keeps running on HTTP."
+    warn "Certificate failed (is $DOMAIN pointing at this server and port 80 open to the internet?). The site keeps running on HTTP."
     grep -q '^INSECURE_COOKIES=' "$ENV_FILE" || echo "INSECURE_COOKIES=1" >> "$ENV_FILE"
     systemctl restart nassaji
   fi

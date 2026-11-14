@@ -3,7 +3,7 @@
 #   sudo bash deploy/harden.sh
 # What it does:
 #   1. nginx: hides its version, limits request rates (sign-in pages strictly), refuses hidden
-#      files and unknown host names, short timeouts against slow-request attacks.
+#      files, short timeouts against slow-request attacks.
 #   2. firewall (ufw): only SSH, HTTP and HTTPS are open; the site's own port (3000) is closed.
 #   3. fail2ban: bans addresses that keep guessing SSH passwords or hammer the sign-in pages.
 #   4. automatic security updates (unattended-upgrades).
@@ -70,24 +70,11 @@ if [[ -f $SITE ]]; then
     sed -i '0,/^\s*location \/ {/s//    location \/ {\n        limit_req zone=ns_site burst=200 nodelay;/' "$SITE"
   fi
 fi
-# Requests for host names that aren't this site (scanners hitting the bare IP with junk names)
-# get no answer, when a domain is configured.
-if [[ -f $SITE ]] && grep -qE '^\s*server_name\s+[a-z0-9.-]+\.[a-z]+' "$SITE" && [[ ! -f /etc/nginx/sites-enabled/nassaji-default ]]; then
-  cat > /etc/nginx/sites-available/nassaji-default <<'EOF'
-server {
-    listen 80 default_server;
-    server_name _;
-    return 444;
-}
-EOF
-  ln -sf /etc/nginx/sites-available/nassaji-default /etc/nginx/sites-enabled/nassaji-default
-fi
 if nginx -t 2>/dev/null; then
   systemctl reload nginx
 else
   echo "nginx config test failed; restoring the previous site file."
   [[ -f $SITE.before-harden ]] && cp "$SITE.before-harden" "$SITE"
-  rm -f /etc/nginx/sites-enabled/nassaji-default
   nginx -t && systemctl reload nginx
 fi
 
