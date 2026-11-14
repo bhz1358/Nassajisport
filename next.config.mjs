@@ -37,8 +37,8 @@ const nextConfig = {
         ].join("; "),
       },
       { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-      // Once the site runs on HTTPS (SITE_URL https://…), browsers must keep using it.
-      ...(process.env.SITE_URL?.startsWith("https://") ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }] : []),
+      // Strict-Transport-Security is sent by nginx (deploy/harden.sh): the build doesn't see the
+      // server's settings, so it couldn't know when the site runs on HTTPS.
     ];
     return [
       { source: "/:path*", headers: common },

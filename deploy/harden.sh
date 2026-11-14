@@ -43,6 +43,8 @@ EOF
 
 cat > /etc/nginx/snippets/nassaji-security.conf <<EOF
 # Nassaji Sport (deploy/harden.sh). Included in the site's server blocks.
+# Over HTTPS, browsers must keep using HTTPS for a year (ignored on plain HTTP).
+add_header Strict-Transport-Security "max-age=31536000" always;
 # Hidden files (.git, .env …) are never served.
 location ~ /\.(?!well-known) { deny all; return 404; }
 
