@@ -70,10 +70,17 @@ if [[ -f $SITE ]]; then
     sed -i '0,/^\s*location \/ {/s//    location \/ {\n        limit_req zone=ns_site burst=200 nodelay;/' "$SITE"
   fi
 fi
-if nginx -t 2>/dev/null; then
+# A server_tokens line in nginx.conf would clash with ours: comment it out.
+sed -i 's/^\(\s*server_tokens\s\)/# \1/' /etc/nginx/nginx.conf
+# Some nginx packages don't read conf.d/: include the zones from the http block directly.
+if ! grep -qE '^\s*include\s+/etc/nginx/conf\.d/\*\.conf' /etc/nginx/nginx.conf && ! grep -q "nassaji-limits.conf" /etc/nginx/nginx.conf; then
+  sed -i '0,/^\s*http\s*{/s//http {\n    include \/etc\/nginx\/conf.d\/nassaji-limits.conf;/' /etc/nginx/nginx.conf
+fi
+if nginx -t; then
   systemctl reload nginx
+  nginx -T 2>/dev/null | grep -q "zone=ns_site" && echo "nginx hardening is active."
 else
-  echo "nginx config test failed; restoring the previous site file."
+  echo "nginx config test failed (see above); restoring the previous site file."
   [[ -f $SITE.before-harden ]] && cp "$SITE.before-harden" "$SITE"
   nginx -t && systemctl reload nginx
 fi
